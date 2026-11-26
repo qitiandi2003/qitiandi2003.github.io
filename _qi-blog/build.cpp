@@ -17,7 +17,7 @@ using std::string;
 
 const fs::path destination = ".";
 const string github = "https://github.com/qitiandi2003";
-const string brand = "Qi‘blog";
+const string brand = "Qi’blog";
 
 struct Article {
     string slug, title, summary, intro, topic, category, group, keywords, published;
@@ -70,7 +70,7 @@ string icon(const string& name) {
 }
 
 string wordmark(const string& base) {
-    return "<a class='brand' href='" + base + "' aria-label='Qi‘blog 首页'><span lang='en'><span class='brand-name'>Qi</span><span class='brand-mark'>‘</span>blog</span></a>";
+    return "<a class='brand' href='" + base + "' aria-label='Qi’blog 首页'><span lang='en'><span class='brand-name'>Qi</span><span class='brand-mark'>’</span>blog</span></a>";
 }
 
 string header(const string& base, const string& page) {
@@ -98,7 +98,7 @@ string document(const string& base, const string& page, const string& title, con
         "<meta name='viewport' content='width=device-width,initial-scale=1'><meta name='theme-color' content='#ffffff'>"
         "<title>" + html_escape(title) + "</title><meta name='description' content='" + html_escape(desc) + "'>"
         "<link rel='icon' href='" + base + "assets/favicon.svg?v=wordmark-4' type='image/svg+xml'><link rel='stylesheet' href='" +
-        base + "assets/site.css?v=wordmark-4'><script defer src='" + base + "assets/search-index.js?v=reading-3'></script><script defer src='" + base +
+        base + "assets/site.css?v=wordmark-5'><script defer src='" + base + "assets/search-index.js?v=reading-3'></script><script defer src='" + base +
         "assets/site.js?v=reading-3'></script><noscript><style>.search-button,.filters{display:none}</style></noscript></head><body>" +
         header(base,page) + body + footer(base) + "</body></html>\n";
 }
@@ -300,7 +300,7 @@ string articlepage(const Article& a, const Article* previous, const Article* nex
 }
 
 string aboutpage() {
-    const string body = "<main id='main' class='wrap about-page'><div class='about-panel'><h1>关于 Qi‘blog</h1>"
+    const string body = "<main id='main' class='wrap about-page'><div class='about-panel'><h1>关于 Qi’blog</h1>"
         "<div class='about-text'><p>我是 Qi。这个博客写给刚开始学视觉、机器人和计算机系统的朋友。</p>"
         "<p>我喜欢从能观察到的现象入手：交替闭上左右眼，近处的手指会移动；两张扫描图叠在一起，墙面贴合了，墙角却可能还差几厘米。把现象画出来，给它添上一两个数字，许多术语就有了着落。</p>"
         "<p>第一次来，可以按<a href='../topics/'>学习专题</a>慢慢读。已经有了具体问题，可以在<a href='../notes/'>文章索引</a>里找关键词。</p></div></div></main>";
@@ -349,7 +349,7 @@ int main() try {
     write(destination/"topics/index.html",topics_page(library));
     write(destination/"about/index.html",aboutpage());
     write(destination/"assets/search-index.js","window.QI_ARTICLES = " + index.dump(2) + ";\n");
-    std::cout << "Built Qi‘blog with " << articles.size() << " articles.\n";
+    std::cout << "Built Qi’blog with " << articles.size() << " articles.\n";
 } catch (const std::exception& e) {
     std::cerr << e.what() << '\n';
     return 1;
