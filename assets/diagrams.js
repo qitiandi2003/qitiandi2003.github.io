@@ -163,8 +163,11 @@
     function update() {
       const w = plot.clientWidth, h = plot.clientHeight, scale = Math.min(devicePixelRatio || 1, 2);
       if (!w || !h) return;
-      canvas.width = Math.round(w * scale); canvas.height = Math.round(h * scale);
+      const width = Math.round(w * scale), height = Math.round(h * scale);
+      if (canvas.width !== width) canvas.width = width;
+      if (canvas.height !== height) canvas.height = height;
       ctx.setTransform(scale, 0, 0, scale, 0, 0);
+      ctx.setLineDash([]);
       ctx.fillStyle = paper; ctx.fillRect(0, 0, w, h);
       ctx.font = '14px "Noto Sans CJK SC","Microsoft YaHei",sans-serif';
       const [value, result] = render(ctx, w, h, Number(input.value));
@@ -173,9 +176,11 @@
       figure.querySelector('.figure-result').textContent = result;
       canvas.hidden = false; figure.querySelector('.poster').hidden = true; figure.querySelector('.figure-control').hidden = false;
     }
-    update();
     input.addEventListener('input', update);
     if ('ResizeObserver' in window) new ResizeObserver(update).observe(plot);
-    else window.addEventListener('resize', update);
+    else {
+      update();
+      window.addEventListener('resize', update);
+    }
   }
 })();

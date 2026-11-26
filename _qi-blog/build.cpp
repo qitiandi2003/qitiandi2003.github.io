@@ -86,7 +86,7 @@ string header(const string& base, const string& page) {
 string footer(const string& base) {
     return "<footer class='site-footer'><div class='wrap footer-inner'>" + wordmark(base) +
          "<span>© 2026 Qi</span><a href='" + base + "about/'>关于作者</a></div></footer>"
-         "<dialog id='search-dialog' class='search-dialog' aria-label='搜索文章'><div class='search-field'>" + icon("search") +
+         "<dialog id='search-dialog' class='search-dialog' aria-label='搜索文章' data-index-src='" + base + "assets/search-index.js?v=reading-3'><div class='search-field'>" + icon("search") +
          "<input id='search-input' type='search' aria-label='搜索文章关键词' placeholder='搜索文章或主题' autocomplete='off' spellcheck='false'>"
          "<button type='button' class='search-clear' data-clear-search hidden>清空</button>"
          "<button type='button' class='search-close' aria-label='关闭搜索' data-close-search>" + icon("close") +
@@ -95,7 +95,8 @@ string footer(const string& base) {
          "<button type='button' data-search-query='SLAM'>SLAM</button><button type='button' data-search-query='OpenCV'>OpenCV</button>"
          "<button type='button' data-search-query='3DGS'>3DGS</button></div></div>"
          "<p id='search-status' role='status' aria-atomic='true'></p><ul id='search-results' aria-label='搜索结果' hidden></ul>"
-         "<button type='button' class='search-more' data-more-search hidden></button></div></dialog>";
+         "<button type='button' class='search-more' data-more-search hidden></button>"
+         "<button type='button' class='search-retry' data-retry-search hidden>重新加载搜索</button></div></dialog>";
 }
 
 string document(const string& base, const string& page, const string& title, const string& desc, const string& body) {
@@ -103,8 +104,8 @@ string document(const string& base, const string& page, const string& title, con
         "<meta name='viewport' content='width=device-width,initial-scale=1'><meta name='theme-color' content='#ffffff'>"
         "<title>" + html_escape(title) + "</title><meta name='description' content='" + html_escape(desc) + "'>"
         "<link rel='icon' href='" + base + "assets/favicon.svg?v=wordmark-4' type='image/svg+xml'><link rel='stylesheet' href='" +
-        base + "assets/site.css?v=author-8'><script defer src='" + base + "assets/search-index.js?v=reading-3'></script><script defer src='" + base +
-        "assets/site.js?v=glass-7'></script><noscript><style>.search-button,.filters{display:none}</style></noscript></head><body>" +
+        base + "assets/site.css?v=perf-9'><script defer src='" + base + "assets/site.js?v=perf-9'></script>"
+        "<noscript><style>.search-button,.filters{display:none}</style></noscript></head><body>" +
         header(base,page) + body + footer(base) + "</body></html>\n";
 }
 
@@ -299,7 +300,7 @@ string articlepage(const Article& a, const Article* previous, const Article* nex
     chapter_link(previous,previous?"上一课":"学习路线");
     chapter_link(next,next?"下一课":"返回学习路线");
     out << "</nav></article></div></main>";
-    if(diagram) out << "<script defer src='../../assets/diagrams.js?v=reading-3'></script>";
+    if(diagram) out << "<script defer src='../../assets/diagrams.js?v=perf-9'></script>";
     if(a.slug=="ros2") out << "<script defer src='../../assets/ros-communication.js?v=reading-3'></script>";
     return document(base,"note",a.title+" · "+brand,a.summary,out.str());
 }

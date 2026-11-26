@@ -245,6 +245,7 @@ html.search-open { overflow: hidden; }
 .result-topic { font-size: .8rem; color: var(--muted); line-height: 1.5; }
 .search-more { width: 100%; padding: .75rem; margin-top: .5rem; border: 0; border-top: 1px solid var(--line); background: transparent; color: var(--soft); font-size: .875rem; }
 .search-more:hover { color: var(--blue); }
+.search-retry { margin-top: .8rem; padding: .55rem .8rem; border: 1px solid var(--line); border-radius: 8px; background: #f3f6faad; color: var(--blue); font-size: .9rem; }
 @media(max-width: 460px) {
   .search-dialog { width: calc(100% - 1.25rem); margin-top: 1rem; max-height: calc(100dvh - 2rem); border-radius: 14px; }
   .search-field { gap: .5rem; margin-inline: .65rem; padding-inline: .25rem; }
@@ -296,26 +297,26 @@ html.search-open { overflow: hidden; }
   .card-art img, .path-card img { transition: transform 400ms var(--ease); }
   .feature-read { transition: transform 240ms var(--ease); }
   .filters button:active, .search-keywords button:active, .search-close:active { transform: scale(.97); }
-  body::before { animation: light-arrive 900ms ease-out both; }
+  body::before { animation: light-arrive 300ms ease-out both; }
   @keyframes light-arrive { from { opacity: .35; } to { opacity: 1; } }
   @view-transition { navigation: auto; }
   .site-header { view-transition-name: site-header; }
-  ::view-transition-old(root) { animation: page-out 160ms ease-out both; }
-  ::view-transition-new(root) { animation: page-in 260ms var(--ease) both; }
-  ::view-transition-group(site-header) { animation-duration: 260ms; }
-  ::view-transition-old(site-header), ::view-transition-new(site-header) { animation-duration: 160ms; }
+  ::view-transition-old(root) { animation: page-out 120ms ease-out both; }
+  ::view-transition-new(root) { animation: page-in 180ms var(--ease) both; }
+  ::view-transition-group(root), ::view-transition-group(site-header) { animation-duration: 180ms; }
+  ::view-transition-old(site-header), ::view-transition-new(site-header) { animation-duration: 120ms; }
   @keyframes page-out { to { opacity: 0; } }
-  @keyframes page-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes page-in { from { opacity: .35; transform: translateY(3px); } to { opacity: 1; transform: none; } }
   .search-dialog, .figure-dialog {
     opacity: 0;
-    transform: translateY(8px) scale(.985);
-    transition: opacity 200ms var(--ease), transform 240ms var(--ease), overlay 240ms allow-discrete, display 240ms allow-discrete;
+    transform: translateY(4px) scale(.99);
+    transition: opacity 140ms var(--ease), transform 160ms var(--ease), overlay 160ms allow-discrete, display 160ms allow-discrete;
   }
   .search-dialog[open], .figure-dialog[open] { opacity: 1; transform: none; }
-  .search-dialog::backdrop, .figure-dialog::backdrop { opacity: 0; transition: opacity 240ms ease, overlay 240ms allow-discrete, display 240ms allow-discrete; }
+  .search-dialog::backdrop, .figure-dialog::backdrop { opacity: 0; transition: opacity 160ms ease, overlay 160ms allow-discrete, display 160ms allow-discrete; }
   .search-dialog[open]::backdrop, .figure-dialog[open]::backdrop { opacity: 1; }
   @starting-style {
-    .search-dialog[open], .figure-dialog[open] { opacity: 0; transform: translateY(8px) scale(.985); }
+    .search-dialog[open], .figure-dialog[open] { opacity: 0; transform: translateY(4px) scale(.99); }
     .search-dialog[open]::backdrop, .figure-dialog[open]::backdrop { opacity: 0; }
   }
 }
