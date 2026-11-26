@@ -1,0 +1,47 @@
+{
+  "slug": "ros2",
+  "title": "用 ROS 2 录包追踪第一次异常",
+  "summary": "定位轨迹突然跳变时，沿着消息时间、坐标变换和订阅关系回放，查出异常最早出现在哪一层。",
+  "sections": [
+    {
+      "title": "从一次具体动作开始",
+      "paragraphs": [
+        "Coding_Skills 仓库的 rosbag-diagnosis 笔记从现场事件切入。假设机器人转弯后轨迹发生跳变，可以用转弯开始时的角速度变化对齐不同记录，再把观察窗口缩到转弯前后几秒。如果应用日志采用墙钟、传感器消息使用设备时钟，直接相减可能得到没有物理意义的延迟。",
+        "用 ROS 2 Humble 的 `ros2 bag info <包目录>` 检查录制时段、话题、类型和消息数。举例说，标称 10 Hz 的激光雷达运行 60 秒，600 条是数量级参考。即使总数接近 600，仍要在故障窗口逐条查看时间戳间隔，因为短暂停顿可能被后续密集到达掩盖。"
+      ]
+    },
+    {
+      "title": "把每个观测放回对应的时间",
+      "paragraphs": [
+        "对带有 Header 的消息，分别记下采集时间 `header.stamp` 和录包保存的时间。再按同一时刻比对传感器输入、传感器到机体的坐标变换、定位结果和界面轨迹。对第一处偏离预期的记录，同时保留它的前一条正常记录，形成可核对的边界。",
+        "例如前后两帧扫描均正常到达，算法日志却在第二帧提示查不到该时刻的变换。下一步应检查变换覆盖的时间范围、父子坐标系名称和使用的时钟。只凭屏幕上轨迹跳动，还无法把原因归到点云匹配。"
+      ]
+    },
+    {
+      "title": "复现时让订阅关系也可见",
+      "paragraphs": [
+        "在独立的 ROS 域中只启动离线分析节点和回放，使用相同输入、起点和时间窗口比较两次输出。节点能列出话题却收不到消息时，运行 `ros2 topic info /scan --verbose`，分别查看发布端和订阅端的服务质量策略（QoS）。",
+        "以可靠性为例，发布端提供 `best effort`，订阅端要求 `reliable`，这一对端点不能交换消息。把测试订阅端改为兼容配置，再回放同一片段，记录是否收到数据。恢复接收后，继续检查原先那次转弯，最后选一段此前正常的运动作对照。"
+      ]
+    }
+  ],
+  "refs": [
+    {
+      "label": "仓库笔记 · 用录包定位首个异常",
+      "url": "https://github.com/qitiandi2003/Coding_Skills/blob/ce8f12283fb4df9b30ad3744aeac97939fdf0af7/skills/rosbag-diagnosis/SKILL.md"
+    },
+    {
+      "label": "ROS 2 Humble · 录制与回放教程",
+      "url": "https://github.com/ros2/ros2_documentation/blob/humble/source/Tutorials/Beginner-CLI-Tools/Recording-And-Playing-Back-Data/Recording-And-Playing-Back-Data.rst"
+    },
+    {
+      "label": "ROS 2 Humble · QoS 兼容性",
+      "url": "https://github.com/ros2/ros2_documentation/blob/humble/source/Concepts/Intermediate/About-Quality-of-Service-Settings.rst"
+    }
+  ],
+  "topic": "ROS 2",
+  "category": "系统与通信",
+  "group": "systems",
+  "keywords": "ROS2 ROS 2 rosbag2 QoS 机器人 录包 回放 TF",
+  "published": "2026-11-26"
+}

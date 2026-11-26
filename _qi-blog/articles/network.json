@@ -1,0 +1,47 @@
+{
+  "slug": "network",
+  "title": "一条 15 字节指令如何穿过 TCP",
+  "summary": "沿着自动定容系统的控制通道，理解字节流、半帧、连续帧，以及解析器应该在什么时刻交付一条命令。",
+  "sections": [
+    {
+      "title": "先在纸上排出一帧",
+      "paragraphs": [
+        "自动定容程序作为 TCP 客户端从上位机接收命令。公开协议把一条命令排成 15 字节。首字节为 `0xAA`，下一字节表示命令，接着是瓶高、刻度高度、目标容量三个大端序 32 位浮点数，末字节为 `0x55`。应用可以用固定偏移读取每个字段。",
+        "这里有两种消息方向。15 字节约定用于上位机发来的命令，设备发回的状态包有独立的布局。和上位机联调时，先在日志旁标出收发方向，再按相应格式解释字节。"
+      ]
+    },
+    {
+      "title": "两次读取，解出两帧",
+      "paragraphs": [
+        "TCP 按顺序交付字节。发送方写两次，接收方可能一次读完，也可能分多次才读全。假设发送方连续发来两条命令，接收方先得到 7 字节，再得到 23 字节。第一次读取应留下 7 字节，第二次追加后缓冲区已有 30 字节，足够依次解析两帧。",
+        "仓库中的 `ControlReader` 每次最多读取 64 字节，把收到的内容追加到缓冲区，再循环寻找帧头。剩余字节少于 15 时保留片段。凑齐后检查固定位置的帧尾并按大端序读取字段，成功后才向业务层交付。帧尾错位时丢弃当前候选帧头，再继续寻找。"
+      ]
+    },
+    {
+      "title": "让同一串字节经历不同的切分",
+      "paragraphs": [
+        "要单独验证边界处理，可准备两帧不同的命令，分别按 15＋15、7＋23，以及一次 30 字节喂给解析逻辑。三组实验都应交付两条命令，顺序和字段值相同。另一组只给首帧前 14 字节，补上最后一个字节之前，交付次数应为零。",
+        "如果帧数和顺序正确，数值仍异常，就挑一个易辨认的浮点数检查字节序。IEEE 754 单精度的 1.0 以大端序表示为 `3F 80 00 00`。用这一字段逐端核对，能把数值编码问题和缓冲区切分问题区分开。"
+      ]
+    }
+  ],
+  "refs": [
+    {
+      "label": "项目源码 · TCP 控制帧读取器",
+      "url": "https://github.com/qitiandi2003/Bottle-Automatic-Volume-Adjustment-System/blob/2b05f0ffdeec96da0b50e7a3503e209c0b1de5ef/src/bottle_volume_control/control/channel.py"
+    },
+    {
+      "label": "项目文档 · 上位机通信协议",
+      "url": "https://github.com/qitiandi2003/Bottle-Automatic-Volume-Adjustment-System/blob/2b05f0ffdeec96da0b50e7a3503e209c0b1de5ef/docs/CONFIGURATION.md"
+    },
+    {
+      "label": "IETF RFC 9293 · TCP 字节流",
+      "url": "https://www.rfc-editor.org/rfc/rfc9293.html#section-2.2"
+    }
+  ],
+  "topic": "计算机网络",
+  "category": "系统与通信",
+  "group": "systems",
+  "keywords": "TCP IP 计算机网络 字节序 半包 粘包 协议 socket",
+  "published": "2026-11-26"
+}
