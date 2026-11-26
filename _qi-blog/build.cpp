@@ -86,11 +86,17 @@ string header(const string& base, const string& page) {
 string footer(const string& base) {
     return "<footer class='site-footer'><div class='wrap footer-inner'>" + wordmark(base) +
          "<span>© 2026 Qi</span><a href='" + base + "about/'>关于作者</a></div></footer>"
-         "<dialog id='search-dialog' class='search-dialog' aria-labelledby='search-title'><div class='dialog-head'><h2 id='search-title'>搜索文章</h2>"
-         "<button type='button' class='icon-button' aria-label='关闭搜索' data-close-search>" + icon("close") +
-         "</button></div><div class='search-field'>" + icon("search") +
-         "<input id='search-input' type='search' aria-label='搜索文章关键词' placeholder='输入关键词，例如 ICP 或点云' autocomplete='off'></div>"
-         "<p id='search-status' role='status'></p><div id='search-results'></div></dialog>";
+         "<dialog id='search-dialog' class='search-dialog' aria-label='搜索文章'><div class='search-field'>" + icon("search") +
+         "<input id='search-input' type='search' aria-label='搜索文章关键词' placeholder='搜索文章或主题' autocomplete='off' spellcheck='false'>"
+         "<button type='button' class='search-clear' data-clear-search hidden>清空</button>"
+         "<button type='button' class='search-close' aria-label='关闭搜索' data-close-search>" + icon("close") +
+         "</button></div><div class='search-body'><div id='search-suggestions'><p class='search-label'>常用关键词</p>"
+         "<div class='search-keywords'><button type='button' data-search-query='ROS 2'>ROS 2</button>"
+         "<button type='button' data-search-query='SLAM'>SLAM</button><button type='button' data-search-query='OpenCV'>OpenCV</button>"
+         "<button type='button' data-search-query='3DGS'>3DGS</button></div></div>"
+         "<p id='search-status' role='status' aria-atomic='true'></p><ul id='search-results' aria-label='搜索结果' hidden></ul>"
+         "<button type='button' class='search-more' data-more-search hidden></button>"
+         "<a class='search-browse' href='" + base + "notes/'>浏览全部文章</a></div></dialog>";
 }
 
 string document(const string& base, const string& page, const string& title, const string& desc, const string& body) {
@@ -98,8 +104,8 @@ string document(const string& base, const string& page, const string& title, con
         "<meta name='viewport' content='width=device-width,initial-scale=1'><meta name='theme-color' content='#ffffff'>"
         "<title>" + html_escape(title) + "</title><meta name='description' content='" + html_escape(desc) + "'>"
         "<link rel='icon' href='" + base + "assets/favicon.svg?v=wordmark-4' type='image/svg+xml'><link rel='stylesheet' href='" +
-        base + "assets/site.css?v=wordmark-5'><script defer src='" + base + "assets/search-index.js?v=reading-3'></script><script defer src='" + base +
-        "assets/site.js?v=reading-3'></script><noscript><style>.search-button,.filters{display:none}</style></noscript></head><body>" +
+        base + "assets/site.css?v=search-6'><script defer src='" + base + "assets/search-index.js?v=reading-3'></script><script defer src='" + base +
+        "assets/site.js?v=search-6'></script><noscript><style>.search-button,.filters{display:none}</style></noscript></head><body>" +
         header(base,page) + body + footer(base) + "</body></html>\n";
 }
 

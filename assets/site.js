@@ -8,17 +8,26 @@
     const status = document.getElementById('search-status');
     if (!dialog || !input || !results || !status) return;
 
+    const suggestions = document.getElementById('search-suggestions');
+    const more = dialog.querySelector('[data-more-search]');
+    const clear = dialog.querySelector('[data-clear-search]');
+    const browse = dialog.querySelector('.search-browse');
+    const body = dialog.querySelector('.search-body');
     const articles = window.QI_ARTICLES || [];
     const base = document.documentElement.dataset.base || './';
-    const compact = value => value.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+    const normalize = value => value.normalize('NFKC').toLowerCase()
+      .replace(/\bros\s*2\b/gu, 'ros2').replace(/\bc\+\+/gu, 'cplusplus');
     let opener;
+    let visibleCount = 6;
 
     function score(article, terms) {
       const fields = [article.title, article.topic, article.slug, article.keywords, article.summary]
-        .map(value => compact(value || ''));
+        .map(value => normalize(value || ''));
       let total = 0;
       for (const term of terms) {
-        const index = fields.findIndex(field => field.includes(term));
+        const index = fields.findIndex(field => /\p{Script=Han}/u.test(term)
+          ? field.includes(term)
+          : (field.match(/[\p{Script=Latin}\p{N}]+/gu) || []).some(word => word.startsWith(term)));
         if (index === -1) return 0;
         total += fields.length - index;
         if (fields[index] === term) total += 2;
@@ -26,17 +35,17 @@
       return total;
     }
 
-    function renderResults() {
-      const query = input.value.normalize('NFKC').toLowerCase().trim();
+    function renderResults(resetScroll = true) {
+      const query = normalize(input.value).trim();
       const terms = query.replace(/(\p{Script=Han}+)/gu, ' $1 ').match(/[\p{L}\p{N}]+/gu) || [];
       const matches = terms.length
         ? articles.map(article => ({article, score: score(article, terms)}))
           .filter(match => match.score > 0)
           .sort((a, b) => b.score - a.score)
           .map(match => match.article)
-        : articles;
+        : [];
       const fragment = document.createDocumentFragment();
-      for (const article of matches) {
+      for (const article of matches.slice(0, visibleCount)) {
         const link = document.createElement('a');
         link.className = 'result-link';
         link.href = base + 'notes/' + encodeURIComponent(article.slug) + '/';
@@ -46,18 +55,31 @@
         const title = document.createElement('span');
         title.className = 'result-title';
         title.textContent = article.title;
-        link.append(topic, title);
-        if (results.matches('ul, ol')) {
-          const item = document.createElement('li');
-          item.append(link);
-          fragment.append(item);
-        } else {
-          fragment.append(link);
-        }
+        link.append(title, topic);
+        const item = document.createElement('li');
+        item.append(link);
+        fragment.append(item);
       }
       results.replaceChildren(fragment);
-      results.scrollTop = 0;
-      status.textContent = matches.length ? '共 ' + matches.length + ' 篇' : '没有找到相关文章，可以试试主题名或缩写。';
+      if (resetScroll) body.scrollTop = 0;
+      suggestions.hidden = terms.length > 0;
+      results.hidden = !matches.length;
+      browse.hidden = matches.length > 0;
+      clear.hidden = !input.value.length;
+      more.hidden = matches.length <= visibleCount;
+      more.textContent = more.hidden ? '' : '再显示 ' + Math.min(6, matches.length - visibleCount) + ' 篇';
+      status.textContent = !terms.length
+        ? (query ? '试试文章名称或主题关键词。' : '')
+        : matches.length
+          ? '找到 ' + matches.length + ' 篇文章' + (matches.length > visibleCount ? ' · 显示前 ' + visibleCount + ' 篇' : '')
+          : '没有找到相关文章，换个关键词试试。';
+    }
+
+    function updateQuery(value) {
+      input.value = value;
+      visibleCount = 6;
+      renderResults();
+      input.focus();
     }
 
     function openSearch(trigger) {
@@ -65,8 +87,10 @@
       opener = trigger;
       if (opener && opener !== document.activeElement) opener.focus();
       input.value = '';
+      visibleCount = 6;
       renderResults();
       dialog.showModal();
+      document.documentElement.classList.add('search-open');
       input.focus();
     }
 
@@ -81,6 +105,7 @@
       button.addEventListener('click', () => dialog.close());
     });
     dialog.addEventListener('close', () => {
+      document.documentElement.classList.remove('search-open');
       if (opener && opener.isConnected) opener.focus();
     });
     dialog.addEventListener('click', event => {
@@ -89,7 +114,20 @@
       if (event.clientX < rect.left || event.clientX > rect.right ||
           event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
     });
-    input.addEventListener('input', renderResults);
+    dialog.querySelectorAll('[data-search-query]').forEach(button => {
+      button.addEventListener('click', () => updateQuery(button.dataset.searchQuery));
+    });
+    clear.addEventListener('click', () => updateQuery(''));
+    more.addEventListener('click', () => {
+      const previousCount = results.children.length;
+      visibleCount += 6;
+      renderResults(false);
+      results.querySelectorAll('a')[previousCount]?.focus();
+    });
+    input.addEventListener('input', () => {
+      visibleCount = 6;
+      renderResults();
+    });
     input.addEventListener('keydown', event => {
       if (event.key !== 'Enter' || event.isComposing || event.keyCode === 229) return;
       event.preventDefault();
