@@ -8,7 +8,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
-#include <tuple>
+#include <set>
 #include <nlohmann/json.hpp>
 
 namespace fs = std::filesystem;
@@ -20,8 +20,9 @@ const string github = "https://github.com/qitiandi2003";
 const string brand = "Qi‘blog";
 
 struct Article {
-    string slug, title, summary, topic, category, group, keywords, published;
+    string slug, title, summary, intro, topic, category, group, keywords, published;
     json sections, refs;
+    string figure_caption;
     int minutes;
 };
 
@@ -77,15 +78,15 @@ string header(const string& base, const string& page) {
         return "<a href='" + base + href + "'" + (id == page ? " aria-current='page'" : "") + ">" + label + "</a>";
     };
     return "<a class='skip' href='#main'>跳至正文</a><header class='site-header'><div class='header-inner wrap'>" + wordmark(base) +
-        "<nav class='primary-nav' aria-label='主导航'>" + nav("home", "", "首页") + nav("archive", "notes/", "文章") + nav("repositories", "repositories/", "仓库") +
+        "<nav class='primary-nav' aria-label='主导航'>" + nav("home", "", "首页") + nav("archive", "notes/", "文章") + nav("topics", "topics/", "专题") +
         nav("about", "about/", "关于") + "</nav><div class='header-actions'><button class='search-button' type='button' data-open-search aria-haspopup='dialog' aria-label='搜索文章'>" +
         icon("search") + "<span>搜索</span></button><a class='github-button' href='" + github + "' aria-label='Qi 的 GitHub 主页'>" +
-        icon("github") + "<span>GitHub</span></a></div></div></header>";
+        icon("github") + "<span>GitHub 主页</span></a></div></div></header>";
 }
 
 string footer(const string& base) {
     return "<footer class='site-footer'><div class='wrap footer-inner'>" + wordmark(base) +
-         "<span>© 2026 Qi</span><a href='" + github + "/qitiandi2003.github.io/tree/master/_qi-blog'>博客源码</a></div></footer>"
+         "<span>© 2026 Qi</span><a href='" + base + "about/'>关于作者</a></div></footer>"
          "<dialog id='search-dialog' class='search-dialog' aria-labelledby='search-title'><div class='dialog-head'><h2 id='search-title'>搜索文章</h2>"
          "<button type='button' class='icon-button' aria-label='关闭搜索' data-close-search>" + icon("close") +
          "</button></div><div class='search-field'>" + icon("search") +
@@ -98,8 +99,8 @@ string document(const string& base, const string& page, const string& title, con
         "<meta name='viewport' content='width=device-width,initial-scale=1'><meta name='theme-color' content='#f8f7f2'>"
         "<title>" + html_escape(title) + "</title><meta name='description' content='" + html_escape(desc) + "'>"
         "<link rel='icon' href='" + base + "assets/favicon.svg' type='image/svg+xml'><link rel='stylesheet' href='" +
-        base + "assets/site.css'><script defer src='" + base + "assets/search-index.js'></script><script defer src='" + base +
-        "assets/site.js'></script><noscript><style>.search-button,.filters{display:none}</style></noscript></head><body>" +
+        base + "assets/site.css?v=lessons-1'><script defer src='" + base + "assets/search-index.js?v=lessons-1'></script><script defer src='" + base +
+        "assets/site.js?v=lessons-1'></script><noscript><style>.search-button,.filters{display:none}</style></noscript></head><body>" +
         header(base,page) + body + footer(base) + "</body></html>\n";
 }
 
@@ -118,33 +119,69 @@ const Article& lookup(const std::vector<Article>& articles, std::string_view slu
     return *found;
 }
 
-bool has_cover(const Article& a) {
-    return fs::is_regular_file(destination/"assets"/(a.slug + ".webp"));
+struct Diagram {
+    string slug, kind, title, control, caption, initial_text;
+    int section, min, max, step, initial;
+};
+
+const std::vector<Diagram> diagrams = {
+    {"gaussian-splatting","gaussian","一个像素里的三层颜色","前景有效不透明度","观察两团高斯的交点。后方蓝色在这个像素上的有效不透明度固定为 50%。","前景贡献 60%，后景贡献 20%，背景贡献 20%。",3,0,100,5,60},
+    {"stereo-disparity-depth","disparity","同一个点在两幅图里的位置","左右视差","两台相机已做极线校正，焦距为 600 像素，基线为 0.10 米。两图中的竖线标记同一个点。","视差 20 像素时，深度为 3.00 米。",2,6,60,1,20},
+    {"icp","registration","两组扫描点的配准过程","迭代次数","空心圆是固定的目标，实心点是移动的扫描。虚线表示当前的最近邻配对。这是二维点到点 ICP 示例。","第 0 次是初始位置。每次迭代重新寻找最近邻，再计算旋转和平移。",3,0,6,1,0},
+    {"network","framing","两条消息，分两次读","第一次读到的字节数","连续发送 A、B 两帧，每帧 15 字节。竖线表示第一次读取的边界，其余字节由第二次读取。","第一次读到 7 字节，可以交付 0 帧，暂存 7 字节。",3,1,30,1,7},
+    {"gpt-sampling","sampling","三个候选词的概率","采样温度","假设“一杯”后面三个候选词茶、水、奶的模型分数为 2、1、0。这里保留全部候选。","温度为 1 时，三个概率约为 66.5%、24.5% 和 9.0%。",2,3,25,1,10},
+    {"session-recording","queue","录制队列的积压","写入速度","相机每秒产生 25 帧，连续录制 4 秒。假设开始时队列为空、容量足够，忽略单帧处理耗时波动。","每秒能写 15 帧，4 秒共收到 100 帧，写出 60 帧，仍有 40 帧等待。",2,5,40,1,15}
+};
+
+const Diagram* diagram_for(const string& slug) {
+    for (const auto& d : diagrams) if (d.slug == slug) return &d;
+    return nullptr;
+}
+
+string diagram_html(const Diagram& d) {
+    std::ostringstream out;
+    out << "<figure id='diagram' class='lesson-diagram' data-kind='" << d.kind << "'>"
+        << "<figcaption><strong>" << html_escape(d.title) << "</strong><p>" << html_escape(d.caption) << "</p></figcaption>"
+        << "<div class='plot'><img class='poster' src='../../assets/figures/" << d.kind << ".webp' width='1120' height='452' loading='lazy' alt='"
+        << html_escape(d.initial_text) << "'><canvas hidden aria-hidden='true'></canvas></div>"
+        << "<div class='figure-control' hidden><label for='figure-value'>" << d.control << "</label>"
+        << "<input type='range' id='figure-value' aria-describedby='figure-result' min='" << d.min << "' max='" << d.max
+        << "' step='" << d.step << "' value='" << d.initial << "'><output for='figure-value'></output></div>"
+        << "<p class='figure-result' id='figure-result'>" << html_escape(d.initial_text) << "</p></figure>";
+    return out.str();
 }
 
 string cover(const Article& a, const string& base) {
-    return base + "assets/" + a.slug + ".webp";
+    if (fs::is_regular_file(destination/"assets"/(a.slug + ".webp"))) return base + "assets/" + a.slug + ".webp";
+    if (const auto* d = diagram_for(a.slug)) return base + "assets/figures/" + d->kind + ".webp";
+    return "";
 }
 
 string homepage(const std::vector<Article>& articles, const json& library) {
     const auto& feature = lookup(articles,"gaussian-splatting");
     std::ostringstream out;
     out << "<main id='main' class='wrap home'><section class='feature' aria-labelledby='feature-title'><div class='feature-content'>"
-        << "<div class='feature-meta'>三维重建 <span>/</span> 3DGS</div><h1 id='feature-title'>门框边缘的<br>高斯渲染</h1>"
-        << "<p>" << html_escape(feature.summary) << "</p><div class='feature-actions'><a class='feature-read' href='notes/" << feature.slug
-        << "/'>阅读全文</a>" << duration(feature) << "</div></div><figure class='feature-figure'><img src='" << cover(feature,"")
-        << "' width='1350' height='850' alt='建筑点云的轴测图，拱形门窗从银灰色采样点中显现。' fetchpriority='high'>"
+        << "<div class='feature-meta'>图形渲染 <span>/</span> 入门</div><h1 id='feature-title'>" << html_escape(feature.title) << "</h1>"
+        << "<p>从几个拍摄角度出发，看一组有颜色、能透光的三维高斯怎样绘出新的视角。</p>"
+        << "<div class='feature-actions'><a class='feature-read' href='notes/" << feature.slug << "/'>开始阅读</a>"
+        << "<a class='diagram-link' href='notes/" << feature.slug << "/#diagram'>试试颜色混合</a></div></div>"
+        << "<figure class='feature-figure'><img src='" << cover(feature,"") << "' width='1350' height='850' alt='由三维采样点勾勒出的建筑立面和拱窗' fetchpriority='high'>"
         << "<figcaption><span>建筑点云习作</span><span>轴测视图</span></figcaption></figure></section>"
-        << "<section id='articles' class='picks'><header class='section-heading'><h2>手记选读</h2><a href='notes/'>全部文章（" << articles.size()
+        << "<section id='articles' class='picks'><header class='section-heading'><h2>从这里开始</h2><a href='notes/'>全部文章（" << articles.size()
         << "）</a></header><div class='pick-grid'>";
     for (const string slug : library.at("picks")) {
         const auto& a = lookup(articles,slug);
-        out << "<article class='pick'><a href='notes/" << a.slug << "/'><img width='760' height='375' src='" << cover(a,"")
-            << "' loading='lazy' alt=''><div class='card-meta'><span class='topic'>" << a.topic << "</span>" << duration(a) << "</div>"
+        out << "<article class='pick'><a href='notes/" << a.slug << "/'><div class='pick-image'><img width='760' height='375' src='" << cover(a,"")
+            << "' loading='lazy' alt=''></div><div class='card-meta'><span class='topic'>" << a.topic << "</span>" << duration(a) << "</div>"
             << "<h3>" << html_escape(a.title) << "</h3><p>" << html_escape(a.summary) << "</p></a></article>";
     }
+    out << "</div></section><section class='home-topics'><header class='section-heading'><h2>按主题学习</h2><a href='topics/'>阅读顺序</a></header><div class='topic-grid'>";
+    for (const auto& path : library.at("paths")) {
+        out << "<a href='topics/#" << html_escape(path.at("id")) << "'><h3>" << html_escape(path.at("name")) << "</h3><span>"
+            << path.at("notes").size() << " 篇</span><p>" << html_escape(path.at("description")) << "</p></a>";
+    }
     out << "</div></section></main>";
-    return document("./","home",brand + " · 工程手记","Qi 的个人工程手记，记录三维视觉、机器人、机器学习与软件工程中的具体问题。",out.str());
+    return document("./","home",brand + " · 技术入门笔记","从第一条观测和一个小例子开始，学习计算机视觉、机器人、图形渲染、机器学习与网络。",out.str());
 }
 
 string archivepage(const std::vector<Article>& articles) {
@@ -162,83 +199,73 @@ string archivepage(const std::vector<Article>& articles) {
             << a.topic << "</span>" << duration(a) << "</div><h2>" << html_escape(a.title) << "</h2><p>" << html_escape(a.summary) << "</p></a></article>";
     }
     out << "</div></main>";
-    return document("../","archive","文章索引 · " + brand,"按主题浏览 Qi 的工程手记。",out.str());
+    return document("../","archive","文章索引 · " + brand,"按主题查找视觉、机器人和计算机系统的学习笔记。",out.str());
 }
 
-string repositories(const std::vector<Article>& articles, const json& library) {
+string topics_page(const std::vector<Article>& articles, const json& library) {
     std::ostringstream out;
-    out << "<main id='main' class='wrap collection'><header class='collection-heading'><h1>仓库索引</h1></header>"
-        << "<p class='collection-intro'>按项目查找工程笔记、原始代码和实验记录。</p>"
-        << "<nav class='repo-nav' aria-label='跳转到仓库'>";
-    for (const auto& repo : library.at("sources"))
-        out << "<a href='#" << html_escape(repo.at("id")) << "'>" << html_escape(repo.at("repository")) << "</a>";
+    out << "<main id='main' class='wrap collection'><header class='collection-heading'><h1>学习专题</h1></header>"
+        << "<p class='collection-intro'>选择一个感兴趣的方向。每组文章从基础概念读起，逐步进入具体问题。</p>"
+        << "<nav class='topic-nav' aria-label='专题导航'>";
+    for (const auto& path : library.at("paths"))
+        out << "<a href='#" << html_escape(path.at("id")) << "'>" << html_escape(path.at("name")) << "</a>";
     out << "</nav>";
-    for (const auto& repo : library.at("sources")) {
-        const string url = repo.value("url","");
-        out << "<section class='source' id='" << html_escape(repo.at("id")) << "'><div><h2>" << html_escape(repo.at("name")) << "</h2><p>"
-            << html_escape(repo.at("summary")) << "</p>";
-        if (!url.empty()) {
-            out << "<a class='source-url' href='" << html_escape(url) << "'>" << icon("github") << html_escape(repo.at("repository")) << "</a><div class='module-links'>";
-            for (const auto& link : repo.at("modules"))
-                out << "<a href='" << html_escape(link.at("url")) << "'>" << html_escape(link.at("label")) << "</a>";
-            out << "</div>";
-        }
-        out << "</div><ul>";
-        for (const string slug : repo.at("notes")) {
+    for (const auto& path : library.at("paths")) {
+        out << "<section class='source' id='" << html_escape(path.at("id")) << "'><div><h2>" << html_escape(path.at("name"))
+            << "</h2><p>" << html_escape(path.at("description")) << "</p></div><ol>";
+        for (const string slug : path.at("notes")) {
             const auto& a = lookup(articles,slug);
-            out << "<li><a href='../notes/" << a.slug << "/'>" << html_escape(a.title) << "</a><span>" << a.topic << "</span></li>";
+            out << "<li><a href='../notes/" << a.slug << "/'>" << html_escape(a.title) << "</a><span>" << duration(a) << "</span></li>";
         }
-        out << "</ul></section>";
+        out << "</ol></section>";
     }
     out << "</main>";
-    return document("../","repositories","仓库索引 · " + brand,"按项目查找工程笔记、源码和参考资料。",out.str());
+    return document("../","topics","学习专题 · " + brand,"按学习顺序阅读六个方向的入门文章。",out.str());
 }
 
-string articlepage(const Article& a, const Article& next, const json& library) {
+string articlepage(const Article& a, const Article* next) {
     const string base = "../../";
-    const bool cites_project = std::any_of(a.refs.begin(),a.refs.end(),[](const json& ref) {
-        return ref.at("url").get_ref<const string&>().rfind(github + "/",0) == 0;
-    });
-    const string references_title = cites_project ? "源码与参考资料" : "参考资料";
-    std::ostringstream out;
-    out << "<main id='main' class='wrap reading-page'><nav class='crumbs' aria-label='面包屑'><a href='" << base << "notes/'>文章索引</a><span>/</span>"
-        << "<a href='" << base << "notes/?group=" << a.group << "'>" << a.category << "</a></nav>"
-        << "<header class='article-heading'><span class='section-label'>" << a.topic << "</span><h1>" << html_escape(a.title) << "</h1><p>" << html_escape(a.summary) << "</p>"
-        << "<div class='byline'><span class='author'>Qi</span><i></i><time datetime='" << a.published << "'>" << a.published << "</time><i></i>" << duration(a) << "</div></header>"
-        << "<div class='reading-layout'><article class='prose'>";
-    if (has_cover(a)) out << "<div class='article-image'><img src='" << cover(a,base) << "' alt='' width='760' height='375'></div>";
-    std::ostringstream toc;
-    size_t id = 0;
+    const auto* diagram = diagram_for(a.slug);
+    std::ostringstream out, toc;
+    out << "<div class='reading-progress' aria-hidden='true'><span></span></div><main id='main' class='wrap reading-page'>"
+        << "<nav class='crumbs' aria-label='面包屑'><a href='../../topics/'>学习专题</a><span>/</span>"
+        << "<a href='../../topics/#" << a.group << "'>" << a.category << "</a></nav>"
+        << "<header class='article-heading'><span class='section-label'>" << a.topic << "</span><h1>" << html_escape(a.title) << "</h1>"
+        << "<div class='byline'><span class='author'>Qi</span><i></i><time datetime='" << a.published << "'>" << a.published << "</time><i></i>" << duration(a)
+        << "</div></header><div class='reading-layout'><article class='prose'><section class='preface' aria-labelledby='preface'><h2 id='preface'>序言</h2><p>" << prose(a.intro) << "</p></section>";
+    if (!diagram && !cover(a,base).empty())
+        out << "<figure class='article-image'><img src='" << cover(a,base) << "' loading='lazy' alt='' width='760' height='375'>"
+            << "<figcaption>" << html_escape(a.figure_caption) << "</figcaption></figure>";
+    int id = 0;
     for (const auto& section : a.sections) {
-        string key = "s" + std::to_string(++id), title = html_escape(section.at("title"));
+        const string key = "s" + std::to_string(++id), title = html_escape(section.at("title"));
         toc << "<li><a href='#" << key << "'>" << title << "</a></li>";
         out << "<section aria-labelledby='" << key << "'><h2 id='" << key << "'>" << title << "</h2>";
         for (const string p : section.at("paragraphs")) out << "<p>" << prose(p) << "</p>";
+        if (diagram && id == diagram->section) {
+            out << diagram_html(*diagram);
+            toc << "<li class='diagram-toc'><a href='#diagram'>图解 · " << html_escape(diagram->title) << "</a></li>";
+        }
         out << "</section>";
     }
-    out << "<section class='references' aria-labelledby='sources'><h2 id='sources'>" << references_title << "</h2><ul>";
-    for (const auto& ref : a.refs) {
+    out << "<section class='references' aria-labelledby='sources'><h2 id='sources'>延伸阅读</h2><ul>";
+    for (const auto& ref : a.refs)
         out << "<li><a href=\"" << html_escape(ref.at("url")) << "\">" << html_escape(ref.at("label")) << "</a></li>";
-    }
-    out << "</ul><div class='origin-links'><span>相关项目</span>";
-    for (const auto& project : library.at("sources")) {
-        const auto& notes = project.at("notes");
-        if (std::find(notes.begin(),notes.end(),a.slug) != notes.end())
-            out << "<a href='../../repositories/#" << html_escape(project.at("id")) << "'>" << html_escape(project.at("name")) << "</a> ";
-    }
-    out << "</div></section><a class='next-note' href='../" << next.slug << "/'><span>接着读 · " << next.topic << "</span><strong>"
-        << html_escape(next.title) << "</strong></a></article><aside class='toc'><h2>文章目录</h2><ol>"
-        << toc.str() << "<li><a href='#sources'>" << references_title << "</a></li></ol></aside></div></main>";
-    return document(base, "note", a.title + " · " + brand, a.summary, out.str());
+    out << "</ul></section>";
+    if (next) out << "<a class='next-note' href='../" << next->slug << "/'><span>本专题下一篇</span><strong>" << html_escape(next->title) << "</strong></a>";
+    else out << "<a class='next-note' href='../../topics/'><span>本专题完</span><strong>浏览其他学习专题</strong></a>";
+    out << "</article><aside class='toc'><details open><summary>文章目录</summary><ol><li><a href='#preface'>序言</a></li>"
+        << toc.str() << "<li><a href='#sources'>延伸阅读</a></li></ol></details></aside></div></main>";
+    if (diagram) out << "<script defer src='../../assets/diagrams.js?v=1'></script>";
+    return document(base,"note",a.title + " · " + brand,a.summary,out.str());
 }
 
 string aboutpage() {
     const string body = "<main id='main' class='wrap about-page'><div class='about-panel'><h1>关于 Qi‘blog</h1>"
-        "<div class='about-text'><p>我是 Qi，这里放的是我的工程手记。</p>"
-        "<p>有时是一帧图像：一条亮边究竟是液面还是反光。有时是几行日志：机器人拐弯后，最先偏掉的是时间戳、坐标变换，还是地图上的轨迹。也有些问题来自读代码，比如一个词怎样变成向量，半条 TCP 消息该留在哪里。</p>"
-        "<p>每篇手记都保留了用得上的源码或原始资料。想从某个项目开始，可以翻<a href='../repositories/'>仓库索引</a>。</p>"
-        "<p class='about-links'><a href='" + github + "'>GitHub 主页</a></p></div></div></main>";
-    return document("../","about","关于 · " + brand,"Qi 的个人工程手记。",body);
+        "<div class='about-text'><p>我是 Qi。这个博客写给刚开始学视觉、机器人和计算机系统的朋友。</p>"
+        "<p>我喜欢从能观察到的现象入手：交替闭上左右眼，近处的手指会移动；两张扫描图叠在一起，墙面贴合了，墙角却可能还差几厘米。把现象画出来，给它添上一两个数字，许多术语就有了着落。</p>"
+        "<p>第一次来，可以按<a href='../topics/'>学习专题</a>慢慢读。已经有了具体问题，可以在<a href='../notes/'>文章索引</a>里找关键词。</p></div></div></main>";
+    return document("../","about","关于 · " + brand,"关于 Qi 和这份技术入门笔记。",body);
 }
 
 int main() try {
@@ -254,27 +281,29 @@ int main() try {
         size_t length = 0;
         for (const auto& s : j.at("sections")) for (const string p : s.at("paragraphs"))
             length += std::count_if(p.begin(), p.end(), [](unsigned char c){ return (c & 0xc0) != 0x80; });
-        articles.push_back({j.at("slug"),j.at("title"),j.at("summary"),j.at("topic"),j.at("category"),j.at("group"),j.at("keywords"),j.at("published"),
-                            j.at("sections"),j.at("refs"),std::max(1,static_cast<int>((length + 279) / 280))});
+        const string intro = j.at("intro");
+        length += std::count_if(intro.begin(),intro.end(),[](unsigned char c){return (c & 0xc0) != 0x80;});
+        articles.push_back({j.at("slug"),j.at("title"),j.at("summary"),intro,j.at("topic"),j.at("category"),j.at("group"),j.at("keywords"),j.at("published"),
+                            j.at("sections"),j.at("refs"),j.value("figureCaption",string{}),std::max(1,static_cast<int>((length + 279) / 280))});
     }
-    std::sort(articles.begin(),articles.end(),[](const Article& a,const Article& b) {
-        if (a.published != b.published) return a.published > b.published;
-        return std::tie(a.category,a.slug) < std::tie(b.category,b.slug);
-    });
-    for (size_t i=0; i<articles.size(); ++i) {
-        const auto& a=articles[i];
-        string keywords = a.keywords + " " + a.category;
-        for (const auto& repo : library.at("sources")) {
-            const auto& notes = repo.at("notes");
-            if (std::find(notes.begin(),notes.end(),a.slug) != notes.end())
-                keywords += " " + repo.at("repository").get<string>() + " " + repo.at("name").get<string>();
+    std::vector<Article> ordered;
+    std::set<string> assigned;
+    for (const auto& path : library.at("paths")) {
+        const auto& slugs = path.at("notes");
+        for (size_t i = 0; i < slugs.size(); ++i) {
+            const auto& a = lookup(articles,slugs.at(i).get_ref<const string&>());
+            if (path.at("id") != a.group || !assigned.insert(a.slug).second)
+                throw std::runtime_error("Check topic membership: " + a.slug);
+            const Article* next = i + 1 == slugs.size() ? nullptr : &lookup(articles,slugs.at(i+1).get_ref<const string&>());
+            write(destination/"notes"/a.slug/"index.html",articlepage(a,next));
+            ordered.push_back(a);
+            index.push_back({{"slug",a.slug},{"title",a.title},{"summary",a.summary},{"topic",a.topic},{"keywords",a.keywords + " " + a.category}});
         }
-        index.push_back({{"slug",a.slug},{"title",a.title},{"summary",a.summary},{"topic",a.topic},{"keywords",keywords}});
-        write(destination/"notes"/a.slug/"index.html",articlepage(a,articles[(i+1)%articles.size()],library));
     }
+    if (ordered.size() != articles.size()) throw std::runtime_error("A lesson is missing from the reading paths.");
     write(destination/"index.html",homepage(articles,library));
-    write(destination/"notes/index.html",archivepage(articles));
-    write(destination/"repositories/index.html",repositories(articles,library));
+    write(destination/"notes/index.html",archivepage(ordered));
+    write(destination/"topics/index.html",topics_page(articles,library));
     write(destination/"about/index.html",aboutpage());
     write(destination/"assets/search-index.js","window.QI_ARTICLES = " + index.dump(2) + ";\n");
     std::cout << "Built Qi‘blog with " << articles.size() << " articles.\n";

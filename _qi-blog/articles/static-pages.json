@@ -1,43 +1,56 @@
 {
   "slug": "static-pages",
-  "title": "把静态博客迁到域名根目录",
-  "summary": "把一篇手记从子目录移到根目录，既要找对样式和图片，也要让收藏夹里的旧文章、分类和段落仍能打开。",
+  "title": "静态网站的目录与浏览器路径",
+  "summary": "用同一个资源名对照首页和文章页，分清相对引用、站点根路径、查询参数和页内锚点。",
   "sections": [
     {
-      "title": "一份文章生成哪些文件",
+      "title": "一页文章在服务器上是什么",
       "paragraphs": [
-        "Qi‘blog 的每篇手记保存在 `_qi-blog/articles/`。生成器读取 JSON 里的标题、摘要、正文和来源，写出文章详情，并更新首页、文章索引与仓库索引。页面已经包含正文，关闭 JavaScript 也能阅读。",
-        "搜索使用独立的 `assets/search-index.js`。它只收录标题、标识、摘要、主题和关键词等信息，输入词语时无需下载每篇文章的正文。改标题后运行一次生成器，文章与搜索结果就会显示同一个名字。"
+        "假设发布目录里有首页 index.html，另外有 assets/site.css 和 notes/photo/index.html。许多静态服务器会把以斜杠结尾的目录请求映射到该目录的 index.html。所以访问 /notes/photo/ 可能得到一份完整文章，即使浏览器地址栏没有显示文件名。是否提供这项目录索引，由服务器配置决定。",
+        "浏览器解析下一条链接时依据的是当前文档的基础 URL。它不认识你的编辑器工作目录，也不知道哪层文件夹在本机叫作“项目根目录”。若 HTML 中声明了 base 元素，基础 URL 还会发生改变。没有声明时，可以先从地址栏里的最终 URL 推算。"
       ]
     },
     {
-      "title": "从一篇文章检查站内路径",
+      "title": "在两个目录里手算同一条引用",
       "paragraphs": [
-        "最初，Qi‘blog 在 `/qi-blog/` 下发布，域名根目录留给旧 Hexo 站点。迁移后，首页在 `/`，文章位于 `/notes/<slug>/`，图片、字体和脚本位于 `/assets/`。",
-        "以这篇手记为例。浏览器从 `/notes/static-pages/` 请求 `../../assets/site.css`，向上两级正好抵达根目录。预览时直接打开一篇深层文章，再依次试一下返回首页、查看插图和按标题搜索，能覆盖从首页出发时容易漏掉的路径。"
+        "设站点入口为 `https://example.org/journal/`，样式表位于这个入口下的 assets/site.css。首页写 `assets/site.css` 时，浏览器从 /journal/ 往下找，得到 /journal/assets/site.css，符合目录布局。",
+        "现在打开文章页 `https://example.org/journal/notes/photo/`。同样写 `assets/site.css`，结果就变成 /journal/notes/photo/assets/site.css。若要指向同一份样式，应从文章目录向上两层，再进入 assets，写成 `../../assets/site.css`。先去掉 photo，再去掉 notes，剩下正好是 /journal/。",
+        "还有一种写法以斜杠开头，例如 `/assets/site.css`。它从域名根目录寻找，因此在站点挂在 /journal/ 时会绕过这一层。它在域名根目录部署的站点上可能工作得很好，搬到子路径以后才暴露问题。URL 的尾部是否有斜杠同样重要，/journal/ 与 /journal 对相对地址的解析基准并不完全相同。"
       ]
     },
     {
-      "title": "保留书签里的分类和段落",
+      "title": "问号和井号各自归谁处理",
       "paragraphs": [
-        "迁移前已经发布的 Qi‘blog 页面各有一个对应的新地址。比如 `/qi-blog/notes/static-pages/#sources` 应落到 `/notes/static-pages/#sources`。旧路径上的静态跳转页会把读者带到新页面，启用 JavaScript 时会一并传递查询参数和段落锚点。",
-        "验收时用两类书签。一类带 `?group=vision`，应该打开已选中感知与标定的文章列表。另一类带 `#sources`，应该直接定位到文章参考资料。最后从已发布的域名再各试一次，确认 GitHub Pages 提供的是新版本。"
+        "例如 `/journal/notes/?group=vision#camera`。问号后的查询参数随 HTTP 请求送往服务器，静态页面里的脚本也能读取它，并据此恢复所选主题。井号后的片段通常由浏览器处理，不作为这次 HTTP 请求路径的一部分。页面里若有 id 为 camera 的元素，浏览器可以滚动到那里。",
+        "换新地址时要考虑旧书签。只复制文件，未必保留用户原先选中的分类和段落。若服务器要兼容旧路径，先规划从旧地址到新地址的映射，再分别测试普通页面、带查询的页面和带锚点的页面。生成站点时保持段落 id 稳定，也能减少改标题带来的意外断链。"
+      ]
+    },
+    {
+      "title": "用浏览器检查真实路径",
+      "paragraphs": [
+        "直接在地址栏输入最深的一篇文章，刷新后打开开发者工具的网络面板，查看样式表和首张图片的 Request URL、状态码及响应内容类型。如果样式表请求返回 200，但正文其实是一份回退首页的 HTML，浏览器仍无法把它当成正确的 CSS。",
+        "再从首页点击同一篇文章，与直接访问的结果比较。最后手动复制一条带查询和锚点的链接到新标签页，看选项和段落是否恢复。这三个入口分别检验首页导航、深层链接和可分享状态，能覆盖许多只在本地双击 HTML 时难以发现的问题。"
       ]
     }
   ],
   "refs": [
     {
-      "label": "Qi‘blog · C++ 静态生成器",
-      "url": "https://github.com/qitiandi2003/qitiandi2003.github.io/blob/master/_qi-blog/build.cpp"
+      "label": "WHATWG · URL 解析标准",
+      "url": "https://url.spec.whatwg.org/"
     },
     {
-      "label": "GitHub Docs · Pages 发布来源",
+      "label": "MDN · 浏览器如何解析相对引用",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/URL_API/Resolving_relative_references"
+    },
+    {
+      "label": "GitHub Docs · 静态站点的发布来源",
       "url": "https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site"
     }
   ],
   "topic": "静态发布",
   "category": "工程实践",
   "group": "engineering",
-  "keywords": "GitHub Pages 静态站 C++17 JSON 搜索索引 个人博客 相对路径 根目录迁移 重定向 旧书签",
-  "published": "2026-11-26"
+  "keywords": "HTML 静态网站 相对路径 URL 子路径 目录 查询参数 锚点 部署 浏览器 CSS",
+  "published": "2026-11-26",
+  "intro": "一个静态网站可以只由 HTML、样式表、图片和脚本组成。浏览器拿到 HTML 后，还会按其中的地址继续取样式和图片。因此，文章能打开但版式消失，经常是第二次请求走错了地方。"
 }

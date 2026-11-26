@@ -1,51 +1,53 @@
 {
   "slug": "oneshot-service",
-  "title": "进程结束之后的 active 状态",
-  "summary": "从一个 systemd oneshot 单元追到 C++ 的 waitpid，分别读懂单元状态、子进程退出状态和任务效果。",
+  "title": "读懂 systemd 的 active (exited)",
+  "summary": "区分服务单元、操作系统进程和任务留下的效果，解释 active (exited) 与一次性启动的关系。",
   "sections": [
     {
-      "title": "先读单元文件的两个字段",
+      "title": "服务单元和进程有不同的寿命",
       "paragraphs": [
-        "仓库生成的 systemd 单元同时设置 Type=oneshot 与 RemainAfterExit=yes。前者让管理器等待启动动作完成，后者允许动作成功结束后继续把单元视为活跃。这适合表达一次性设置的生命周期：启动动作结束了，之前建立的设置还需要在停止时撤销。",
-        "假设启动动作成功，状态页随后显示 active (exited)。这与「此刻没有常驻的启动进程」可以同时成立。源码另外读取 is-enabled 和 is-active，两者分别涉及是否配置启用以及当前是否活跃。记录结果时，最好保留它们各自的名字。"
+        "进程是正在执行程序的一次实例，有进程号、地址空间和退出时刻。systemd 的服务单元则是一份管理约定，说明何时启动、调用什么程序、如何判断成功、与哪些单元存在依赖。一份单元文件可以多次启动，每次产生的进程号都可能不同。",
+        "例如一个开机任务要生成供其他程序读取的索引。写索引的程序完成后就退出，索引仍然留在磁盘上。另一个服务是 HTTP 服务器，需要有进程持续监听端口才能回答请求。两者都能启动成功，系统却只能在后者运行期间找到相应的常驻进程。",
+        "当多个单元需要排队启动时，启动完成的定义尤其重要。启动一个很快退出的准备任务，希望依赖它的工作等到准备程序成功结束以后再继续。用时序描述需求，比单凭服务名里有没有“daemon”来猜类型更可靠。"
       ]
     },
     {
-      "title": "父进程怎样知道孩子结束了",
+      "title": "Type=oneshot 在等待什么",
       "paragraphs": [
-        "在 C++ 的 run_process 中，子进程执行外部程序，父进程可选择通过管道收集标准输出，然后调用 waitpid 等待指定的子进程。若等待被信号打断并返回 EINTR，代码会重新等待。",
-        "waitpid 填入的是一份编码过的状态。程序先用 WIFEXITED 检查是否正常退出，再取 WEXITSTATUS；若由信号终止，它将信号编号加 128 作为封装层的返回值。假设进程正常返回 7，就应将它记录为退出码 7。在信号编号为 15 的系统上，由该信号终止会按此封装得到 143。这套数字映射是程序的约定。"
+        "对 `Type=oneshot`，管理器会等待启动命令退出，再判断该次启动操作的结果。绝大多数程序遵循退出码零表示成功、非零表示失败的约定，单元配置也可以显式把某些退出值视作成功。因此，看到命令已经消失，还不足以知道启动是否成功。",
+        "若同时设置 `RemainAfterExit=yes`，启动命令成功退出后，单元可以保持 active，子状态显示 exited。这意味着管理器记住了“这一轮已经完成”。此时再次请求启动一个已处于 active 的单元，通常不会重新执行启动动作。真正需要重跑，应按单元语义执行重新启动，并考虑停止动作的影响。",
+        "没有设置该选项时，一次性动作也可以成功，随后单元回到 inactive。ActiveState 是此刻的管理状态，退出码描述的是一次命令结果。这也解释了为什么一项已成功完成的短任务，几秒后查询时却显示为 inactive。"
       ]
     },
     {
-      "title": "把三份结果按时间摆在一起",
+      "title": "退出信息怎样从子进程传回来",
       "paragraphs": [
-        "复核一项任务时，可以分别记录「启动子进程结束的方式」「管理器此刻如何描述单元」「预期设置是否真的存在」。设想一次性动作起初成功，随后有人单独修改了它设置的内容。早先的退出码仍是 0，单元也可能保持 active，而第三项已经发生变化。",
-        "这个例子解释了项目为何在读完 systemd 状态后，继续检查目标环境。读取单元状态适合回答启动动作的管理问题；验证动作留下的效果，还需要一次针对效果本身的观测。"
+        "在 Linux 里，父进程可以通过 waitpid 等接口取得子进程状态。返回时需要区分正常退出和因信号终止。只有确认是正常退出时，解释退出码才有意义。如果等待过程被信号中断，见到 EINTR 也不能直接据此宣布子进程失败。",
+        "假设准备程序按配置运行，打开目标文件、写入内容、关闭文件，然后以零退出。管理器据此能知道程序报告了成功。它无法单凭这个退出状态证明文件中的索引语义正确，更无法保证文件以后不会被其他程序改写。若程序因无法创建文件而返回非零，那才是“这个启动动作本身失败”的证据。"
+      ]
+    },
+    {
+      "title": "从三个入口读同一次运行",
+      "paragraphs": [
+        "可以挑一个自己有权限查看的一次性单元，把命令中的 `example.service` 换成实际名字。用 `systemctl cat example.service` 看类型、启动命令和覆盖配置，用 `systemctl show example.service` 看 ActiveState、SubState、Result、ExecMainCode 与 ExecMainStatus，再用 `journalctl -u example.service -b` 查看本次开机里的日志时间线。这几项都是读取操作。",
+        "最后检查这项工作承诺产生的结果。对于索引文件，可以核对时间、格式和一项可预期的内容。对于常驻 HTTP 服务，则可检查端口和应用响应。如果界面显示 active (exited)，进程列表找不到准备程序，而文件内容也正确，这三条记录恰好相互吻合。"
       ]
     }
   ],
   "refs": [
     {
-      "label": "ssh-vpn · oneshot 单元定义",
-      "url": "https://github.com/qitiandi2003/ssh-vpn/blob/5991c2ad4c01ccce003032347eabce180092f4f1/src/core.cpp#L258-L275"
+      "label": "systemd · 服务类型与 RemainAfterExit",
+      "url": "https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html"
     },
     {
-      "label": "ssh-vpn · 子进程与退出状态",
-      "url": "https://github.com/qitiandi2003/ssh-vpn/blob/5991c2ad4c01ccce003032347eabce180092f4f1/src/main.cpp#L34-L95"
-    },
-    {
-      "label": "systemd · 服务类型与退出后状态",
-      "url": "https://github.com/systemd/systemd/blob/main/man/systemd.service.xml"
-    },
-    {
-      "label": "POSIX · wait 与 waitpid",
-      "url": "https://pubs.opengroup.org/onlinepubs/9799919799/functions/wait.html"
+      "label": "Linux 系统手册 · waitpid 与子进程状态",
+      "url": "https://man7.org/linux/man-pages/man2/waitpid.2.html"
     }
   ],
   "topic": "Linux 进程",
   "category": "系统与通信",
   "group": "systems",
   "keywords": "操作系统 Linux systemd oneshot RemainAfterExit waitpid EINTR 生命周期 进程 状态 信号",
-  "published": "2026-11-26"
+  "published": "2026-11-26",
+  "intro": "有些程序需要一直运行，有些只负责在开机时生成一份文件。两者都可以交给 systemd 管理，但启动完成后，它们在进程列表里的样子完全不同。读一次性服务的状态时，最好把“程序还在不在”和“工作有没有完成”分别记下来。"
 }

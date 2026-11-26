@@ -1,136 +1,68 @@
 {
   "picks": [
-    "icp",
+    "stereo-disparity-depth",
     "word-segmentation",
-    "opencv"
+    "icp"
   ],
-  "sources": [
+  "paths": [
     {
-      "id": "lidar",
-      "name": "激光、惯性与视觉融合",
-      "repository": "Fast-Livo2",
-      "summary": "同一次运动经过 IMU、激光雷达和相机，会留下时间、点和亮度三种观测。这里收录融合里程计、全局定位、地图拼接，以及相机与雷达的实测标定记录。",
-      "modules": [],
-      "notes": [
-        "livo-scan-time",
-        "voxel-plane-confidence",
-        "photometric-patches",
-        "lidar-place-ambiguity",
-        "multi-session-graph",
-        "livo-gs-keyframes",
-        "navigation-settling",
-        "lidar-camera-calibration",
-        "camera-frame-buffer",
-        "stereo-trigger-exposure",
-        "ros2",
-        "grounded-astar",
-        "web-state"
-      ]
-    },
-    {
-      "id": "localization",
-      "name": "视觉定位与机器人建图",
-      "repository": "VSLAM",
-      "summary": "从双目和事件相机采集开始，经过特征匹配、RTAB-Map 建图与地图重定位，再到语义标注、体素导航和停靠测量。",
-      "modules": [],
+      "id": "geometry",
+      "name": "定位与建图",
+      "description": "从一台移动相机的坐标开始，学习点云对齐，再看机器人怎样在地图上找到位置和路径。",
       "notes": [
         "slam",
         "icp",
-        "calibration",
-        "ros2",
-        "visual-relocalization",
-        "rtabmap-pose-graph",
-        "stereo-disparity-depth",
-        "event-camera-windows",
-        "octomap-free-unknown",
-        "grounded-astar",
-        "apriltag-pose-check",
-        "rgbd-sensor-contract",
-        "crestereo-confidence",
-        "rolling-obstacle-map",
-        "ros-binary-package",
-        "stereo-trigger-exposure",
-        "camera-frame-buffer"
-      ]
-    },
-    {
-      "id": "reconstruction",
-      "name": "三维重建与数字孪生",
-      "repository": "Splat-Studio",
-      "summary": "Studio 从视频估计相机位姿、训练高斯并导出网格；Twin 读取已验收的模型，在同一场景中检查地面、比例和路线。",
-      "modules": [],
-      "notes": [
-        "gaussian-splatting",
         "colmap-camera-centers",
-        "multiview-floaters",
-        "mesh-inspection",
+        "livo-scan-time",
+        "voxel-plane-confidence",
+        "photometric-patches",
+        "visual-relocalization",
+        "lidar-place-ambiguity",
+        "rtabmap-pose-graph",
+        "multi-session-graph",
+        "octomap-free-unknown",
+        "rolling-obstacle-map",
+        "grounded-astar",
         "twin-floor-frame",
-        "splat-model-manifest",
-        "splat-mesh-job",
         "splat-incremental"
       ]
     },
     {
-      "id": "bottle",
-      "name": "自动定容系统",
-      "repository": "Bottle-Automatic-Volume-Adjustment-System",
-      "url": "https://github.com/qitiandi2003/Bottle-Automatic-Volume-Adjustment-System",
-      "summary": "从图像中找到瓶身、刻度和液面，再由状态机决定继续还是停止。设备控制帧、相机取帧和录像收尾各有一条独立的数据路径。",
-      "modules": [
-        {
-          "label": "视觉检测",
-          "url": "https://github.com/qitiandi2003/Bottle-Automatic-Volume-Adjustment-System/tree/2b05f0ffdeec96da0b50e7a3503e209c0b1de5ef/src/bottle_volume_control/vision"
-        },
-        {
-          "label": "控制与状态机",
-          "url": "https://github.com/qitiandi2003/Bottle-Automatic-Volume-Adjustment-System/tree/2b05f0ffdeec96da0b50e7a3503e209c0b1de5ef/src/bottle_volume_control/workflow"
-        },
-        {
-          "label": "接口与配置",
-          "url": "https://github.com/qitiandi2003/Bottle-Automatic-Volume-Adjustment-System/blob/2b05f0ffdeec96da0b50e7a3503e209c0b1de5ef/docs/CONFIGURATION.md"
-        },
-        {
-          "label": "测试用例",
-          "url": "https://github.com/qitiandi2003/Bottle-Automatic-Volume-Adjustment-System/tree/2b05f0ffdeec96da0b50e7a3503e209c0b1de5ef/tests"
-        }
-      ],
+      "id": "vision",
+      "name": "感知与标定",
+      "description": "先读懂一个像素，再用两台相机量距离，最后让相机、惯性传感器和激光雷达共享坐标。",
       "notes": [
         "opencv",
-        "scale-lock",
-        "dosing-states",
-        "network",
-        "session-recording",
-        "camera-frame-buffer"
+        "stereo-disparity-depth",
+        "apriltag-pose-check",
+        "calibration",
+        "lidar-camera-calibration",
+        "stereo-trigger-exposure",
+        "event-camera-windows",
+        "crestereo-confidence",
+        "camera-frame-buffer",
+        "scale-lock"
       ]
     },
     {
-      "id": "language",
-      "name": "自然语言处理实验",
-      "repository": "dev_skills",
-      "url": "https://github.com/qitiandi2003/dev_skills",
-      "summary": "从中文分词、词向量和贝叶斯邮件分类开始，再读字符 RNN、德英翻译以及 BERT 和 GPT 的代码。",
-      "modules": [
-        {
-          "label": "分词与词向量",
-          "url": "https://github.com/qitiandi2003/dev_skills/tree/e93480fa6a30260e4c4e22475dbd2d40e7113ac8/word_segmentation"
-        },
-        {
-          "label": "姓氏分类与生成",
-          "url": "https://github.com/qitiandi2003/dev_skills/tree/e93480fa6a30260e4c4e22475dbd2d40e7113ac8/Surname-Classification-with-RNNs"
-        },
-        {
-          "label": "序列翻译",
-          "url": "https://github.com/qitiandi2003/dev_skills/tree/e93480fa6a30260e4c4e22475dbd2d40e7113ac8/Sequence2Squence"
-        },
-        {
-          "label": "BERT 与 GPT",
-          "url": "https://github.com/qitiandi2003/dev_skills/tree/e93480fa6a30260e4c4e22475dbd2d40e7113ac8/BERT%26GPT"
-        }
-      ],
+      "id": "graphics",
+      "name": "图形渲染",
+      "description": "从拍摄角度、三角曲面到半透明高斯，理解照片怎样变成可以换视角的场景。",
+      "notes": [
+        "livo-gs-keyframes",
+        "mesh-inspection",
+        "gaussian-splatting",
+        "multiview-floaters"
+      ]
+    },
+    {
+      "id": "learning",
+      "name": "机器学习",
+      "description": "从中文词语的边界起步，沿着词向量、分类和序列模型，读到语言模型如何生成下一句话。",
       "notes": [
         "word-segmentation",
-        "word-embeddings",
         "bayes-mail",
+        "word-embeddings",
         "surname-rnn",
         "seq2seq-translation",
         "bert-sentiment",
@@ -138,76 +70,30 @@
       ]
     },
     {
-      "id": "network",
-      "name": "网络工具与服务管理",
-      "repository": "ssh-vpn",
-      "url": "https://github.com/qitiandi2003/ssh-vpn",
-      "summary": "默认路由与更精确的网段如何共存，命令成功和服务存活如何区分，以及怎样用回归测试核对配置恢复。",
-      "modules": [
-        {
-          "label": "C++ 实现",
-          "url": "https://github.com/qitiandi2003/ssh-vpn/blob/5991c2ad4c01ccce003032347eabce180092f4f1/src/core.cpp"
-        },
-        {
-          "label": "回归用例",
-          "url": "https://github.com/qitiandi2003/ssh-vpn/blob/5991c2ad4c01ccce003032347eabce180092f4f1/tests/core_test.cpp"
-        }
-      ],
+      "id": "systems",
+      "name": "系统与通信",
+      "description": "从字节在网络上的传递，到机器人消息的订阅与回放，弄清程序之间究竟交换了什么。",
       "notes": [
+        "network",
         "ipv4-route-selection",
         "oneshot-service",
-        "config-regression"
-      ]
-    },
-    {
-      "id": "fieldwork",
-      "name": "工程调试方法",
-      "repository": "Coding_Skills",
-      "url": "https://github.com/qitiandi2003/Coding_Skills",
-      "summary": "从录包里找第一处异常，从多个视角复核点云，在网页刷新前后核对控制状态。",
-      "modules": [
-        {
-          "label": "点云复核",
-          "url": "https://github.com/qitiandi2003/Coding_Skills/blob/ce8f12283fb4df9b30ad3744aeac97939fdf0af7/skills/point-cloud-review/SKILL.md"
-        },
-        {
-          "label": "录包诊断",
-          "url": "https://github.com/qitiandi2003/Coding_Skills/blob/ce8f12283fb4df9b30ad3744aeac97939fdf0af7/skills/rosbag-diagnosis/SKILL.md"
-        },
-        {
-          "label": "控制台状态",
-          "url": "https://github.com/qitiandi2003/Coding_Skills/blob/ce8f12283fb4df9b30ad3744aeac97939fdf0af7/skills/web-control-state/SKILL.md"
-        },
-        {
-          "label": "代码验收",
-          "url": "https://github.com/qitiandi2003/Coding_Skills/blob/ce8f12283fb4df9b30ad3744aeac97939fdf0af7/skills/coding-skills/SKILL.md"
-        }
-      ],
-      "notes": [
-        "icp",
         "ros2",
-        "web-state",
-        "multiview-floaters",
-        "config-regression"
+        "rgbd-sensor-contract"
       ]
     },
     {
-      "id": "publishing",
-      "name": "博客与静态发布",
-      "repository": "qitiandi2003.github.io",
-      "url": "https://github.com/qitiandi2003/qitiandi2003.github.io",
-      "summary": "这套 C++ 生成器从手记生成正文、目录和搜索数据，并在迁移到域名根目录后接续旧书签。",
-      "modules": [
-        {
-          "label": "静态生成器",
-          "url": "https://github.com/qitiandi2003/qitiandi2003.github.io/blob/master/_qi-blog/build.cpp"
-        },
-        {
-          "label": "站点维护",
-          "url": "https://github.com/qitiandi2003/qitiandi2003.github.io/blob/master/README.md"
-        }
-      ],
+      "id": "engineering",
+      "name": "工程实践",
+      "description": "用状态机、后台任务、录制队列和回归测试，解决日常程序中常见的顺序与时机问题。",
       "notes": [
+        "dosing-states",
+        "navigation-settling",
+        "web-state",
+        "session-recording",
+        "splat-mesh-job",
+        "config-regression",
+        "splat-model-manifest",
+        "ros-binary-package",
         "static-pages"
       ]
     }

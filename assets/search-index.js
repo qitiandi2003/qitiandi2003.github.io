@@ -1,352 +1,352 @@
 window.QI_ARTICLES = [
   {
-    "keywords": "3DGS GS 高斯泼溅 Gaussian Splatting 新视角 3D 重建 渲染 球谐 图形渲染 Splat-Studio 三维重建与数字孪生",
-    "slug": "gaussian-splatting",
-    "summary": "正面看是一条清晰的门框，换到斜侧方却可能出现双边。把同一处的配准点云和渲染图放在一起看，能分辨重影最早出现在哪一步。",
-    "title": "门框边缘的高斯渲染",
-    "topic": "3DGS"
-  },
-  {
-    "keywords": "3DGS 训练数据 相机轨迹 曝光时刻 相机外参 COLMAP Nerfstudio 重投影 图形渲染 Fast-Livo2 激光、惯性与视觉融合",
-    "slug": "livo-gs-keyframes",
-    "summary": "从曝光时刻与相机坐标约定入手，在训练高斯模型之前，用门框角点检查照片与几何是否匹配。",
-    "title": "一张训练照片的位姿从哪里来？",
-    "topic": "3DGS 数据采集"
-  },
-  {
-    "keywords": "Mesh 三角网格 拓扑 Open3D 孔洞 非流形 表面重建 几何验收 图形渲染 Splat-Studio 三维重建与数字孪生",
-    "slug": "mesh-inspection",
-    "summary": "彩色模型看着像一间完整的屋子。关掉纹理，沿墙面剖一刀，再看三角网格实际连接了什么。",
-    "title": "门洞为何被一片三角形封住",
-    "topic": "三角网格"
-  },
-  {
-    "keywords": "3DGS 伪影 高斯 透明度 多视角 MVS 遮挡 深度 光栅化 图形渲染 Splat-Studio 三维重建与数字孪生 Coding_Skills 工程调试方法",
-    "slug": "multiview-floaters",
-    "summary": "在斜视图里跟踪一块伪影，用原图、深度和临时遮蔽区分输错的位姿、真实遮挡与高斯贡献。",
-    "title": "寻找悬浮高斯的来源",
-    "topic": "多视角诊断"
-  },
-  {
-    "keywords": "SfM COLMAP 位姿 相机中心 四元数 重投影 图像匹配 轨迹 定位与建图 Splat-Studio 三维重建与数字孪生",
-    "slug": "colmap-camera-centers",
-    "summary": "轨迹里有了旋转和平移，画出来却穿过墙面。把世界原点和相机中心各代入一次，就能检验位姿方向。",
-    "title": "COLMAP 位姿里的负号",
-    "topic": "SfM"
-  },
-  {
-    "keywords": "A* 体素规划 地形 支撑 坡度 足迹 代价 启发函数 定位与建图 Fast-Livo2 激光、惯性与视觉融合 VSLAM 视觉定位与机器人建图",
-    "slug": "grounded-astar",
-    "summary": "同一张三维体素图，对飞行器和地面机器人有不同的邻接关系。规划前要写清什么样的一步可走。",
-    "title": "给 A* 的每一步找一块地面",
-    "topic": "地形规划"
-  },
-  {
-    "keywords": "ICP 点云配准 Open3D 点到面 残差 最近邻 fitness RMSE 定位与建图 VSLAM 视觉定位与机器人建图 Coding_Skills 工程调试方法",
-    "slug": "icp",
-    "summary": "两片点云沿平墙错开十厘米，点到面残差仍然可以为零。判断配准结果，还得看重叠区域里有没有能约束这次移动的边角。",
-    "title": "ICP 残差为零，点云仍会错位",
-    "topic": "ICP"
-  },
-  {
-    "keywords": "LiDAR 地点识别 Scan Context ICP 全局定位 几何歧义 map odom 定位与建图 Fast-Livo2 激光、惯性与视觉融合",
-    "slug": "lidar-place-ambiguity",
-    "summary": "从地点描述子到几何配准，区分一个局部姿态能解释扫描和一张地图里只有一个可能地点。",
-    "title": "两间相同的房间，雷达该选哪一个？",
-    "topic": "激光重定位"
-  },
-  {
-    "keywords": "LiDAR IMU LIO 去畸变 扫描时间 状态传播 协方差 FAST-LIVO2 定位与建图 Fast-Livo2 激光、惯性与视觉融合",
-    "slug": "livo-scan-time",
-    "summary": "用一束激光的采样时刻解释点云去畸变，再看 IMU 如何为一段扫描补全运动轨迹。",
-    "title": "一帧点云，到底是哪一刻的？",
-    "topic": "雷达惯性里程计"
-  },
-  {
-    "keywords": "多会话建图 点云拼接 位姿图 全局配准 因子图 鲁棒估计 定位与建图 Fast-Livo2 激光、惯性与视觉融合",
-    "slug": "multi-session-graph",
-    "summary": "检查跨会话的相对姿态、图的坐标参照，以及重复走廊里可能自洽的错误对应。",
-    "title": "两趟扫描怎样拼进同一张地图？",
-    "topic": "多会话建图"
-  },
-  {
-    "keywords": "OctoMap 八叉树 体素 占据 自由空间 未知 语义 标注 定位与建图 VSLAM 视觉定位与机器人建图",
-    "slug": "octomap-free-unknown",
-    "summary": "沿一次深度观测追踪射线，分清已经测到的自由空间、障碍表面和从未看见的区域。",
-    "title": "点云的空白处，真能走过去吗？",
-    "topic": "OctoMap"
-  },
-  {
-    "keywords": "直接法 VIO 光度残差 相对增益 图块 梯度 曝光 里程计 定位与建图 Fast-Livo2 激光、惯性与视觉融合",
-    "slug": "photometric-patches",
-    "summary": "用两个像素值拆开图像运动与曝光变化，再用同一张图做一组可以复核的直接法实验。",
-    "title": "图像亮了，里程计为什么会以为自己动了？",
-    "topic": "直接法视觉里程计"
-  },
-  {
-    "keywords": "局部规划 滚动体素 动态障碍 射线 时间衰减 TTL 全局路径 定位与建图 VSLAM 视觉定位与机器人建图",
-    "slug": "rolling-obstacle-map",
-    "summary": "保存的地图描述长期布局，滚动占据层记录最近看到的东西。用两束深度射线检查一把椅子的出现与消失。",
-    "title": "搬走的椅子，什么时候从地图消失",
-    "topic": "动态障碍"
-  },
-  {
-    "keywords": "RTAB-Map 图优化 位姿图 回环 里程计 图约束 闭环 定位与建图 VSLAM 视觉定位与机器人建图",
-    "slug": "rtabmap-pose-graph",
-    "summary": "把相邻帧的里程计和跨时间的回环连进同一张位姿图，沿着一次走廊往返检查优化前后的变化。",
-    "title": "走廊尽头的那条回环",
-    "topic": "RTAB-Map"
-  },
-  {
-    "keywords": "SLAM 视觉定位 关键帧 位姿 跟踪 回环 Tcw ORB-SLAM3 定位与建图 VSLAM 视觉定位与机器人建图",
+    "keywords": "SLAM 视觉定位 关键帧 位姿 跟踪 回环 Tcw ORB-SLAM3 定位与建图",
     "slug": "slam",
-    "summary": "相机沿世界 x 轴前进一米，世界到相机的变换里，平移量却是负一米。画轨迹之前，先弄清位姿文件保存的是哪个方向。",
-    "title": "SLAM 轨迹里的相机中心",
+    "summary": "从左右移动时物体的视差出发，理解相机怎样估计自身运动、恢复路标位置，并在绕回起点时校正轨迹。",
+    "title": "视觉 SLAM 的定位与建图原理",
     "topic": "SLAM"
   },
   {
-    "keywords": "补拍 增量重建 固定位姿 COLMAP 稀疏点云 高斯训练 新旧视图 增量训练 基线 定位与建图 Splat-Studio 三维重建与数字孪生",
-    "slug": "splat-incremental",
-    "summary": "新照片能成功注册，只回答了位姿问题。训练后还得逐张比较旧视角，防止入口处改善的分数盖住走廊另一端的退化。",
-    "title": "补拍一段走廊，旧视角还对吗",
-    "topic": "增量重建"
+    "keywords": "ICP 点云配准 Open3D 点到面 残差 最近邻 fitness RMSE 定位与建图",
+    "slug": "icp",
+    "summary": "用两组桌角坐标手算一次配准，再看复杂场景中的旋转、初始位姿、点到面残差和几何退化。",
+    "title": "ICP 怎样把两次扫描对齐",
+    "topic": "ICP"
   },
   {
-    "keywords": "数字孪生 导航 地面 坐标系 尺度 对齐 Nav2 footprint 通行 定位与建图 Splat-Studio 三维重建与数字孪生",
-    "slug": "twin-floor-frame",
-    "summary": "从一段已知长度开始，把模型单位、地面法向、机器人朝向和窄门净宽统一到同一张地图上。",
-    "title": "把机器人放进重建的房间",
-    "topic": "数字孪生"
+    "keywords": "SfM COLMAP 位姿 相机中心 四元数 重投影 图像匹配 轨迹 定位与建图",
+    "slug": "colmap-camera-centers",
+    "summary": "从两个坐标系出发推导相机中心 C = −Rᵀt，手算一次旋转，并把三维点投回像素检验方向。",
+    "title": "从 COLMAP 相机位姿计算运动轨迹",
+    "topic": "SfM"
   },
   {
-    "keywords": "HLoc NetVLAD SuperPoint LightGlue PnP RANSAC 检索 重定位 定位与建图 VSLAM 视觉定位与机器人建图",
-    "slug": "visual-relocalization",
-    "summary": "外观相似只能选出候选地点。把局部匹配接上地图中的三维点，才能估计相机的位置与朝向。",
-    "title": "给一张照片找回地图坐标",
-    "topic": "视觉重定位"
+    "keywords": "LiDAR IMU LIO 去畸变 扫描时间 状态传播 协方差 定位与建图",
+    "slug": "livo-scan-time",
+    "summary": "用一堵墙和一次匀速扫描解释点的采样时刻、IMU 运动估计，以及如何把一帧点云归到同一个参考时刻。",
+    "title": "机器人一转弯，点云里的墙为什么弯了？",
+    "topic": "雷达惯性里程计"
   },
   {
-    "keywords": "概率体素地图 LiDAR 法向 残差协方差 点到面 退化 定位与建图 Fast-Livo2 激光、惯性与视觉融合",
+    "keywords": "概率体素地图 LiDAR 法向 残差协方差 点到面 退化 定位与建图",
     "slug": "voxel-plane-confidence",
-    "summary": "从四个点拟合一块平面，理解点到面残差和地图不确定性如何共同约束位姿。",
-    "title": "一块墙面能给定位多大权重？",
+    "summary": "从盒子里的点怎样确定一张平面讲起，用有误差的尺读数演算标准化残差，理解点到面约束的权重。",
+    "title": "一小块点云能把墙面量得多准？",
     "topic": "概率体素地图"
   },
   {
-    "keywords": "配置 回归测试 C++ CTest 网络配置 备份 恢复 幂等 软件工程 工程实践 ssh-vpn 网络工具与服务管理 Coding_Skills 工程调试方法",
-    "slug": "config-regression",
-    "summary": "从一份包含旧设置的小样本出发，测试改动范围、重复运行和恢复后的内容。",
-    "title": "为一次网络配置变更写回归测试",
-    "topic": "配置测试"
+    "keywords": "直接法 VIO 光度残差 相对增益 图块 梯度 曝光 里程计 定位与建图",
+    "slug": "photometric-patches",
+    "summary": "把一块小纹理在两帧间的亮度差写成误差，再用三个灰度读数看清纹理方向与曝光变化带来的歧义。",
+    "title": "从一小块纹理估计相机运动",
+    "topic": "直接法视觉里程计"
   },
   {
-    "keywords": "自动定容 工作流 状态机 注液 dosing 完成事件 视觉测量 上位机 工程实践 Bottle-Automatic-Volume-Adjustment-System 自动定容系统",
-    "slug": "dosing-states",
-    "summary": "开始、锁定刻度、检测液面、报告完成，对应不同的状态。把状态表和产生事件的那一行代码一起看，才能说清设备为什么停在这里。",
-    "title": "定容结束的那一帧",
-    "topic": "状态机"
+    "keywords": "HLoc NetVLAD SuperPoint LightGlue PnP RANSAC 检索 重定位 定位与建图",
+    "slug": "visual-relocalization",
+    "summary": "把图像检索、局部特征匹配与二维到三维的位姿估计串成一次定位，用重投影和独立深度复核候选地点。",
+    "title": "用视觉重定位估计照片的拍摄位姿",
+    "topic": "视觉重定位"
   },
   {
-    "keywords": "导航 目标检查 速度 容差 位姿 时间戳 Nav2 map odom 工程实践 Fast-Livo2 激光、惯性与视觉融合",
-    "slug": "navigation-settling",
-    "summary": "分别观察终点误差、机体运动和数据采集时间，理解导航中的到达条件。",
-    "title": "机器人进了目标圈，什么时候算到达？",
-    "topic": "导航状态确认"
+    "keywords": "LiDAR 地点识别 Scan Context ICP 全局定位 几何歧义 map odom 定位与建图",
+    "slug": "lidar-place-ambiguity",
+    "summary": "从一圈距离测量构造地点描述，区分候选检索、几何对齐与连续观察，理解什么时候只能保留多个可能位置。",
+    "title": "走廊长得一样，激光雷达怎么认路？",
+    "topic": "激光重定位"
   },
   {
-    "keywords": "C++ ROS 2 ament CMake 共享库 ABI 二进制 发布 依赖 overlay 工程实践 VSLAM 视觉定位与机器人建图",
-    "slug": "ros-binary-package",
-    "summary": "从一个只依赖公开头文件的小程序出发，分别检验 CMake 包的导出信息、共享库和运行环境。",
-    "title": "一个 ROS 2 包，离开源码树以后",
-    "topic": "二进制交付"
+    "keywords": "RTAB-Map 图优化 位姿图 回环 里程计 图约束 闭环 定位与建图",
+    "slug": "rtabmap-pose-graph",
+    "summary": "把走廊往返画成由关键帧和相对运动组成的图，手算两段里程的折中解，再辨别真假回环。",
+    "title": "绕回起点后，RTAB-Map 怎样修正地图？",
+    "topic": "RTAB-Map"
   },
   {
-    "keywords": "定容 录像 JPEG ffmpeg MP4 后台线程 异步 队列 retention 单元测试 观测 工程实践 Bottle-Automatic-Volume-Adjustment-System 自动定容系统",
-    "slug": "session-recording",
-    "summary": "一次检测结束后，JPEG 可能还在等待转码。录像器要保护正在收尾的会话，磁盘清理才不会抢先删掉唯一一份原始帧。",
-    "title": "录像收尾时，谁还在写文件",
-    "topic": "会话录像"
+    "keywords": "多会话建图 点云拼接 位姿图 全局配准 因子图 鲁棒估计 定位与建图",
+    "slug": "multi-session-graph",
+    "summary": "用两次独立的楼层扫描建立跨图约束，计算一个二维变换，并通过未参与配准的结构检查拼接结果。",
+    "title": "把两次扫描拼成一张地图",
+    "topic": "多会话建图"
   },
   {
-    "keywords": "异步任务 mesh 网格导出 进度 恢复 进程 PID 实验版本 作业管理 工程实践 Splat-Studio 三维重建与数字孪生",
-    "slug": "splat-mesh-job",
-    "summary": "后台日志里的百分比只能描述计算走到了哪一段。结果文件和版本登记齐全，网页才有可以下载的网格。",
-    "title": "网格导出为什么停在 99%",
-    "topic": "后台任务"
+    "keywords": "OctoMap 八叉树 体素 占据 自由空间 未知 语义 标注 定位与建图",
+    "slug": "octomap-free-unknown",
+    "summary": "沿一条测距射线手画三类空间，理解为什么空白点云无法直接表示通道，以及多次观测如何更新体素。",
+    "title": "OctoMap 中的自由、占据与未知空间",
+    "topic": "OctoMap"
   },
   {
-    "keywords": "模型清单 版本管理 静态打包 相对路径 检查点 C++ 文件系统 SHA-256 3DGS 数字孪生 工程实践 Splat-Studio 三维重建与数字孪生",
-    "slug": "splat-model-manifest",
-    "summary": "一个模型版本至少牵连相机、检查点、参数和坐标变换。把这些关系写在同一份清单里，换台机器也能核对渲染时究竟读了哪套数据。",
-    "title": "重建项目搬走以后，模型在哪里",
-    "topic": "模型清单"
+    "keywords": "局部规划 滚动体素 动态障碍 射线 时间衰减 TTL 全局路径 定位与建图",
+    "slug": "rolling-obstacle-map",
+    "summary": "把一把临时搬到过道里的椅子写入局部地图，分清命中、射线清除、过期和移出滚动窗口各自表示什么。",
+    "title": "椅子搬走以后，障碍地图怎样更新？",
+    "topic": "动态障碍"
   },
   {
-    "keywords": "GitHub Pages 静态站 C++17 JSON 搜索索引 个人博客 相对路径 根目录迁移 重定向 旧书签 工程实践 qitiandi2003.github.io 博客与静态发布",
-    "slug": "static-pages",
-    "summary": "把一篇手记从子目录移到根目录，既要找对样式和图片，也要让收藏夹里的旧文章、分类和段落仍能打开。",
-    "title": "把静态博客迁到域名根目录",
-    "topic": "静态发布"
+    "keywords": "A* 体素规划 地形 支撑 坡度 足迹 代价 启发函数 定位与建图",
+    "slug": "grounded-astar",
+    "summary": "先把体素地图变成机器人能够移动的图，再手算一次 A* 排序，比较绕行距离与贴近障碍的代价。",
+    "title": "地面机器人怎样用 A* 绕开障碍",
+    "topic": "地形规划"
   },
   {
-    "keywords": "Coding_Skills 工程验收 前端 状态管理 刷新 多端 竞态 版本 请求 日志 控制台 工程实践 Fast-Livo2 激光、惯性与视觉融合 Coding_Skills 工程调试方法",
-    "slug": "web-state",
-    "summary": "手机刷新后应该还看到刚才的地图，但一次按键或导航命令有自己的生命周期。恢复界面时，先分清哪些状态需要读回来。",
-    "title": "刷新控制台，别重放一次操作",
-    "topic": "网页状态"
+    "keywords": "数字孪生 导航 地面 坐标系 尺度 对齐 Nav2 footprint 通行 定位与建图",
+    "slug": "twin-floor-frame",
+    "summary": "利用已知距离、地面平面和前进方向恢复模型的米制参考系，再用独立量测核对地图里的位置与通行宽度。",
+    "title": "三维模型里的“一米”有多长？",
+    "topic": "数字孪生"
   },
   {
-    "keywords": "AprilTag 标签 PnP 平面标靶 相机位姿 距离 检测边长 重投影 感知与标定 VSLAM 视觉定位与机器人建图",
-    "slug": "apriltag-pose-check",
-    "summary": "AprilTag 提供编码身份和角点。用一张打印纸设计测量实验，检查边长、成像尺度和相机位姿。",
-    "title": "打印的 AprilTag 能量出多远",
-    "topic": "AprilTag"
+    "keywords": "补拍 增量重建 固定位姿 COLMAP 稀疏点云 高斯训练 新旧视图 增量训练 基线 定位与建图",
+    "slug": "splat-incremental",
+    "summary": "区分新照片定位、三角化和联合优化，从两段有重叠的拍摄理解怎样扩展模型并复查旧视角。",
+    "title": "给已有的三维重建补几张照片",
+    "topic": "增量重建"
   },
   {
-    "keywords": "标定 相机 IMU Kalibr 外参 时间同步 坐标系 calibration 感知与标定 VSLAM 视觉定位与机器人建图",
-    "slug": "calibration",
-    "summary": "标定文件里相差 8 毫秒，应该加在哪一端？先拿 IMU 原点和一帧图像时间验算，再用转弯时的角速度峰核对。",
-    "title": "Kalibr 外参和时差的方向",
-    "topic": "联合标定"
-  },
-  {
-    "keywords": "工业相机 采集 C++ OpenCV cv::Mat Bayer 行跨度 buffer 生命周期 内存 感知与标定 Fast-Livo2 激光、惯性与视觉融合 VSLAM 视觉定位与机器人建图 Bottle-Automatic-Volume-Adjustment-System 自动定容系统",
-    "slug": "camera-frame-buffer",
-    "summary": "相机预览偶尔花屏，可以从一帧的像素格式、行跨度，以及 SDK 回收缓冲区的时刻查起。",
-    "title": "收到一帧图像以后，谁拥有这块内存？",
-    "topic": "工业相机"
-  },
-  {
-    "keywords": "CREStereo 左右一致性 双目匹配 视差掩码 置信度 亚像素 深度 感知与标定 VSLAM 视觉定位与机器人建图",
-    "slug": "crestereo-confidence",
-    "summary": "一根桌腿的边缘为什么有时会飘到背景？在学习式双目匹配中追踪一个像素的往返位置。",
-    "title": "让左右视差互相对一次账",
-    "topic": "CREStereo"
-  },
-  {
-    "keywords": "事件相机 Prophesee 事件流 极性 时间戳 时间窗 RGBD ROS2 感知与标定 VSLAM 视觉定位与机器人建图",
-    "slug": "event-camera-windows",
-    "summary": "事件相机记录单个像素的亮度变化。选取时间窗，把异步事件投成图像，能直观看到延迟与轮廓拖尾的关系。",
-    "title": "事件相机的时间窗",
-    "topic": "事件相机"
-  },
-  {
-    "keywords": "Fast-Livo2 FAST-Calib FAST-Calib2 LiDAR 雷达 相机 外参 反光圆环 ArUco 圆心 RMSE 重投影 时间同步 感知与标定 Fast-Livo2 激光、惯性与视觉融合",
-    "slug": "lidar-camera-calibration",
-    "summary": "标定板上的圆心都对齐了，换一面墙，还要检查激光边缘能不能落回图像。毫米和像素各回答一个问题。",
-    "title": "圆心残差与门框上的投影",
-    "topic": "雷达与相机标定"
-  },
-  {
-    "keywords": "OpenCV 计算机视觉 Sobel 边缘检测 液面 梯度 绿色通道 BGR 感知与标定 Bottle-Automatic-Volume-Adjustment-System 自动定容系统",
+    "keywords": "OpenCV 计算机视觉 Sobel 边缘检测 液面 梯度 绿色通道 BGR 感知与标定",
     "slug": "opencv",
-    "summary": "瓶身、刻度和反光都能形成强边缘。定容程序用锁定刻度时的图像作基线，在各列的梯度变化里寻找液面。",
-    "title": "从梯度峰定位液面",
+    "summary": "把一块图像压成一条亮度变化曲线，从峰的位置找液面，再把裁剪坐标换回原图。",
+    "title": "用图像梯度检测瓶中液面",
     "topic": "OpenCV"
   },
   {
-    "keywords": "自动定容 瓶身 刻度线 锁定 Sobel HoughLinesP GapStability OpenCV 稳定窗口 感知与标定 Bottle-Automatic-Volume-Adjustment-System 自动定容系统",
-    "slug": "scale-lock",
-    "summary": "一条反光也可能在单帧里得到高分。定容程序把线的位置偏差放进时间窗口，等偏差的抖动足够小，才交给下一阶段。",
-    "title": "刻度线何时算锁定",
-    "topic": "刻度检测"
-  },
-  {
-    "keywords": "SGM SGBM 视差 双目 深度 RealSense 极线校正 基线 定点 感知与标定 VSLAM 视觉定位与机器人建图",
+    "keywords": "SGM SGBM 视差 双目 深度 RealSense 极线校正 基线 定点 感知与标定",
     "slug": "stereo-disparity-depth",
-    "summary": "在极线校正后的图像上，从像素位移推回深度，看看远处窗框为何比近处桌边更容易抖动。",
-    "title": "一像素视差的深度误差",
+    "summary": "左右图像中同一点的横向偏移可以换算成深度。距离越远，一像素误差的代价越大。",
+    "title": "双目相机怎样用视差计算深度",
     "topic": "SGM 双目深度"
   },
   {
-    "keywords": "双目 工业相机 曝光 同步 时间戳 硬件触发 增益 运动模糊 感知与标定 Fast-Livo2 激光、惯性与视觉融合 VSLAM 视觉定位与机器人建图",
+    "keywords": "AprilTag 标签 PnP 平面标靶 相机位姿 距离 检测边长 重投影 感知与标定",
+    "slug": "apriltag-pose-check",
+    "summary": "四个检测角点提供图像位置，标记的真实边长为距离提供尺度。",
+    "title": "用一张 AprilTag 测出相机的位置和朝向",
+    "topic": "AprilTag"
+  },
+  {
+    "keywords": "标定 相机 IMU Kalibr 外参 时间同步 坐标系 calibration 感知与标定",
+    "slug": "calibration",
+    "summary": "从一段转动和一个三维点开始，弄清联合标定要估计的旋转、平移与时差。",
+    "title": "相机和 IMU 怎样对齐坐标与时间",
+    "topic": "联合标定"
+  },
+  {
+    "keywords": "Fast-Livo2 FAST-Calib FAST-Calib2 LiDAR 雷达 相机 外参 反光圆环 ArUco 圆心 RMSE 重投影 时间同步 感知与标定",
+    "slug": "lidar-camera-calibration",
+    "summary": "从一组三维圆心估计刚体变换，再用自然场景中的边缘检查投影。",
+    "title": "怎样验证激光雷达与相机的联合标定",
+    "topic": "雷达与相机标定"
+  },
+  {
+    "keywords": "双目 工业相机 曝光 同步 时间戳 硬件触发 增益 运动模糊 感知与标定",
     "slug": "stereo-trigger-exposure",
-    "summary": "左右图像在电脑上先后到达。用触发事件、设备时间戳和曝光时长判断，它们看见的是不是同一瞬间。",
-    "title": "两台相机按下快门的那一刻",
+    "summary": "区分触发、曝光、设备时间戳和到达时间，估算时间差怎样污染立体匹配。",
+    "title": "双目同步要对齐哪一个时刻",
     "topic": "双目采集"
   },
   {
-    "keywords": "朴素贝叶斯 垃圾邮件 MultinomialNB TF-IDF SMOTE 数据泄漏 分类 机器学习 dev_skills 自然语言处理实验",
-    "slug": "bayes-mail",
-    "summary": "看清词频、类别先验和 TF-IDF 的作用，再用一次训练集与测试集的顺序检查评估是否可信。",
-    "title": "朴素贝叶斯怎样给邮件打分",
-    "topic": "朴素贝叶斯"
+    "keywords": "事件相机 Prophesee 事件流 极性 时间戳 时间窗 RGBD ROS2 感知与标定",
+    "slug": "event-camera-windows",
+    "summary": "读懂一个事件的四个字段，再选择时间窗，把异步观测积成可看的轮廓。",
+    "title": "事件相机如何把亮度变化变成图像",
+    "topic": "事件相机"
   },
   {
-    "keywords": "BERT 中文 情感分析 Hugging Face 微调 分类 mask token Transformers 机器学习 dev_skills 自然语言处理实验",
-    "slug": "bert-sentiment",
-    "summary": "沿着 CSV、分词器和分类头检查中文情感微调，找出一条长评论在什么时候失去了末尾的转折。",
-    "title": "BERT 会读到评论末尾的转折吗？",
-    "topic": "BERT 分类"
+    "keywords": "CREStereo 左右一致性 双目匹配 视差掩码 置信度 亚像素 深度 感知与标定",
+    "slug": "crestereo-confidence",
+    "summary": "从左图出发找到右图，再从右图走回来，检查同一个像素能否回到起点。",
+    "title": "用左右一致性检查双目匹配",
+    "topic": "CREStereo"
   },
   {
-    "keywords": "GPT 自回归 因果语言模型 生成解码 top-k top-p temperature 重复惩罚 机器学习 dev_skills 自然语言处理实验",
-    "slug": "gpt-sampling",
-    "summary": "从下一 token 的分布出发，读懂候选集、温度和长度限制，并用 token 边界准确取出续写。",
-    "title": "同一句开头，GPT 为什么给出三种续写",
-    "topic": "GPT 采样"
+    "keywords": "工业相机 采集 C++ OpenCV cv::Mat Bayer 行跨度 buffer 生命周期 内存 感知与标定",
+    "slug": "camera-frame-buffer",
+    "summary": "理解像素格式、行跨度和缓冲区所有权，排查花屏、偏色与跨线程图像串帧。",
+    "title": "相机画面为什么会串帧？",
+    "topic": "工业相机"
   },
   {
-    "keywords": "机器翻译 Seq2Seq LSTM teacher forcing 德英 Multi30K 注意力 对齐 机器学习 dev_skills 自然语言处理实验",
-    "slug": "seq2seq-translation",
-    "summary": "跟随第一步译词的输入与标签，理解教师强制、定长状态，以及注意力需要补上的信息通路。",
-    "title": "德英翻译器的第一个译词",
-    "topic": "Seq2Seq"
+    "keywords": "自动定容 瓶身 刻度线 锁定 Sobel HoughLinesP GapStability OpenCV 稳定窗口 感知与标定",
+    "slug": "scale-lock",
+    "summary": "用候选线的位置窗口区分“短时抖动小”和“位置已经对准”。",
+    "title": "怎样判断图像中的刻度已经稳定",
+    "topic": "刻度检测"
   },
   {
-    "keywords": "RNN GRU Elman 姓氏 条件生成 字符模型 填充 字符串 分类 机器学习 dev_skills 自然语言处理实验",
-    "slug": "surname-rnn",
-    "summary": "同一批字符可以用来预测数据集标签，也可以用来生成下一个字符。区别体现在序列如何错位和隐藏状态从何开始。",
-    "title": "同一份姓氏，两种 RNN 任务",
-    "topic": "字符 RNN"
+    "keywords": "3DGS 训练数据 相机轨迹 曝光时刻 相机外参 COLMAP Nerfstudio 重投影 图形渲染",
+    "slug": "livo-gs-keyframes",
+    "summary": "用一把椅子练习拍摄，理解照片重叠、视差、曝光时刻与相机位姿怎样共同影响重建。",
+    "title": "三维重建的拍摄与关键帧",
+    "topic": "3DGS 数据采集"
   },
   {
-    "keywords": "Word2Vec Gensim CBOW Skip-gram embedding 相似度 分布式表示 机器学习 dev_skills 自然语言处理实验",
-    "slug": "word-embeddings",
-    "summary": "对照餐饮评论里的 Skip-gram 和小说语料中的 CBOW，沿着训练目标解释词向量近邻。",
-    "title": "词向量的邻居从哪里来",
-    "topic": "词向量"
+    "keywords": "Mesh 三角网格 拓扑 Open3D 孔洞 非流形 表面重建 几何验收 图形渲染",
+    "slug": "mesh-inspection",
+    "summary": "从四个角点拼出一块平板，弄清顶点、三角面、法向以及真实开口和采样空洞的区别。",
+    "title": "点云与三角网格",
+    "topic": "三角网格"
   },
   {
-    "keywords": "NLP 中文分词 FMM RMM 双向最大匹配 jieba TextRank 自定义词典 机器学习 dev_skills 自然语言处理实验",
+    "keywords": "3DGS GS 高斯泼溅 Gaussian Splatting 新视角 3D 重建 渲染 球谐 图形渲染",
+    "slug": "gaussian-splatting",
+    "summary": "一组三维色斑如何从不同角度画出同一间屋子？从一个像素的颜色混合开始，理解 3D Gaussian Splatting。",
+    "title": "3D 高斯渲染入门",
+    "topic": "3DGS"
+  },
+  {
+    "keywords": "3DGS 伪影 高斯 透明度 多视角 MVS 遮挡 深度 光栅化 图形渲染",
+    "slug": "multiview-floaters",
+    "summary": "换一个观察位置，利用视差、遮挡和深度判断一块悬浮颜色的来源。",
+    "title": "三维重建中的漂浮伪影",
+    "topic": "多视角诊断"
+  },
+  {
+    "keywords": "NLP 中文分词 FMM RMM 双向最大匹配 jieba TextRank 自定义词典 机器学习",
     "slug": "word-segmentation",
-    "summary": "用一个小词典比较正向、逆向最大匹配，再观察自定义词典如何改变后续检索与关键词提取。",
-    "title": "「研究生命起源」可以从哪里切开？",
+    "summary": "用“研究生命起源”比较两种查词方向，再看分词边界怎样影响搜索。",
+    "title": "中文分词怎样确定词的边界",
     "topic": "中文分词"
   },
   {
-    "keywords": "IPv4 CIDR 网络前缀 最长前缀匹配 路由表 默认路由 iproute2 dev src metric 系统与通信 ssh-vpn 网络工具与服务管理",
-    "slug": "ipv4-route-selection",
-    "summary": "用三条纸面路由判断出口，再对照 C++ 代码区分路由表、内核选路结果与端到端连通性。",
-    "title": "默认路由怎样让位给更具体的地址",
-    "topic": "IPv4 路由"
+    "keywords": "朴素贝叶斯 垃圾邮件 MultinomialNB TF-IDF SMOTE 数据泄漏 分类 机器学习",
+    "slug": "bayes-mail",
+    "summary": "用三个词在两类邮件里的计数算出类别分数，再检查模型为什么会误判从没见过的邮件。",
+    "title": "用朴素贝叶斯识别邮件类别",
+    "topic": "朴素贝叶斯"
   },
   {
-    "keywords": "TCP IP 计算机网络 字节序 半包 粘包 协议 socket 系统与通信 Bottle-Automatic-Volume-Adjustment-System 自动定容系统",
+    "keywords": "Word2Vec Gensim CBOW Skip-gram embedding 相似度 分布式表示 机器学习",
+    "slug": "word-embeddings",
+    "summary": "用同一句话造出两类训练题，再算一次余弦相似度，理解词向量中的“邻居”。",
+    "title": "词向量如何从上下文中学出来",
+    "topic": "词向量"
+  },
+  {
+    "keywords": "RNN GRU Elman 姓氏 条件生成 字符模型 填充 字符串 分类 机器学习",
+    "slug": "surname-rnn",
+    "summary": "同一串字符既可以提供一个类别标签，也可以拆成一串“下一个字符”的预测题。",
+    "title": "用字符 RNN 做分类与生成",
+    "topic": "字符 RNN"
+  },
+  {
+    "keywords": "机器翻译 Seq2Seq LSTM teacher forcing 德英 Multi30K 注意力 对齐 机器学习",
+    "slug": "seq2seq-translation",
+    "summary": "从德语短句的第一个英语词开始，理解编码器、解码器、教师强制和注意力各在哪里起作用。",
+    "title": "Seq2Seq 翻译器怎样逐词生成译文",
+    "topic": "Seq2Seq"
+  },
+  {
+    "keywords": "BERT 中文 情感分析 Hugging Face 微调 分类 mask token Transformers 机器学习",
+    "slug": "bert-sentiment",
+    "summary": "跟随一条有转折的酒店评论，从分词、截断到两个类别分数，检查模型真正看到了什么。",
+    "title": "用 BERT 判断一条评论的情感",
+    "topic": "BERT 分类"
+  },
+  {
+    "keywords": "GPT 自回归 因果语言模型 生成解码 top-k top-p temperature 重复惩罚 机器学习",
+    "slug": "gpt-sampling",
+    "summary": "把三个候选词的分数算成概率，观察温度、top-k 和 top-p 怎样改变续写。",
+    "title": "GPT 怎样从下一个 token 生成一句话",
+    "topic": "GPT 采样"
+  },
+  {
+    "keywords": "TCP IP 计算机网络 字节序 半包 粘包 协议 socket 系统与通信",
     "slug": "network",
-    "summary": "上位机发出两条命令，接收端可能先读到 7 字节，再读到 23 字节。自动定容程序用一个缓冲区还原两条完整的 15 字节指令。",
-    "title": "TCP 里的 15 字节控制帧",
+    "summary": "从一条 15 字节的控制消息入手，计算接收缓冲区何时能交付一帧，并核对字段的字节序。",
+    "title": "TCP 发了两条消息，一次能读到几条？",
     "topic": "计算机网络"
   },
   {
-    "keywords": "操作系统 Linux systemd oneshot RemainAfterExit waitpid EINTR 生命周期 进程 状态 信号 系统与通信 ssh-vpn 网络工具与服务管理",
+    "keywords": "IPv4 CIDR 网络前缀 最长前缀匹配 路由表 默认路由 iproute2 dev src metric 系统与通信",
+    "slug": "ipv4-route-selection",
+    "summary": "用三个重叠的 IPv4 前缀推算出口，再用 Linux 的只读查询区分选路结果和端到端连通性。",
+    "title": "IPv4 路由表与最长前缀匹配",
+    "topic": "IPv4 路由"
+  },
+  {
+    "keywords": "操作系统 Linux systemd oneshot RemainAfterExit waitpid EINTR 生命周期 进程 状态 信号 系统与通信",
     "slug": "oneshot-service",
-    "summary": "从一个 systemd oneshot 单元追到 C++ 的 waitpid，分别读懂单元状态、子进程退出状态和任务效果。",
-    "title": "进程结束之后的 active 状态",
+    "summary": "区分服务单元、操作系统进程和任务留下的效果，解释 active (exited) 与一次性启动的关系。",
+    "title": "读懂 systemd 的 active (exited)",
     "topic": "Linux 进程"
   },
   {
-    "keywords": "RGB-D ROS 2 图像 深度 内参 时间戳 同步 里程计 TF 系统与通信 VSLAM 视觉定位与机器人建图",
+    "keywords": "ROS2 ROS 2 rosbag2 QoS 机器人 录包 回放 TF 系统与通信",
+    "slug": "ros2",
+    "summary": "从发布和订阅开始，读懂 rosbag2 的消息统计、时间戳与 QoS，再用转弯时的轨迹跳变做一次离线诊断。",
+    "title": "ROS 2 话题、录包与离线回放",
+    "topic": "ROS 2"
+  },
+  {
+    "keywords": "RGB-D ROS 2 图像 深度 内参 时间戳 同步 里程计 TF 系统与通信",
     "slug": "rgbd-sensor-contract",
-    "summary": "更换 RGB-D 传感器时，用同一张检查表核对彩色图、深度、内参和时钟，再画出里程计到地图的变换关系。",
-    "title": "换一台相机，地图后端接收什么",
+    "summary": "解释 RGB-D 输入的颜色、深度、内参、时间戳和坐标系，并用一个已知像素计算相机空间的位置。",
+    "title": "RGB-D 相机的数据与时间对齐",
     "topic": "RGB-D 接口"
   },
   {
-    "keywords": "ROS2 ROS 2 rosbag2 QoS 机器人 录包 回放 TF 系统与通信 Fast-Livo2 激光、惯性与视觉融合 VSLAM 视觉定位与机器人建图 Coding_Skills 工程调试方法",
-    "slug": "ros2",
-    "summary": "一分钟录到约 600 帧激光，并不能排除转弯时断过一小段。把扫描、坐标变换和定位输出对到同一个时间窗口，才看得出谁先出了问题。",
-    "title": "转弯处的 ROS 2 录包",
-    "topic": "ROS 2"
+    "keywords": "自动定容 工作流 状态机 注液 dosing 完成事件 视觉测量 上位机 工程实践",
+    "slug": "dosing-states",
+    "summary": "让等待、找瓶、锁定刻度和跟踪液面拥有明确的输入、转移条件和完成动作。",
+    "title": "用有限状态机描述视觉定容",
+    "topic": "状态机"
+  },
+  {
+    "keywords": "导航 目标检查 速度 容差 位姿 时间戳 Nav2 map odom 工程实践",
+    "slug": "navigation-settling",
+    "summary": "用位置、朝向、速度和时间窗口区分经过目标、停在目标附近，以及定位修正造成的假到达。",
+    "title": "机器人到站了吗？",
+    "topic": "导航状态确认"
+  },
+  {
+    "keywords": "网页状态 持久化 前端 状态管理 刷新 多端 并发 竞态 版本 条件更新 请求 控制台 工程实践",
+    "slug": "web-state",
+    "summary": "从刷新和双端编辑两个场景出发，决定数据存在哪里、如何识别过期响应，以及何时只恢复画面。",
+    "title": "刷新网页以后，哪些状态还在？",
+    "topic": "网页状态"
+  },
+  {
+    "keywords": "定容 录像 JPEG ffmpeg MP4 后台线程 异步 队列 retention 单元测试 观测 工程实践",
+    "slug": "session-recording",
+    "summary": "用每秒 25 帧的输入计算写盘积压，再区分采集时刻、视频播放速度和会话真正完成的时刻。",
+    "title": "相机每秒拍 25 帧，硬盘跟得上吗？",
+    "topic": "会话录像"
+  },
+  {
+    "keywords": "异步任务 mesh 网格导出 进度 恢复 进程 PID 实验版本 作业管理 工程实践",
+    "slug": "splat-mesh-job",
+    "summary": "把请求受理、进程退出和文件可下载分开，用网格导出说明后台任务的状态模型。",
+    "title": "点击导出以后，什么时候能下载文件？",
+    "topic": "后台任务"
+  },
+  {
+    "keywords": "配置 回归测试 C++ CTest 网络配置 备份 恢复 幂等 软件工程 工程实践",
+    "slug": "config-regression",
+    "summary": "用临时目录重现旧配置，依次验证首次生效、重复执行、失败与撤回后的结果。",
+    "title": "改完配置，怎样确认它真的生效了？",
+    "topic": "配置测试"
+  },
+  {
+    "keywords": "模型清单 版本管理 静态打包 相对路径 检查点 C++ 文件系统 SHA-256 3DGS 数字孪生 工程实践",
+    "slug": "splat-model-manifest",
+    "summary": "让模型、相机、参数和坐标约定成套发布，换个目录再试一次即可发现遗留的路径依赖。",
+    "title": "模型清单、相对路径与版本发布",
+    "topic": "模型清单"
+  },
+  {
+    "keywords": "C++ ROS 2 ament CMake 共享库 ABI 二进制 发布 依赖 overlay 工程实践",
+    "slug": "ros-binary-package",
+    "summary": "沿着头文件、链接符号和动态加载三个阶段，检查一个 C++ 库能否真正交给另一个工作空间使用。",
+    "title": "ROS 2 与 CMake 的二进制包交付",
+    "topic": "二进制交付"
+  },
+  {
+    "keywords": "HTML 静态网站 相对路径 URL 子路径 目录 查询参数 锚点 部署 浏览器 CSS 工程实践",
+    "slug": "static-pages",
+    "summary": "用同一个资源名对照首页和文章页，分清相对引用、站点根路径、查询参数和页内锚点。",
+    "title": "静态网站的目录与浏览器路径",
+    "topic": "静态发布"
   }
 ];

@@ -147,6 +147,24 @@
       location.replace('notes/' + location.search + location.hash);
       return;
     }
+    const progress = document.querySelector('.reading-progress span');
+    if (progress) {
+      const toc = document.querySelector('.toc details');
+      if (matchMedia('(max-width: 690px)').matches) toc.open = false;
+      let pending = false;
+      function updateProgress() {
+        const distance = document.documentElement.scrollHeight - innerHeight;
+        progress.style.transform = 'scaleX(' + (distance > 0 ? Math.min(1, Math.max(0, scrollY / distance)) : 1) + ')';
+        pending = false;
+      }
+      function schedule() {
+        if (!pending) { pending = true; requestAnimationFrame(updateProgress); }
+      }
+      addEventListener('scroll', schedule, {passive: true});
+      addEventListener('resize', schedule);
+      addEventListener('load', schedule);
+      updateProgress();
+    }
     setupSearch();
     setupFilters();
   }
