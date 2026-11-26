@@ -1,0 +1,20 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>小熊熊动作检查</title>
+<style>body{margin:32px;background:#faf9f7;color:#292623;font:16px system-ui}canvas{width:288px;height:336px}#small{width:96px;height:112px}button,select,input{font:inherit;margin:8px;padding:8px}section{display:flex;align-items:end;gap:60px}.status{white-space:pre-wrap}</style>
+<h1>小熊熊 · 连续动作检查</h1><section><canvas id="bear"></canvas><canvas id="small"></canvas></section>
+<select id="clip"></select><button id="play">播放 / 暂停</button><input id="time" type="range" min="0" max="10000" value="0"><span id="label"></span><div class="status"></div>
+<script type="module">
+import {createPlushRenderer,poseAt,motionTiming,footstep,armBones} from '../../assets/pet-motion.js';
+const data=await(await fetch('../../assets/pet-plush-parts.json')).json();
+const image=new Image();image.src='../../assets/'+data.texture;await image.decode();
+const renderer=createPlushRenderer(document.querySelector('#bear'),image,data);
+const small=createPlushRenderer(document.querySelector('#small'),image,data);
+const clip=document.querySelector('#clip'),time=document.querySelector('#time');
+for(const name of Object.keys(motionTiming.clips))clip.add(new Option(name,name));
+function show(name,t,direction=1){const p=poseAt(name,t,direction);renderer.render(p);small.render(p);document.querySelector('#label').textContent=`${name} ${(t/1000).toFixed(2)} s`;return p;}
+let playing=false,start=0,handle;
+function tick(t){time.value=(t-start)%motionTiming.clips[clip.value][0];show(clip.value,+time.value);handle=requestAnimationFrame(tick);}
+document.querySelector('#play').onclick=()=>{playing=!playing;if(playing){start=performance.now()-time.value;handle=requestAnimationFrame(tick);}else cancelAnimationFrame(handle);};
+clip.onchange=()=>{time.max=motionTiming.clips[clip.value][0];time.value=0;start=performance.now();show(clip.value,0);};
+time.oninput=()=>{show(clip.value,+time.value);start=performance.now()-time.value;};
+window.review={show,poseAt,footstep,armBones,renderer,small,motionTiming};show('rest',0);document.body.dataset.ready='true';
+</script></html>

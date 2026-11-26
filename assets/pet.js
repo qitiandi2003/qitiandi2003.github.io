@@ -32,39 +32,41 @@
   const sprite = root.querySelector('.pet-sprite');
   const message = root.querySelector('.pet-message');
   const effects = root.querySelector('.pet-effects');
-  let landscape = null, atlas = null, body = null, parcel = null, motions = null;
+  let landscape = null, renderer = null, motions = null;
   try {
     const base = document.documentElement.dataset.base || './';
-    const response = await fetch(base + 'assets/pet-plush-hd.svg?v=1', {mode: 'same-origin'});
+    const [response, rigResponse, engine] = await Promise.all([
+      fetch(base + 'assets/pet-plush-scene.svg?v=1', {mode: 'same-origin'}),
+      fetch(base + 'assets/pet-plush-parts.json?v=1', {mode: 'same-origin'}),
+      import(new URL('assets/pet-motion.js?v=1', new URL(base, location.href)).href)
+    ]);
     if (!response.ok || !/^image\/svg\+xml(?:\s*;|$)/i.test(response.headers.get('content-type') || '')) {
       throw new Error('Artwork unavailable');
     }
     const svg = new DOMParser().parseFromString(await response.text(), 'image/svg+xml').documentElement;
     if (svg.namespaceURI !== 'http://www.w3.org/2000/svg' || svg.localName !== 'svg' || svg.querySelector('parsererror') ||
-        !svg.classList.contains('pb-rig') || svg.getAttribute('viewBox')?.trim().split(/[\s,]+/).join(' ') !== '0 0 48 56') {
+        !svg.classList.contains('pb-landscape')) {
       throw new Error('Unexpected artwork');
     }
-    const drawing = svg.querySelector('image.pb-atlas');
-    const source = drawing?.getAttribute('href');
-    const timeline = JSON.parse(svg.querySelector('.pb-motion')?.textContent || 'null');
-    if (!/^pet-plush-hd\.avif\?v=\d+$/.test(source || '') || !timeline?.clips?.rest || !(timeline.columns > 0 && timeline.stride > 0)) {
-      throw new Error('Plush frames unavailable');
+    if (!rigResponse.ok) throw new Error('Plush parts unavailable');
+    const rig = await rigResponse.json();
+    if (rig.texture !== 'pet-plush-parts.webp?v=1' || !rig.parts?.head) {
+      throw new Error('Unexpected plush parts');
     }
     const decoded = new Image();
-    decoded.src = new URL(source, response.url).href;
+    decoded.src = new URL(rig.texture, rigResponse.url).href;
     await decoded.decode();
-    drawing.setAttribute('href', decoded.src);
-    const scenery = svg.querySelector('.pb-landscape');
-    if (scenery) {
-      landscape = document.importNode(scenery, true);
-      scenery.remove();
-      root.prepend(landscape);
-    }
-    sprite.replaceChildren(document.importNode(svg, true));
-    atlas = sprite.querySelector('.pb-atlas');
-    body = sprite.querySelector('.pb-body');
-    parcel = sprite.querySelector('.pb-parcel');
-    motions = timeline;
+    const canvas = document.createElement('canvas');
+    canvas.className = 'pb-rig pb-canvas';
+    renderer = engine.createPlushRenderer(canvas, decoded, rig);
+    canvas.addEventListener('webglcontextlost', () => {
+      renderer?.stop(); renderer = null;
+      sprite.replaceChildren(); root.dataset.art = 'fallback';
+    }, {once: true});
+    landscape = document.importNode(svg, true);
+    root.prepend(landscape);
+    sprite.replaceChildren(canvas);
+    motions = engine.motionTiming;
     root.dataset.art = 'rig';
   } catch {
     root.dataset.art = 'fallback';
@@ -86,61 +88,25 @@
   const sizeKey = 'qi-butterbear-collapsed', positionKey = 'qi-pet-position';
   const clamp = (value, low, high) => Math.max(low, Math.min(value, high));
   let preference = null, position = null, press = null, ignoreClick = false;
-  let frame, timer, layoutFrame, nextPat = 0;
+  let timer, layoutFrame, nextPat = 0;
   let idleTimer, idleStep = 0, phaseTimer, acting = false;
   const seasons = ['spring', 'summer', 'autumn', 'winter'];
-  let spriteAnimations = [], currentClip, walkDuration;
+  let currentClip, walkDuration;
 
   function updateArtwork() {
-    if (!atlas) return;
+    if (!renderer) return;
     const state = root.dataset;
     const still = state.collapsed === 'true' || state.paused === 'true' || reduced.matches;
     let name = state.dragging === 'true' ? 'drag' : state.phase || state.action || state.idle || 'rest';
     if (name === 'snack') name = 'feed';
     if (name === 'inspect' && ['summer', 'winter'].includes(state.season)) name = 'inspectUp';
-    if (state.direction === 'left' && ['stepOff', 'turn', 'settle'].includes(name)) name += 'Left';
     if (state.paused === 'true' || state.collapsed === 'true' || !motions.clips[name]) name = 'rest';
-    const key = name + (still ? ' still' : ' play');
+    const direction = state.direction === 'left' ? -1 : 1;
+    const key = name + direction + (still ? ' still' : ' play');
     if (key === currentClip) return;
     currentClip = key;
 
-    for (const animation of spriteAnimations) animation.cancel();
-    spriteAnimations = [];
-    const [duration, loop, tiles, lifts, parcels] = motions.clips[name];
-    const translate = frame => {
-      const mirror = frame < 0;
-      const tile = mirror ? -1 - frame : frame;
-      const column = tile % motions.columns;
-      return `translate(${48 * (mirror ? column + 1 : -column)}px,${-56 * Math.floor(tile / motions.columns)}px) scaleX(${mirror ? -1 : 1})`;
-    };
-    const translateY = y => `translateY(${y}px)`;
-    const initial = still && state.action ? Math.floor(tiles.length * .4) : 0;
-    atlas.style.transform = translate(tiles[initial]);
-    body.style.transform = translateY(lifts[initial]);
-    parcel.style.transform = translateY(parcels[initial]);
-    if (still) return;
-
-    const options = {duration: name === 'walk' ? walkDuration : duration,
-      iterations: loop ? Infinity : 1, fill: 'both'};
-    const start = document.timeline.currentTime;
-    function playTrack(element, values, transform, discrete) {
-      const frames = [];
-      const last = values.length - 1;
-      const intervals = loop ? values.length : last;
-      const easing = discrete ? 'steps(1,end)' : 'linear';
-      for (let i = 0; i <= last; ++i) {
-        if (i && i < last && values[i] === values[i-1] && (discrete || values[i] === values[i+1])) continue;
-        frames.push({transform: transform(values[i]), offset: i / intervals, easing});
-      }
-      if (loop) frames.push({transform: transform(values[0]), offset: 1});
-      if (frames.every(frame => frame.transform === frames[0].transform)) return;
-      const animation = element.animate(frames, options);
-      if (start !== null) animation.startTime = start;
-      spriteAnimations.push(animation);
-    }
-    playTrack(atlas, tiles, translate, true);
-    playTrack(body, lifts, translateY, false);
-    playTrack(parcel, parcels, translateY, false);
+    renderer.set(name, {direction, duration: name === 'walk' ? walkDuration : undefined, still});
   }
 
   function viewport() {
@@ -217,7 +183,7 @@
     layout();
     if (before === root.dataset.collapsed) return;
     stopIdle();
-    if (root.dataset.collapsed === 'false') phase('enter', 2200, () => resumeIdle(300));
+    if (root.dataset.collapsed === 'false') phase('enter', 2400, () => resumeIdle(300));
     else clearPhase();
   }
   function readSettings() {
@@ -233,7 +199,7 @@
   function chooseSize(collapsed) {
     preference = String(collapsed);
     try { localStorage.setItem(sizeKey, preference); } catch {}
-    if (collapsed) { stopIdle(); phase('exit', 1700, applySize); }
+    if (collapsed) { stopIdle(); phase('exit', 2000, applySize); }
     else applySize();
   }
 
@@ -397,17 +363,18 @@
   });
 
   const actions = {
-    pat: {icon: '♥', message: '小熊熊眯起眼，轻轻蹭了蹭你的手。', duration: 2400},
+    pat: {icon: '♥', message: '小熊熊眯起眼，轻轻蹭了蹭你的手。', duration: 2600},
     feed: {icon: '', message: '小熊熊捧起汉堡，手边还有一杯可乐。', duration: 10000},
-    dance: {icon: '♪', message: '小熊熊跟着节拍晃了晃。', duration: 3200}
+    dance: {icon: '♪', message: '小熊熊跟着节拍晃了晃。', duration: 3600}
   };
   function stopEffect() {
     acting = false;
-    cancelAnimationFrame(frame); clearTimeout(timer);
+    clearTimeout(timer);
     delete root.dataset.action;
     effects.textContent = '';
   }
   function play(action) {
+    if (acting && root.dataset.action === action) return;
     clearPhase();
     stopIdle();
     stopEffect();
@@ -421,17 +388,13 @@
         closeMenu(true);
       }
     }
-    frame = requestAnimationFrame(() => {
-      frame = requestAnimationFrame(() => {
-        root.dataset.action = action;
-        effects.textContent = scene.icon;
-        timer = setTimeout(() => {
-          stopEffect();
-          if (action === 'feed') { message.textContent = '吃饱啦，小熊熊打了个小小的饱嗝。'; positionMenu(); }
-          resumeIdle();
-        }, reduced.matches ? 1200 : scene.duration);
-      });
-    });
+    root.dataset.action = action;
+    effects.textContent = scene.icon;
+    timer = setTimeout(() => {
+      stopEffect();
+      if (action === 'feed') { message.textContent = '吃饱啦，小熊熊打了个小小的饱嗝。'; positionMenu(); }
+      resumeIdle();
+    }, reduced.matches ? 1200 : scene.duration);
   }
   menu.addEventListener('click', event => {
     const button = event.target.closest('button');
@@ -531,8 +494,8 @@
   new MutationObserver(records => {
     if (records.some(r => r.target.matches('dialog'))) syncPaused();
   }).observe(document.body, {subtree: true, attributes: true, attributeFilter: ['open']});
-  if (atlas) new MutationObserver(updateArtwork).observe(root, {attributes: true,
-    attributeFilter: ['data-idle', 'data-action', 'data-phase', 'data-season', 'data-collapsed', 'data-dragging', 'data-paused']});
+  if (renderer) new MutationObserver(updateArtwork).observe(root, {attributes: true,
+    attributeFilter: ['data-idle', 'data-action', 'data-phase', 'data-season', 'data-direction', 'data-collapsed', 'data-dragging', 'data-paused']});
   document.body.append(root);
   syncPaused();
   readSettings();

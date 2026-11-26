@@ -122,6 +122,7 @@
 
 /* All poses share the same coordinate space and ground line. */
 .web-pet[data-art=rig] .pet-sprite { background: none; animation: none; transform: none; }
+.web-pet[data-art=fallback] .pet-sprite { animation: none; background-position: center; }
 .web-pet[data-art=rig] .pet-effects { display: none; }
 .pb-rig { display: block; width: 100%; height: 100%; overflow: visible; }
 .pb-atlas { image-rendering: auto; transform-origin: 0 0; }
