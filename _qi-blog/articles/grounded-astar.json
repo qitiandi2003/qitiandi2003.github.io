@@ -1,0 +1,45 @@
+{
+  "slug": "grounded-astar",
+  "title": "给 A* 的每一步找一块地面",
+  "summary": "同一张三维体素图，对飞行器和地面机器人有不同的邻接关系。规划前要写清什么样的一步可走。",
+  "sections": [
+    {
+      "title": "一个空体素能容纳空气，也能在空中",
+      "paragraphs": [
+        "如果把所有相邻的空体素都连成边，三维 A* 完全有理由从桌子上方抄近道。地面运动需要额外条件。候选落脚位置附近应有连续的支撑面，足迹上方要有足够净空，相邻支撑面的高差与坡度也要在所设模型的能力范围内。",
+        "在剖面图上同时标出地面、身体扫过的空间和未知区域。桌面可能局部水平，但与地板隔着一段无法跨越的高度。仅凭法向量接近竖直，不能把两块平面接成一条路。"
+      ]
+    },
+    {
+      "title": "先构建合法边，再比较走法",
+      "paragraphs": [
+        "给每条合法边计算路程，还可以加上靠近障碍的非负代价。A* 用已经走过的代价 g 和到目标的估计 h 排序。如果边代价采用米制长度再加非负项，直线距离通常给出到目标的下界。把安全间距重复计入一个过大的启发值，可能丢掉最小代价路径的保证。"
+      ]
+    },
+    {
+      "title": "拿两张小地图拆开验证",
+      "paragraphs": [
+        "第一张地图画一条上方很空、脚下无支撑的沟，确认图里没有跨过去的边。第二张地图放一条贴墙短路和一条开阔绕路，分别用零边缘代价和正边缘代价规划，比较总长度及最小净空。前者检验模型允许哪些运动，后者检验它在允许的路中偏好哪一条。"
+      ]
+    }
+  ],
+  "refs": [
+    {
+      "label": "Amit Patel · A* 启发函数及代价单位",
+      "url": "https://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html"
+    },
+    {
+      "label": "OctoMap · 概率占据地图",
+      "url": "https://octomap.github.io/"
+    },
+    {
+      "label": "Nav2 · 机器人足迹与碰撞检查",
+      "url": "https://docs.nav2.org/rolling/configuration_and_development/first_time_robot_setup_guide/footprint/setup_footprint/"
+    }
+  ],
+  "topic": "地形规划",
+  "category": "定位与建图",
+  "group": "geometry",
+  "keywords": "A* 体素规划 地形 支撑 坡度 足迹 代价 启发函数",
+  "published": "2026-11-26"
+}

@@ -1,0 +1,51 @@
+{
+  "slug": "scale-lock",
+  "title": "刻度线何时算锁定",
+  "summary": "一条反光也可能在单帧里得到高分。定容程序把线的位置偏差放进时间窗口，等偏差的抖动足够小，才交给下一阶段。",
+  "sections": [
+    {
+      "title": "瓶身与刻度用的是两种边缘",
+      "paragraphs": [
+        "检测瓶身上、下沿时，tube.py 沿 y 求梯度，把强响应二值化，用横向较长的核做闭运算，再用 HoughLinesP 找接近水平的长线段。刻度搜索的目标方向相反。scale.py 在图像中心附近的窄带内沿 x 求梯度，寻找近乎竖直的刻度。",
+        "限制搜索范围有实际作用。落在瓶外的背景线即使很清楚，也不该替代刻度。锁定阶段会确认瓶身检测有效，并检查中心列在瓶身区域内，之后才处理刻度候选。"
+      ]
+    },
+    {
+      "title": "基线分数取哪个分位数",
+      "paragraphs": [
+        "在这版程序里，设备上报的高度达到预设刻度高度后，`LockScalePhase` 开始积累候选分数。样本收齐时，`_freeze_score_base` 对样本求第 75 百分位数，再乘配置系数形成判定门限。这个细节要看实际调用，函数注释里还保留着早先的 p95。",
+        "候选线的位置记为 x，图像中心列记为 c。锁定阶段写入的偏差是 c − x。比如中心在 320，候选在 323，送入稳定性窗口的值就是 −3 像素。记录偏差时还要记阶段，否则很容易与后续阶段重新计算的字段混在一起。"
+      ]
+    },
+    {
+      "title": "稳定可以发生在零点之外",
+      "paragraphs": [
+        "`GapStability` 保存单调时钟和偏差，剔除窗口以外的样本。它同时检查样本数、最早与最晚样本的时间跨度，以及最大偏差减去最小偏差的极差。该提交要求实际跨度达到窗口的六成，极差严格小于配置像素阈值的两倍。",
+        "假设一段时间里偏差始终为 −3，极差就是零。满足时长和样本数条件后，它可以通过稳定性判定，但线仍在中心右边 3 像素。看日志时，既要看线在不在允许的位置，也要看它有没有继续移动。"
+      ]
+    }
+  ],
+  "refs": [
+    {
+      "label": "定容源码 · 瓶身边缘检测",
+      "url": "https://github.com/qitiandi2003/Bottle-Automatic-Volume-Adjustment-System/blob/2b05f0ffdeec96da0b50e7a3503e209c0b1de5ef/src/bottle_volume_control/vision/tube.py"
+    },
+    {
+      "label": "定容源码 · 刻度候选评分",
+      "url": "https://github.com/qitiandi2003/Bottle-Automatic-Volume-Adjustment-System/blob/2b05f0ffdeec96da0b50e7a3503e209c0b1de5ef/src/bottle_volume_control/vision/scale.py"
+    },
+    {
+      "label": "定容源码 · 锁定流程",
+      "url": "https://github.com/qitiandi2003/Bottle-Automatic-Volume-Adjustment-System/blob/2b05f0ffdeec96da0b50e7a3503e209c0b1de5ef/src/bottle_volume_control/workflow/phases/lock_scale.py"
+    },
+    {
+      "label": "定容源码 · 稳定性窗口",
+      "url": "https://github.com/qitiandi2003/Bottle-Automatic-Volume-Adjustment-System/blob/2b05f0ffdeec96da0b50e7a3503e209c0b1de5ef/src/bottle_volume_control/vision/stability.py"
+    }
+  ],
+  "topic": "刻度检测",
+  "category": "感知与标定",
+  "group": "vision",
+  "keywords": "自动定容 瓶身 刻度线 锁定 Sobel HoughLinesP GapStability OpenCV 稳定窗口",
+  "published": "2026-11-26"
+}

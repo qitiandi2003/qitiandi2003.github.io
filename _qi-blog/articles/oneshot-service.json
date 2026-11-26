@@ -1,0 +1,51 @@
+{
+  "slug": "oneshot-service",
+  "title": "进程结束之后的 active 状态",
+  "summary": "从一个 systemd oneshot 单元追到 C++ 的 waitpid，分别读懂单元状态、子进程退出状态和任务效果。",
+  "sections": [
+    {
+      "title": "先读单元文件的两个字段",
+      "paragraphs": [
+        "仓库生成的 systemd 单元同时设置 Type=oneshot 与 RemainAfterExit=yes。前者让管理器等待启动动作完成，后者允许动作成功结束后继续把单元视为活跃。这适合表达一次性设置的生命周期：启动动作结束了，之前建立的设置还需要在停止时撤销。",
+        "假设启动动作成功，状态页随后显示 active (exited)。这与「此刻没有常驻的启动进程」可以同时成立。源码另外读取 is-enabled 和 is-active，两者分别涉及是否配置启用以及当前是否活跃。记录结果时，最好保留它们各自的名字。"
+      ]
+    },
+    {
+      "title": "父进程怎样知道孩子结束了",
+      "paragraphs": [
+        "在 C++ 的 run_process 中，子进程执行外部程序，父进程可选择通过管道收集标准输出，然后调用 waitpid 等待指定的子进程。若等待被信号打断并返回 EINTR，代码会重新等待。",
+        "waitpid 填入的是一份编码过的状态。程序先用 WIFEXITED 检查是否正常退出，再取 WEXITSTATUS；若由信号终止，它将信号编号加 128 作为封装层的返回值。假设进程正常返回 7，就应将它记录为退出码 7。在信号编号为 15 的系统上，由该信号终止会按此封装得到 143。这套数字映射是程序的约定。"
+      ]
+    },
+    {
+      "title": "把三份结果按时间摆在一起",
+      "paragraphs": [
+        "复核一项任务时，可以分别记录「启动子进程结束的方式」「管理器此刻如何描述单元」「预期设置是否真的存在」。设想一次性动作起初成功，随后有人单独修改了它设置的内容。早先的退出码仍是 0，单元也可能保持 active，而第三项已经发生变化。",
+        "这个例子解释了项目为何在读完 systemd 状态后，继续检查目标环境。读取单元状态适合回答启动动作的管理问题；验证动作留下的效果，还需要一次针对效果本身的观测。"
+      ]
+    }
+  ],
+  "refs": [
+    {
+      "label": "ssh-vpn · oneshot 单元定义",
+      "url": "https://github.com/qitiandi2003/ssh-vpn/blob/5991c2ad4c01ccce003032347eabce180092f4f1/src/core.cpp#L258-L275"
+    },
+    {
+      "label": "ssh-vpn · 子进程与退出状态",
+      "url": "https://github.com/qitiandi2003/ssh-vpn/blob/5991c2ad4c01ccce003032347eabce180092f4f1/src/main.cpp#L34-L95"
+    },
+    {
+      "label": "systemd · 服务类型与退出后状态",
+      "url": "https://github.com/systemd/systemd/blob/main/man/systemd.service.xml"
+    },
+    {
+      "label": "POSIX · wait 与 waitpid",
+      "url": "https://pubs.opengroup.org/onlinepubs/9799919799/functions/wait.html"
+    }
+  ],
+  "topic": "Linux 进程",
+  "category": "系统与通信",
+  "group": "systems",
+  "keywords": "操作系统 Linux systemd oneshot RemainAfterExit waitpid EINTR 生命周期 进程 状态 信号",
+  "published": "2026-11-26"
+}

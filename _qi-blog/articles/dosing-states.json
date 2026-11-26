@@ -1,0 +1,47 @@
+{
+  "slug": "dosing-states",
+  "title": "定容结束的那一帧",
+  "summary": "开始、锁定刻度、检测液面、报告完成，对应不同的状态。把状态表和产生事件的那一行代码一起看，才能说清设备为什么停在这里。",
+  "sections": [
+    {
+      "title": "一条状态转移要读两处",
+      "paragraphs": [
+        "`state_machine.py` 的转移表，每行列出起始阶段、事件类型、目标阶段，还可以附动作和条件。等候中收到 `CmdStart`，会建立一轮会话，进入搜索瓶身。搜到瓶身后转入锁刻度。只有锁定处理器发出 `ScaleScored`，流程才会冻结刻度位置，进入液面检测阶段。",
+        "因此，日志里一直显示在锁刻度阶段，先看处理器究竟有没有产生这条事件。表里有从 A 到 B 的一行，只说明收到何种输入可以走到 B。"
+      ]
+    },
+    {
+      "title": "第一次进入检测阶段",
+      "paragraphs": [
+        "`DosingPhase` 的第一帧有单独用途。程序拿锁定的刻度位置和搜索区域建立参照，初始化跟踪状态，然后返回。之后的帧才持续更新液面位置。在这段交界处查看日志，最好把建参照的帧和第一次实际更新的帧分别标出来。",
+        "液面进入有效区域、也有跟踪位置后，程序才计算它到刻度的像素距离。假设刻度在第 300 列，跟踪位置在 325，距离便是 25 像素。尚无有效位置时，代码填入 10000 作为占位值，在统计平均距离时应将它排除。"
+      ]
+    },
+    {
+      "title": "阈值越过之后",
+      "paragraphs": [
+        "处理器先生成 `LiquidUpdated`。如果液面已进入有效区域、有跟踪位置，并且到刻度的距离达到终点条件，同一帧还会生成 `CompletionConfirmed`。状态机据此转入完成阶段，动作函数向上位机发送终态，随后恢复空闲运行标志并关闭录像会话。",
+        "排查过早完成时，可以把有效区域标志、被跟踪的位置、刻度位置和实际发出的事件放到一条时间线上。还要留意，在这个提交里，状态表预留了复核失败的分支，动作函数的说明明确指出当前阶段处理器没有发出该事件。写在表里的分支也要有真实的事件来源。"
+      ]
+    }
+  ],
+  "refs": [
+    {
+      "label": "定容源码 · 状态转移表",
+      "url": "https://github.com/qitiandi2003/Bottle-Automatic-Volume-Adjustment-System/blob/2b05f0ffdeec96da0b50e7a3503e209c0b1de5ef/src/bottle_volume_control/workflow/state_machine.py"
+    },
+    {
+      "label": "定容源码 · 液面阶段",
+      "url": "https://github.com/qitiandi2003/Bottle-Automatic-Volume-Adjustment-System/blob/2b05f0ffdeec96da0b50e7a3503e209c0b1de5ef/src/bottle_volume_control/workflow/phases/dosing.py"
+    },
+    {
+      "label": "定容源码 · 完成动作",
+      "url": "https://github.com/qitiandi2003/Bottle-Automatic-Volume-Adjustment-System/blob/2b05f0ffdeec96da0b50e7a3503e209c0b1de5ef/src/bottle_volume_control/workflow/actions.py"
+    }
+  ],
+  "topic": "状态机",
+  "category": "工程实践",
+  "group": "engineering",
+  "keywords": "自动定容 工作流 状态机 注液 dosing 完成事件 视觉测量 上位机",
+  "published": "2026-11-26"
+}

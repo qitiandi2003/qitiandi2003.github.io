@@ -1,0 +1,45 @@
+{
+  "slug": "stereo-disparity-depth",
+  "title": "一像素视差的深度误差",
+  "summary": "在极线校正后的图像上，从像素位移推回深度，看看远处窗框为何比近处桌边更容易抖动。",
+  "sections": [
+    {
+      "title": "同一个角点沿哪一行找",
+      "paragraphs": [
+        "双目标定提供两相机的相对姿态。极线校正之后，对水平双目，相应点应落在几乎相同的行上。SGM 沿多条方向汇总代价，同时惩罚不合理的视差跳变，在纹理较少的地方借助邻近像素的信息。台阶边缘和单侧可见的遮挡区域仍然难以匹配。"
+      ]
+    },
+    {
+      "title": "两米和四米的误差并不一样",
+      "paragraphs": [
+        "在主点已对齐的校正图像上，用像素焦距 f、基线 B 和视差 d 可以估计深度 Z = fB/d。假设 f 为 600 像素、B 为 0.10 米，d 为 30 像素时深度为 2 米，d 为 15 像素时是 4 米。若视差各增加一像素，深度分别变成约 1.94 米和 3.75 米。",
+        "读取视差图时先核对编码。OpenCV 的常见 16 位 SGBM 输出以十六分之一像素为单位，读数 480 对应 30 像素。图像若被缩放，焦距和视差需要使用同一套像素尺度。无效视差要保留其无效状态。"
+      ]
+    },
+    {
+      "title": "深度图和彩色图各有相机",
+      "paragraphs": [
+        "使用 RGB-D 相机时先确认深度单位以及所属的光学坐标系。深度像素要落在彩色图上，需要按深度相机内参反投影到三维，经过两相机外参变换，再按彩色相机内参投影。画幅一样大也可能有视差，尤其要用前景物体的轮廓检查对齐。"
+      ]
+    }
+  ],
+  "refs": [
+    {
+      "label": "NVIDIA VPI · Stereo Disparity Estimator",
+      "url": "https://docs.nvidia.com/vpi/algo_stereo_disparity.html"
+    },
+    {
+      "label": "OpenCV · StereoSGBM",
+      "url": "https://github.com/opencv/opencv/blob/4.x/modules/calib3d/include/opencv2/calib3d.hpp#L3711"
+    },
+    {
+      "label": "RealSense · 投影、深度单位与坐标系",
+      "url": "https://github.com/realsenseai/librealsense/wiki/Projection-in-RealSense-SDK-2.0"
+    }
+  ],
+  "topic": "SGM 双目深度",
+  "category": "感知与标定",
+  "group": "vision",
+  "keywords": "SGM SGBM 视差 双目 深度 RealSense 极线校正 基线 定点",
+  "published": "2026-11-26"
+}

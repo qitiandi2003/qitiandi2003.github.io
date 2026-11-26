@@ -1,0 +1,51 @@
+{
+  "slug": "bayes-mail",
+  "title": "朴素贝叶斯怎样给邮件打分",
+  "summary": "看清词频、类别先验和 TF-IDF 的作用，再用一次训练集与测试集的顺序检查评估是否可信。",
+  "sections": [
+    {
+      "title": "固定词表后，邮件才有坐标",
+      "paragraphs": [
+        "基础版读取编号 0 至 150 的邮件，用 jieba 切词，去掉单字词，再按整个训练语料的词频选出 100 个特征。每封信都按同一个顺序统计次数。若简化词表是「会议、投稿、发票」，一封含两次「投稿」和一次「发票」的信会被表示成 (0, 2, 1)。",
+        "MultinomialNB 给每个类别计算一个分数：类别对数先验加上各词次数乘以该词在类别中的对数概率。重复出现两次的词会贡献两次。如果来信中的词全部落在词表之外，向量全零，最后只剩类别先验。原例的 151 封训练邮件中，两个类别的数量分别是 127 和 24。"
+      ]
+    },
+    {
+      "title": "在抽取特征之前划分邮件",
+      "paragraphs": [
+        "增强脚本允许选择高频词计数或 TF-IDF，并可对训练子集做 SMOTE。阅读 evaluate 分支会发现，程序先给全部 151 封邮件建词表或拟合 TF-IDF，再划分出测试集。这样留出文本的用词已影响特征选择，TF-IDF 路径中还影响了文档频率。",
+        "一个能检验这个顺序的实验是只在留出邮件里加入一个全新的词。先划分原始邮件、只在训练邮件上拟合向量器时，新词不会出现在词表；若全量拟合，词表就可能包含它。比较分类方法时，两条路径应使用相同的原始文件划分。"
+      ]
+    },
+    {
+      "title": "把误判数还原成邮件",
+      "paragraphs": [
+        "持续把所有邮件都判为多数类，在原始 151 封上也能答对约 84%。报告总准确率容易掩盖普通邮件被拦截的问题。可以单列正常信被判为垃圾信的数量，同时给出该类样本总数。",
+        "针对一封误判信，打印有效词数、落入词表的词数和贡献最大的几个词。若几乎没有词进入向量，扩大语料或调整切分才有直接证据；若一两个重复词支配分数，就用同一封信检查从词频切换到 TF-IDF 后的贡献变化。"
+      ]
+    }
+  ],
+  "refs": [
+    {
+      "label": "dev_skills · 词频基线",
+      "url": "https://github.com/qitiandi2003/dev_skills/blob/e93480fa6a30260e4c4e22475dbd2d40e7113ac8/bayes-mails-classify-master-main/classify.py"
+    },
+    {
+      "label": "dev_skills · TF-IDF、评估与采样分支",
+      "url": "https://github.com/qitiandi2003/dev_skills/blob/e93480fa6a30260e4c4e22475dbd2d40e7113ac8/bayes-mails-classify-master-main/classify_plus.py"
+    },
+    {
+      "label": "scikit-learn · 多项式朴素贝叶斯",
+      "url": "https://scikit-learn.org/stable/modules/naive_bayes.html"
+    },
+    {
+      "label": "scikit-learn · 拟合与数据泄漏",
+      "url": "https://scikit-learn.org/stable/common_pitfalls.html"
+    }
+  ],
+  "topic": "朴素贝叶斯",
+  "category": "机器学习",
+  "group": "learning",
+  "keywords": "朴素贝叶斯 垃圾邮件 MultinomialNB TF-IDF SMOTE 数据泄漏 分类",
+  "published": "2026-11-26"
+}

@@ -6,7 +6,9 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
+#include <tuple>
 #include <nlohmann/json.hpp>
 
 namespace fs = std::filesystem;
@@ -60,17 +62,14 @@ string icon(const string& name) {
     string paths;
     if (name == "search") paths = R"(<circle cx="10.5" cy="10.5" r="6.6"/><path d="m16 16 4.5 4.5"/>)";
     else if (name == "clock") paths = R"(<circle cx="12" cy="12" r="8.5"/><path d="M12 6.5V12l3.2 2"/>)";
-    else if (name == "book") paths = R"(<path d="M3 5.5c3.5-1.4 6.5-.8 9 1 3-1.8 5.8-2.3 9-1v13c-3.6-1.4-6.5-.8-9 1-2.7-1.8-5.7-2.3-9-1zM12 7v12"/>)";
     else if (name == "close") paths = R"(<path d="m6 6 12 12M18 6 6 18"/>)";
-    else if (name == "layers") paths = R"(<path d="m3 8 9-5 9 5-9 5-9-5zm0 4 9 5 9-5m-18 4 9 5 9-5"/>)";
     else if (name == "github") paths = R"(<path fill="currentColor" stroke="none" d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.55.1.76-.24.76-.54v-2.08c-3.09.67-3.74-1.31-3.74-1.31-.5-1.28-1.23-1.62-1.23-1.62-1.01-.69.08-.68.08-.68 1.11.08 1.69 1.14 1.69 1.14.99 1.7 2.59 1.21 3.22.92.1-.72.38-1.21.7-1.49-2.47-.28-5.06-1.23-5.06-5.49 0-1.21.43-2.21 1.14-2.98-.11-.28-.49-1.41.11-2.94 0 0 .93-.3 3.05 1.14a10.6 10.6 0 0 1 5.56 0c2.12-1.44 3.04-1.14 3.04-1.14.6 1.53.22 2.66.11 2.94.71.77 1.14 1.77 1.14 2.98 0 4.27-2.6 5.21-5.07 5.49.4.34.75 1.02.75 2.06v3.06c0 .3.21.65.77.54A11.1 11.1 0 0 0 12 .9z"/>)";
     else throw std::logic_error("Unknown icon: " + name);
     return R"(<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">)" + paths + "</svg>";
 }
 
 string wordmark(const string& base) {
-    return "<a class='brand' href='" + base + "' aria-label='Qi‘blog 首页'><span class='mark'>" +
-           icon("layers") + "</span><span lang='en'>Qi<span class='quote'>‘</span>blog</span></a>";
+    return "<a class='brand' href='" + base + "' aria-label='Qi‘blog 首页'><span lang='en'><em>Qi</em>‘blog</span></a>";
 }
 
 string header(const string& base, const string& page) {
@@ -78,9 +77,9 @@ string header(const string& base, const string& page) {
         return "<a href='" + base + href + "'" + (id == page ? " aria-current='page'" : "") + ">" + label + "</a>";
     };
     return "<a class='skip' href='#main'>跳至正文</a><header class='site-header'><div class='header-inner wrap'>" + wordmark(base) +
-        "<nav class='primary-nav' aria-label='主导航'>" + nav("home", "", "首页") + nav("archive", "#articles", "文章索引") +
+        "<nav class='primary-nav' aria-label='主导航'>" + nav("home", "", "首页") + nav("archive", "notes/", "文章") + nav("repositories", "repositories/", "仓库") +
         nav("about", "about/", "关于") + "</nav><div class='header-actions'><button class='search-button' type='button' data-open-search aria-haspopup='dialog' aria-label='搜索文章'>" +
-        icon("search") + "<span>搜索文章</span><kbd>/</kbd></button><a class='github-button' href='" + github + "' aria-label='Qi 的 GitHub 主页'>" +
+        icon("search") + "<span>搜索</span></button><a class='github-button' href='" + github + "' aria-label='Qi 的 GitHub 主页'>" +
         icon("github") + "<span>GitHub</span></a></div></div></header>";
 }
 
@@ -96,7 +95,7 @@ string footer(const string& base) {
 
 string document(const string& base, const string& page, const string& title, const string& desc, const string& body) {
     return "<!doctype html>\n<html lang='zh-CN' data-base='" + base + "'><head><meta charset='utf-8'>"
-        "<meta name='viewport' content='width=device-width,initial-scale=1'><meta name='theme-color' content='#f8f9f5'>"
+        "<meta name='viewport' content='width=device-width,initial-scale=1'><meta name='theme-color' content='#f8f7f2'>"
         "<title>" + html_escape(title) + "</title><meta name='description' content='" + html_escape(desc) + "'>"
         "<link rel='icon' href='" + base + "assets/favicon.svg' type='image/svg+xml'><link rel='stylesheet' href='" +
         base + "assets/site.css'><script defer src='" + base + "assets/search-index.js'></script><script defer src='" + base +
@@ -109,48 +108,92 @@ string duration(const Article& a) {
 }
 
 const std::vector<std::pair<string,string>> groups = {
-    {"all","全部"}, {"geometry","定位与建图"}, {"vision","感知与标定"}, {"graphics","图形渲染"}, {"systems","系统与通信"}
+    {"all","全部"}, {"geometry","定位与建图"}, {"vision","感知与标定"}, {"graphics","图形渲染"},
+    {"systems","系统与通信"}, {"learning","机器学习"}, {"engineering","工程实践"}
 };
+
+const Article& lookup(const std::vector<Article>& articles, std::string_view slug) {
+    const auto found = std::find_if(articles.begin(),articles.end(),[&](const Article& a){return a.slug == slug;});
+    if (found == articles.end()) throw std::runtime_error("Missing article: " + string(slug));
+    return *found;
+}
+
+bool has_cover(const Article& a) {
+    return fs::is_regular_file(destination/"assets"/(a.slug + ".webp"));
+}
 
 string cover(const Article& a, const string& base) {
     return base + "assets/" + a.slug + ".webp";
 }
 
-string homepage(const std::vector<Article>& articles, const Article& feature) {
+string homepage(const std::vector<Article>& articles, const json& library) {
+    const auto& feature = lookup(articles,"gaussian-splatting");
     std::ostringstream out;
-    out << "<main id='main' class='wrap home'><section class='feature' aria-labelledby='feature-title'>"
-        << "<img class='feature-art' src='" << cover(feature,"") << "' alt='' fetchpriority='high'><div class='feature-content'>"
-        << "<div class='feature-meta'><span class='feature-tag'>" << icon("book") << "精选手记</span>"
-        << "<span class='feature-series' lang='en'>3D GAUSSIAN SPLATTING</span></div>"
-        << "<h1 id='feature-title'>从点云到<br>高斯渲染<span class='title-stop' aria-hidden='true'>.</span></h1>"
-        << "<p>跟着一扇门框，从相机位姿、稀疏点云，一路看到新视角里的第一个像素。</p>"
-        << "<div class='feature-actions'><a class='feature-read' href='notes/" << feature.slug << "/'>" << icon("book") << "阅读文章</a>"
-        << duration(feature) << "</div></div><span class='figure-caption'>建筑点云示意</span></section>"
-        << "<section id='articles' class='archive' aria-labelledby='archive-title'><div class='archive-title-row'><div><span class='section-label' lang='en'>FIELD NOTES</span>"
-        << "<h2 id='archive-title'>文章索引</h2></div><span id='filter-count' aria-live='polite'>共 " << articles.size() << " 篇</span></div>"
-        << "<div class='filters' role='group' aria-label='按文章主题筛选'>";
-    for (const auto& [key, name] : groups) {
-        out << "<button type='button' data-filter='" << key << "' aria-pressed='" << (key == "all" ? "true" : "false") << "'>" << name << "</button>";
-    }
-    out << "</div><div class='article-grid'>";
-    for (const auto& a : articles) {
-        out << "<article class='card' data-group='" << a.group << "'><a href='notes/" << a.slug << "/' class='card-link'>"
-            << "<div class='card-image'><img src='" << cover(a,"") << "' alt='' loading='lazy' width='760' height='375'></div>"
-            << "<div class='card-copy'><div class='card-meta'><span class='topic'>" << a.topic << "</span>" << duration(a) << "</div>"
-            << "<h3>" << html_escape(a.title) << "</h3><p>" << html_escape(a.summary) << "</p></div></a></article>";
+    out << "<main id='main' class='wrap home'><section class='feature' aria-labelledby='feature-title'><div class='feature-content'>"
+        << "<div class='feature-meta'>三维重建 <span>/</span> 3DGS</div><h1 id='feature-title'>门框边缘的<br>高斯渲染</h1>"
+        << "<p>" << html_escape(feature.summary) << "</p><div class='feature-actions'><a class='feature-read' href='notes/" << feature.slug
+        << "/'>阅读全文</a>" << duration(feature) << "</div></div><figure class='feature-figure'><img src='" << cover(feature,"")
+        << "' width='1350' height='850' alt='建筑点云的轴测图，拱形门窗从银灰色采样点中显现。' fetchpriority='high'>"
+        << "<figcaption><span>建筑点云习作</span><span>轴测视图</span></figcaption></figure></section>"
+        << "<section id='articles' class='picks'><header class='section-heading'><h2>手记选读</h2><a href='notes/'>全部文章（" << articles.size()
+        << "）</a></header><div class='pick-grid'>";
+    for (const string slug : library.at("picks")) {
+        const auto& a = lookup(articles,slug);
+        out << "<article class='pick'><a href='notes/" << a.slug << "/'><img width='760' height='375' src='" << cover(a,"")
+            << "' loading='lazy' alt=''><div class='card-meta'><span class='topic'>" << a.topic << "</span>" << duration(a) << "</div>"
+            << "<h3>" << html_escape(a.title) << "</h3><p>" << html_escape(a.summary) << "</p></a></article>";
     }
     out << "</div></section></main>";
-    return document("./","home",brand + " · 视觉、机器人与系统工程手记","从公开项目与官方文档出发，探索 SLAM、点云配准、联合标定、OpenCV、3DGS、ROS 2 与计算机网络。",out.str());
+    return document("./","home",brand + " · 工程手记","Qi 的个人工程手记，记录三维视觉、机器人、机器学习与软件工程中的具体问题。",out.str());
 }
 
-string articlepage(const Article& a, const Article& next) {
+string archivepage(const std::vector<Article>& articles) {
+    std::ostringstream out;
+    out << "<main id='main' class='wrap collection'><header class='collection-heading'><h1>文章索引</h1>"
+        << "<span id='filter-count' aria-live='polite'>共 " << articles.size() << " 篇</span></header>"
+        << "<div class='filters' role='group' aria-label='按文章主题筛选'>";
+    for (const auto& [key,name] : groups) {
+        if (key != "all" && std::none_of(articles.begin(),articles.end(),[&](const Article& a){return a.group==key;})) continue;
+        out << "<button type='button' data-filter='" << key << "' aria-pressed='" << (key=="all" ? "true" : "false") << "'>" << name << "</button>";
+    }
+    out << "</div><div class='note-list' id='articles'>";
+    for (const auto& a : articles) {
+        out << "<article class='note-row' data-group='" << a.group << "'><a href='" << a.slug << "/'><div class='card-meta'><span class='topic'>"
+            << a.topic << "</span>" << duration(a) << "</div><h2>" << html_escape(a.title) << "</h2><p>" << html_escape(a.summary) << "</p></a></article>";
+    }
+    out << "</div></main>";
+    return document("../","archive","文章索引 · " + brand,"按主题浏览 Qi 的工程手记。",out.str());
+}
+
+string repositories(const std::vector<Article>& articles, const json& library) {
+    std::ostringstream out;
+    out << "<main id='main' class='wrap collection'><header class='collection-heading'><h1>仓库索引</h1></header>"
+        << "<p class='collection-intro'>从一个项目出发，找到它用到的算法、工程实现和调试方法。</p>";
+    for (const auto& repo : library.at("sources")) {
+        const string url = repo.value("url","");
+        out << "<section class='source' id='" << html_escape(repo.at("id")) << "'><div><h2>" << html_escape(repo.at("name")) << "</h2><p>"
+            << html_escape(repo.at("summary")) << "</p>";
+        if (!url.empty()) out << "<a class='source-url' href='" << html_escape(url) << "'>" << icon("github") << html_escape(repo.at("repository")) << "</a>";
+        out << "</div><ul>";
+        for (const string slug : repo.at("notes")) {
+            const auto& a = lookup(articles,slug);
+            out << "<li><a href='../notes/" << a.slug << "/'>" << html_escape(a.title) << "</a><span>" << a.topic << "</span></li>";
+        }
+        out << "</ul></section>";
+    }
+    out << "</main>";
+    return document("../","repositories","仓库索引 · " + brand,"按项目查找工程笔记、源码和参考资料。",out.str());
+}
+
+string articlepage(const Article& a, const Article& next, const json& library) {
     const string base = "../../";
     std::ostringstream out;
-    out << "<main id='main' class='wrap reading-page'><nav class='crumbs' aria-label='面包屑'><a href='" << base << "#articles'>文章索引</a><span>/</span>"
-        << "<a href='" << base << "?group=" << a.group << "#articles'>" << a.category << "</a></nav>"
+    out << "<main id='main' class='wrap reading-page'><nav class='crumbs' aria-label='面包屑'><a href='" << base << "notes/'>文章索引</a><span>/</span>"
+        << "<a href='" << base << "notes/?group=" << a.group << "'>" << a.category << "</a></nav>"
         << "<header class='article-heading'><span class='section-label'>" << a.topic << "</span><h1>" << html_escape(a.title) << "</h1><p>" << html_escape(a.summary) << "</p>"
         << "<div class='byline'><span class='author'>Qi</span><i></i><time datetime='" << a.published << "'>" << a.published << "</time><i></i>" << duration(a) << "</div></header>"
-        << "<div class='reading-layout'><article class='prose'><div class='article-image'><img src='" << cover(a,base) << "' alt='' width='760' height='375'></div>";
+        << "<div class='reading-layout'><article class='prose'>";
+    if (has_cover(a)) out << "<div class='article-image'><img src='" << cover(a,base) << "' alt='' width='760' height='375'></div>";
     std::ostringstream toc;
     size_t id = 0;
     for (const auto& section : a.sections) {
@@ -164,42 +207,55 @@ string articlepage(const Article& a, const Article& next) {
     for (const auto& ref : a.refs) {
         out << "<li><a href=\"" << html_escape(ref.at("url")) << "\">" << html_escape(ref.at("label")) << "</a></li>";
     }
-    out << "</ul></section><a class='next-note' href='../" << next.slug << "/'><span>接着读 · " << next.topic << "</span><strong>"
+    out << "</ul><div class='origin-links'>";
+    for (const auto& project : library.at("sources")) {
+        const auto& notes = project.at("notes");
+        if (std::find(notes.begin(),notes.end(),a.slug) != notes.end())
+            out << "<a href='../../repositories/#" << html_escape(project.at("id")) << "'>" << html_escape(project.at("name")) << "</a> ";
+    }
+    out << "</div></section><a class='next-note' href='../" << next.slug << "/'><span>接着读 · " << next.topic << "</span><strong>"
         << html_escape(next.title) << "</strong></a></article><aside class='toc'><h2>文章目录</h2><ol>"
         << toc.str() << "<li><a href='#sources'>源码与参考资料</a></li></ol></aside></div></main>";
     return document(base, "note", a.title + " · " + brand, a.summary, out.str());
 }
 
 string aboutpage() {
-    const string base = "../";
-    const string body = "<main id='main' class='wrap about-page'><div class='about-panel'><span class='section-label' lang='en'>ABOUT</span>"
-        "<h1>关于 Qi‘blog</h1><p class='about-lead'>把一次工程排查，写成一篇能跟着验证的手记。</p>"
-        "<div class='about-text'><h2>这些笔记从哪里来</h2><p>我是 Qi。这里记录视觉、机器人与系统工程里的学习问题：相机走过了哪里，两帧点云怎样对齐，一条控制指令又怎样抵达设备。</p>"
-        "<p>有些文章从仓库里的一段代码讲起，有些从论文里的公式开始。每篇文末都列出源码或原始资料，方便回到实现核对细节。</p>"
-        "<h2>从仓库开始读</h2><ul><li><a href='" + github + "/Bottle-Automatic-Volume-Adjustment-System'>自动定容系统</a><p>从液面检测看图像梯度，从设备通信看 TCP 字节流。</p></li>"
-        "<li><a href='" + github + "/Coding_Skills'>Coding_Skills</a><p>沿着录包和点云复核笔记，追踪一次观测异常最早出现的位置。</p></li></ul>"
+    const string body = "<main id='main' class='wrap about-page'><div class='about-panel'><h1>关于 Qi‘blog</h1>"
+        "<div class='about-text'><p>我是 Qi，这里放的是我的工程手记。</p>"
+        "<p>有时是一帧图像：一条亮边究竟是液面还是反光。有时是几行日志：机器人拐弯后，最先偏掉的是时间戳、坐标变换，还是地图上的轨迹。也有些问题来自读代码，比如一个词怎样变成向量，半条 TCP 消息该留在哪里。</p>"
+        "<p>每篇手记都保留了用得上的源码或原始资料。想从某个项目开始，可以翻<a href='../repositories/'>仓库索引</a>。</p>"
         "<p class='about-links'><a href='" + github + "'>GitHub 主页</a><a href='/archives/'>2023 年旧站归档</a></p></div></div></main>";
-    return document(base, "about", "关于 · " + brand, "Qi 的技术手记与公开工程仓库。",body);
+    return document("../","about","关于 · " + brand,"Qi 的个人工程手记。",body);
 }
 
 int main() try {
+    std::ifstream catalog("_qi-blog/library.json");
+    const auto library = json::parse(catalog);
     std::vector<Article> articles;
     json index = json::array();
-    for (const string slug : {"slam","icp","calibration","opencv","gaussian-splatting","ros2","network"}) {
-        std::ifstream file(fs::path("_qi-blog/articles") / (slug + ".json"));
-        auto j = json::parse(file);
+    for (const auto& entry : fs::directory_iterator("_qi-blog/articles")) {
+        if (entry.path().extension() != ".json") continue;
+        std::ifstream file(entry.path());
+        const auto j = json::parse(file);
+        if (j.at("slug") != entry.path().stem().string()) throw std::runtime_error("Incorrect slug: " + entry.path().string());
         size_t length = 0;
         for (const auto& s : j.at("sections")) for (const string p : s.at("paragraphs"))
             length += std::count_if(p.begin(), p.end(), [](unsigned char c){ return (c & 0xc0) != 0x80; });
-        Article a{j.at("slug"),j.at("title"),j.at("summary"),j.at("topic"),j.at("category"),j.at("group"),j.at("keywords"),j.at("published"),
-                  j.at("sections"),j.at("refs"),std::max(1,static_cast<int>((length + 279) / 280))};
-        index.push_back({{"slug",slug},{"title",a.title},{"summary",a.summary},{"topic",a.topic},{"keywords",a.keywords + " " + a.category}});
-        articles.push_back(a);
+        articles.push_back({j.at("slug"),j.at("title"),j.at("summary"),j.at("topic"),j.at("category"),j.at("group"),j.at("keywords"),j.at("published"),
+                            j.at("sections"),j.at("refs"),std::max(1,static_cast<int>((length + 279) / 280))});
     }
-    const auto feature = std::find_if(articles.begin(), articles.end(), [](const Article& a){return a.slug == "gaussian-splatting";});
-    write(destination/"index.html", homepage(articles,*feature));
-    for (size_t i = 0; i < articles.size(); ++i)
-        write(destination/"notes"/articles[i].slug/"index.html",articlepage(articles[i],articles[(i+1)%articles.size()]));
+    std::sort(articles.begin(),articles.end(),[](const Article& a,const Article& b) {
+        if (a.published != b.published) return a.published > b.published;
+        return std::tie(a.category,a.slug) < std::tie(b.category,b.slug);
+    });
+    for (size_t i=0; i<articles.size(); ++i) {
+        const auto& a=articles[i];
+        index.push_back({{"slug",a.slug},{"title",a.title},{"summary",a.summary},{"topic",a.topic},{"keywords",a.keywords + " " + a.category}});
+        write(destination/"notes"/a.slug/"index.html",articlepage(a,articles[(i+1)%articles.size()],library));
+    }
+    write(destination/"index.html",homepage(articles,library));
+    write(destination/"notes/index.html",archivepage(articles));
+    write(destination/"repositories/index.html",repositories(articles,library));
     write(destination/"about/index.html",aboutpage());
     write(destination/"assets/search-index.js","window.QI_ARTICLES = " + index.dump(2) + ";\n");
     std::cout << "Built Qi‘blog with " << articles.size() << " articles.\n";

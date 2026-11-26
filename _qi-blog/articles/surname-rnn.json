@@ -1,0 +1,51 @@
+{
+  "slug": "surname-rnn",
+  "title": "同一份姓氏，两种 RNN 任务",
+  "summary": "同一批字符可以用来预测数据集标签，也可以用来生成下一个字符。区别体现在序列如何错位和隐藏状态从何开始。",
+  "sections": [
+    {
+      "title": "最后一个有效位置在哪里",
+      "paragraphs": [
+        "分类脚本把姓氏逐字符编号，在两端加上起始与结束标记，再用填充值补齐。以 Li 为例，有效序列是「开始、L、i、结束」，长度为 4。即使同批数据把张量补到 10 列，应该取的仍是下标 3 的状态。",
+        "代码用 RNNCell 展开 Elman 循环网络，column_gather 对每行按实际长度减一取状态，再送入分类层。可以在分类层之前比较同一姓氏单独输入和额外补两列时取出的向量。正确选到同一时刻，两者应当一致。分类标签来自语料的 nationality 字段，单凭姓名拼写无法确定一个人的国籍。"
+      ]
+    },
+    {
+      "title": "把预测目标向左挪一个位置",
+      "paragraphs": [
+        "无条件生成脚本改用 GRU，每一个有效时刻都预测下一个字符。对于 Li，输入是「开始、L、i」，标签依次为「L、i、结束」。这样可以直接检查第一列的监督是否对准 L，最后一列是否鼓励模型结束。",
+        "脚本计算交叉熵时会忽略填充编号。若评估时把填充也计入正确率，短名字多的批次会带来一批很容易猜中的位置。评估字符错误时，可以同时记录有效字符数与结束标记的命中情况。"
+      ]
+    },
+    {
+      "title": "给生成器一个起始条件",
+      "paragraphs": [
+        "有条件版本另建一张类别嵌入表，把类别编号转换成向量，作为 GRU 的初始隐藏状态。字符预测仍一次前进一个位置，采样函数从下一字符概率中抽样。",
+        "想看条件究竟用在哪里，可以固定模型权重与起始字符，只切换类别编号，先比较第一步的字符概率。它能把条件改变造成的差异与后续随机采样分开。某一次生成结果是否像真实姓名，无法单独验证模型学到了哪种规律。"
+      ]
+    }
+  ],
+  "refs": [
+    {
+      "label": "dev_skills · Elman RNN 与有效序列长度",
+      "url": "https://github.com/qitiandi2003/dev_skills/blob/e93480fa6a30260e4c4e22475dbd2d40e7113ac8/Surname-Classification-with-RNNs/Surname-Classification-with-RNNs.py"
+    },
+    {
+      "label": "dev_skills · 无条件字符生成",
+      "url": "https://github.com/qitiandi2003/dev_skills/blob/e93480fa6a30260e4c4e22475dbd2d40e7113ac8/Surname-Classification-with-RNNs/Model1_Unconditioned_Surname_Generation.py"
+    },
+    {
+      "label": "dev_skills · 以类别初始化 GRU",
+      "url": "https://github.com/qitiandi2003/dev_skills/blob/e93480fa6a30260e4c4e22475dbd2d40e7113ac8/Surname-Classification-with-RNNs/Model2_Conditioned_Surname_Generation.py"
+    },
+    {
+      "label": "PyTorch · GRU 的输入与初始状态",
+      "url": "https://docs.pytorch.org/docs/stable/generated/torch.nn.GRU.html"
+    }
+  ],
+  "topic": "字符 RNN",
+  "category": "机器学习",
+  "group": "learning",
+  "keywords": "RNN GRU Elman 姓氏 条件生成 字符模型 填充 字符串 分类",
+  "published": "2026-11-26"
+}

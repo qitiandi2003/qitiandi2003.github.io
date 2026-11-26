@@ -1,0 +1,55 @@
+{
+  "slug": "bert-sentiment",
+  "title": "BERT 会读到评论末尾的转折吗？",
+  "summary": "沿着 CSV、分词器和分类头检查中文情感微调，找出一条长评论在什么时候失去了末尾的转折。",
+  "sections": [
+    {
+      "title": "文本进入模型之前",
+      "paragraphs": [
+        "BERT.py 读取酒店评论 CSV 的 review 和 label 两列，丢弃空值，改名后按 9∶1 随机拆分。中文 BERT 分词器将每条评论编码成 input_ids 和 attention_mask，训练阶段统一补齐或截断至 128 个 token。这个上限包含序列的特殊标记。",
+        "可以准备两条评论，让它们有相同的长前缀，仅在最后一句分别写「会再来」和「不会再来」。先比较分词后的编号。如果转折已落到截断范围之外，两条不同文本可能给分类器完全相同的输入。此时调整分类阈值无法找回遗失的字。"
+      ]
+    },
+    {
+      "title": "类别分数怎样变成标签",
+      "paragraphs": [
+        "脚本在 bert-base-chinese 上接有两个输出的序列分类头，用带标签样本微调。推理时进入 eval 模式并禁用梯度，沿类别维取 logits 的最大值，按代码约定将编号 1 映射为正面，其余映射为负面。这里的 attention_mask 标明哪些输入位置有效。",
+        "同目录的 1.py 则直接调用已有情感分类检查点和 pipeline。换检查点时要重新查看标签映射；模型给出的 LABEL_0 或 LABEL_1 仅是编号。可以用两条态度明确、长度相近的短句核对字段含义，再处理存在反讽或转折的评论。"
+      ]
+    },
+    {
+      "title": "用什么证据评价微调",
+      "paragraphs": [
+        "BERT.py 提供验证数据，却没有配置分类指标计算函数，脚本末尾打印的是两条手写示例。要量化这个模型，可以在留出评论上统计混淆矩阵，并把被截断和未截断的评论分别计数。这样才能分清错误来自哪一组文本。",
+        "另一个 debug.py 会按轮评估并保存模型和分词器，依赖本地准备的模型与 TSV。仓库的 dev_skills_env.py 只计算 NumPy 数组的逐元素平方；它能确认当前解释器可以导入 NumPy，模型文件、分词器和训练数据还需要在各自的入口核对。"
+      ]
+    }
+  ],
+  "refs": [
+    {
+      "label": "dev_skills · 酒店评论微调",
+      "url": "https://github.com/qitiandi2003/dev_skills/blob/e93480fa6a30260e4c4e22475dbd2d40e7113ac8/BERT%26GPT/BERT.py"
+    },
+    {
+      "label": "dev_skills · 加载已有分类器",
+      "url": "https://github.com/qitiandi2003/dev_skills/blob/e93480fa6a30260e4c4e22475dbd2d40e7113ac8/BERT%26GPT/1.py"
+    },
+    {
+      "label": "dev_skills · 本地 TSV 训练与保存",
+      "url": "https://github.com/qitiandi2003/dev_skills/blob/e93480fa6a30260e4c4e22475dbd2d40e7113ac8/BERT%26GPT/debug.py"
+    },
+    {
+      "label": "dev_skills · NumPy 环境检查",
+      "url": "https://github.com/qitiandi2003/dev_skills/blob/e93480fa6a30260e4c4e22475dbd2d40e7113ac8/dev_skills/dev_skills_env.py"
+    },
+    {
+      "label": "Devlin 等 · BERT 原论文",
+      "url": "https://aclanthology.org/N19-1423/"
+    }
+  ],
+  "topic": "BERT 分类",
+  "category": "机器学习",
+  "group": "learning",
+  "keywords": "BERT 中文 情感分析 Hugging Face 微调 分类 mask token Transformers",
+  "published": "2026-11-26"
+}

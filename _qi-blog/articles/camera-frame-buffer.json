@@ -1,0 +1,46 @@
+{
+  "slug": "camera-frame-buffer",
+  "title": "收到一帧图像以后，谁拥有这块内存？",
+  "summary": "相机预览偶尔花屏，可以从一帧的像素格式、行跨度，以及 SDK 回收缓冲区的时刻查起。",
+  "sections": [
+    {
+      "title": "宽度相同，一行的字节数也会不同",
+      "paragraphs": [
+        "采集回调通常同时给出地址和帧信息。先看宽、高、像素格式、有效字节数，以及 SDK 是否提供行跨度。Bayer8 的每个像素存一个颜色采样，BGR8 的每个像素存三个通道，某些紧凑排列的 10 位或 12 位格式还需要先解包。",
+        "以宽度 641 的单通道 8 位图为例，如果设备把每行补到 644 字节，下一行从第 644 字节偏移处开始。在构造外部数据的 cv::Mat 时传入实际步长，可避免每行错位一点、整幅图像逐渐倾斜。"
+      ]
+    },
+    {
+      "title": "cv::Mat 可以只是一张借条",
+      "paragraphs": [
+        "cv::Mat 可以直接指向 SDK 的缓冲区。把这个矩阵按值塞进队列，只会复制矩阵头。采集线程把缓冲区归还以后，下次取帧可能复用同一地址，此时队列中上一帧的内容就会变化。",
+        "若保存线程需要稍后读图，可以在归还前用 clone() 生成独立图像，或者让队列持有 SDK 明确支持的帧句柄，直到消费完再释放。调试时放慢保存线程，用两张交替图案取帧，容易看出“上一帧”是否被下一帧覆盖。"
+      ]
+    },
+    {
+      "title": "花屏和偏色要分开查",
+      "paragraphs": [
+        "固定画面拍一张带红蓝色块的卡片，先观察原始采样，再用设备声明的 Bayer 排列做颜色转换。结构完整却红蓝对调时，优先核对 Bayer 排列和输出通道顺序。水平撕裂、重复行或偶发错帧则应回到步长、像素数据长度和缓冲区生命周期。"
+      ]
+    }
+  ],
+  "refs": [
+    {
+      "label": "OpenCV · cv::Mat 与外部数据",
+      "url": "https://github.com/opencv/opencv/blob/4.x/modules/core/include/opencv2/core/mat.hpp"
+    },
+    {
+      "label": "OpenCV · 颜色转换与 Bayer 排列",
+      "url": "https://github.com/opencv/opencv/blob/4.x/modules/imgproc/include/opencv2/imgproc.hpp#L756"
+    },
+    {
+      "label": "公开项目 · 工业相机采集与像素格式兼容",
+      "url": "https://github.com/qitiandi2003/Bottle-Automatic-Volume-Adjustment-System"
+    }
+  ],
+  "topic": "工业相机",
+  "category": "感知与标定",
+  "group": "vision",
+  "keywords": "工业相机 采集 C++ OpenCV cv::Mat Bayer 行跨度 buffer 生命周期 内存",
+  "published": "2026-11-26"
+}

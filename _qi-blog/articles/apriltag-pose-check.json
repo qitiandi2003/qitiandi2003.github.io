@@ -1,0 +1,41 @@
+{
+  "slug": "apriltag-pose-check",
+  "title": "打印的 AprilTag 能量出多远",
+  "summary": "AprilTag 提供编码身份和角点。用一张打印纸设计测量实验，检查边长、成像尺度和相机位姿。",
+  "sections": [
+    {
+      "title": "检测成功以后，需要一把尺",
+      "paragraphs": [
+        "AprilTag 检测器可以识别标签家族和编号，还能给出图像中的四个角点。想把它们换成米，需要相机内参和已知的标签边长。应按上游所示的检测角点间距量尺寸；纸张外沿和打印留白通常不落在这条边上。",
+        "对正面朝向相机的标签，可用针孔模型做一次数量级核算。焦距为 800 像素、检测边长为 0.10 米、图像中宽约 80 像素时，估计距离约为 1 米。斜视时边长发生透视缩短，需要用四角和完整的位姿模型求解。"
+      ]
+    },
+    {
+      "title": "四个角点只占很小一块画面",
+      "paragraphs": [
+        "平面标记在远处、近正视时，角点上很小的误差就可能造成明显姿态波动。检查角点是否都清楚可见，把估计位姿重新投影成四边形叠在原图上。若采用平面 PnP 并得到多个可行解，可结合连续图像或独立量测判断哪个更符合几何。"
+      ]
+    },
+    {
+      "title": "设计一个能看出尺度误差的实验",
+      "paragraphs": [
+        "把相机固定，量出几组相机与标记的相对位置，分别拍摄正视与斜视图。记录标签实际边长、使用的分辨率、对应内参和角点，再逐组比较预测与独立测量。若所有距离都按近似相同比例偏大，先核对打印缩放和焦距单位；若只在大倾角时波动，回到图像查看角点清晰程度。"
+      ]
+    }
+  ],
+  "refs": [
+    {
+      "label": "AprilRobotics · 标签尺寸与位姿估计",
+      "url": "https://github.com/AprilRobotics/apriltag"
+    },
+    {
+      "label": "OpenCV · Perspective-n-Point 位姿估计",
+      "url": "https://github.com/opencv/opencv/blob/4.x/modules/calib3d/doc/solvePnP.markdown"
+    }
+  ],
+  "topic": "AprilTag",
+  "category": "感知与标定",
+  "group": "vision",
+  "keywords": "AprilTag 标签 PnP 平面标靶 相机位姿 距离 检测边长 重投影",
+  "published": "2026-11-26"
+}

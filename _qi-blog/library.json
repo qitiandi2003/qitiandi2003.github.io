@@ -1,0 +1,116 @@
+{
+  "picks": [
+    "icp",
+    "word-segmentation",
+    "opencv"
+  ],
+  "sources": [
+    {
+      "id": "bottle",
+      "name": "自动定容系统",
+      "summary": "从图像中的瓶身、刻度和液面，到检测流程的状态转换、设备通信和录像收尾。",
+      "notes": [
+        "opencv",
+        "scale-lock",
+        "dosing-states",
+        "network",
+        "session-recording",
+        "camera-frame-buffer"
+      ],
+      "repository": "Bottle-Automatic-Volume-Adjustment-System",
+      "url": "https://github.com/qitiandi2003/Bottle-Automatic-Volume-Adjustment-System"
+    },
+    {
+      "id": "language",
+      "name": "自然语言处理实验",
+      "summary": "从词典分词和朴素贝叶斯读起，再进入字符级 RNN、序列翻译和预训练语言模型。",
+      "notes": [
+        "word-segmentation",
+        "word-embeddings",
+        "bayes-mail",
+        "surname-rnn",
+        "seq2seq-translation",
+        "bert-sentiment",
+        "gpt-sampling"
+      ],
+      "repository": "dev_skills",
+      "url": "https://github.com/qitiandi2003/dev_skills"
+    },
+    {
+      "id": "fieldwork",
+      "name": "工程调试方法",
+      "summary": "点云复核、录包诊断、控制台状态和回归检查。保留现场里第一处可观察的差异。",
+      "notes": [
+        "icp",
+        "ros2",
+        "web-state",
+        "multiview-floaters",
+        "config-regression"
+      ],
+      "repository": "Coding_Skills",
+      "url": "https://github.com/qitiandi2003/Coding_Skills"
+    },
+    {
+      "id": "network",
+      "name": "网络工具",
+      "summary": "网络参数怎样生效，服务状态怎样核实，配置变化又怎样恢复。",
+      "notes": [
+        "ipv4-route-selection",
+        "oneshot-service",
+        "config-regression"
+      ],
+      "repository": "ssh-vpn",
+      "url": "https://github.com/qitiandi2003/ssh-vpn"
+    },
+    {
+      "id": "publishing",
+      "name": "博客与静态发布",
+      "summary": "从 2023 年的 Hexo 存档，到今天的 C++ 页面生成器。",
+      "notes": [
+        "static-pages"
+      ],
+      "repository": "qitiandi2003.github.io",
+      "url": "https://github.com/qitiandi2003/qitiandi2003.github.io"
+    },
+    {
+      "id": "reconstruction",
+      "name": "三维重建与数字孪生",
+      "summary": "视频位姿、高斯训练、网格导出和场景导航。以下手记整理本地工程里的几何问题，文末可查原始论文与官方实现。",
+      "notes": [
+        "gaussian-splatting",
+        "colmap-camera-centers",
+        "multiview-floaters",
+        "mesh-inspection",
+        "twin-floor-frame"
+      ]
+    },
+    {
+      "id": "cameras",
+      "name": "工业相机与双目采集",
+      "summary": "采集线程拿到的缓冲区有多长寿命，左右图的曝光时刻相差多少，两种问题会留下不同的图像线索。",
+      "notes": [
+        "camera-frame-buffer",
+        "stereo-trigger-exposure",
+        "calibration"
+      ]
+    },
+    {
+      "id": "localization",
+      "name": "视觉定位与机器人建图",
+      "summary": "视觉前端、重定位、坐标标定和可通行空间。这组手记取材于本地视觉定位工程。",
+      "notes": [
+        "slam",
+        "icp",
+        "calibration",
+        "ros2",
+        "visual-relocalization",
+        "rtabmap-pose-graph",
+        "stereo-disparity-depth",
+        "event-camera-windows",
+        "octomap-free-unknown",
+        "grounded-astar",
+        "apriltag-pose-check"
+      ]
+    }
+  ]
+}

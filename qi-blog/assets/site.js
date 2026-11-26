@@ -143,6 +143,10 @@
   }
 
   function init() {
+    if (document.querySelector('.home') && new URLSearchParams(location.search).has('group')) {
+      location.replace('notes/' + location.search + location.hash);
+      return;
+    }
     setupSearch();
     setupFilters();
   }

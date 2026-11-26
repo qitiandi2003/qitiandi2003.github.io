@@ -1,0 +1,49 @@
+{
+  "slug": "visual-relocalization",
+  "title": "给一张照片找回地图坐标",
+  "summary": "外观相似只能选出候选地点。把局部匹配接上地图中的三维点，才能估计相机的位置与朝向。",
+  "sections": [
+    {
+      "title": "检索先把地图缩小",
+      "paragraphs": [
+        "在一栋楼里找拍摄地点，逐张比对全部照片很费时。HLoc 的层级定位流程先用图像级描述子寻找一批外观相近的参考照片，再把局部匹配的计算花在这些候选上。楼里两扇相同的门可能同时排在前面，把候选截得太少，正确地点也可能提前出局。"
+      ]
+    },
+    {
+      "title": "从关键点走到三维点",
+      "paragraphs": [
+        "SuperPoint 同时给出关键点和描述子，LightGlue 接收两幅图的局部特征，输出匹配关系。参考图的关键点如果已经关联到地图里的三维点，一次匹配就连接了查询图像上的二维像素和一个已知三维位置。多个参考图像还能共同支持同一个地点。",
+        "有了相机内参，可以用 PnP 估计地图到查询相机的变换。RANSAC 反复抽取少量对应求候选位姿，再数有多少对应点能按该位姿投回自己的像素附近。用内点重新估计，得到的位姿还可以继续检查。"
+      ]
+    },
+    {
+      "title": "一整排窗户投对了，楼层仍可能错",
+      "paragraphs": [
+        "把内点画在查询图上。如果它们全挤在一排重复的窗格里，几何证据仍很单薄。选在窗户之外的结构做复核，例如走廊一端的柱子；若查询图同时有已对齐的深度，也能比较同一位置的预测和实测深度。检索排名、内点分布与独立观测各回答一个不同的问题。"
+      ]
+    }
+  ],
+  "refs": [
+    {
+      "label": "HLoc · 分层视觉定位流程",
+      "url": "https://github.com/cvg/Hierarchical-Localization"
+    },
+    {
+      "label": "SuperPoint · 特征点与描述子",
+      "url": "https://github.com/magicleap/SuperPointPretrainedNetwork"
+    },
+    {
+      "label": "LightGlue · 局部特征匹配",
+      "url": "https://github.com/cvg/LightGlue"
+    },
+    {
+      "label": "OpenCV · Perspective-n-Point 位姿估计",
+      "url": "https://github.com/opencv/opencv/blob/4.x/modules/calib3d/doc/solvePnP.markdown"
+    }
+  ],
+  "topic": "视觉重定位",
+  "category": "定位与建图",
+  "group": "geometry",
+  "keywords": "HLoc NetVLAD SuperPoint LightGlue PnP RANSAC 检索 重定位",
+  "published": "2026-11-26"
+}
