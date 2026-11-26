@@ -1,0 +1,27 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360' role='img' aria-labelledby='title desc'>
+<title id='title'>双目测距的两条视线</title><desc id='desc'>两个相机中心相距基线 B，同一空间点投到两个校正图像平面，左右像点离各自主点的水平距离不同。图不按比例。</desc>
+<defs><marker id='arrow' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='3.5' markerHeight='3.5' orient='auto-start-reverse'><path d='M0 0 10 5 0 10Z' fill='context-stroke'/></marker></defs>
+<rect width='640' height='360' fill='#f7f9fc'/>
+<g stroke-linecap='round' stroke-linejoin='round' font-family='system-ui, sans-serif'>
+<line x1='142' y1='270' x2='142' y2='67' stroke='#a9b7c6' stroke-width='2' stroke-dasharray='6 7'/>
+<line x1='462' y1='270' x2='462' y2='67' stroke='#a9b7c6' stroke-width='2' stroke-dasharray='6 7'/>
+<line x1='142' y1='270' x2='351' y2='51' stroke='#4568b3' stroke-width='4'/>
+<line x1='462' y1='270' x2='351' y2='51' stroke='#248577' stroke-width='4'/>
+<line x1='78' y1='206' x2='248' y2='206' stroke='#a9b7c6' stroke-width='3'/>
+<line x1='388' y1='206' x2='542' y2='206' stroke='#a9b7c6' stroke-width='3'/>
+<circle cx='203' cy='206' r='6' fill='#4568b3'/>
+<circle cx='430' cy='206' r='6' fill='#248577'/>
+<circle cx='142' cy='270' r='9' fill='#4568b3'/>
+<circle cx='462' cy='270' r='9' fill='#248577'/>
+<circle cx='351' cy='51' r='8' fill='#8171ab'/>
+<text x='375' y='56' font-size='22' font-weight='500' text-anchor='middle' fill='#8171ab'>P</text>
+<text x='98' y='274' font-size='23' font-weight='500' text-anchor='middle' fill='#4568b3'>L</text>
+<text x='502' y='274' font-size='23' font-weight='500' text-anchor='middle' fill='#248577'>R</text>
+<line x1='142' y1='292' x2='462' y2='292' stroke='#25354b' stroke-width='2'/>
+<line x1='142' y1='286' x2='142' y2='299' stroke='#25354b' stroke-width='2'/>
+<line x1='462' y1='286' x2='462' y2='299' stroke='#25354b' stroke-width='2'/>
+<text x='302' y='326' font-size='23' font-weight='500' text-anchor='middle' fill='#25354b'>B = 0.10 m</text>
+<text x='225' y='195' font-size='18' font-weight='500' text-anchor='middle' fill='#4568b3'>uL</text>
+<text x='410' y='195' font-size='18' font-weight='500' text-anchor='middle' fill='#248577'>uR</text>
+</g>
+</svg>

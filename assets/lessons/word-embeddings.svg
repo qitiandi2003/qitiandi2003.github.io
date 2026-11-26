@@ -1,0 +1,19 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360' role='img' aria-labelledby='title desc'>
+<title id='title'>三个单位词向量的方向</title><desc id='desc'>面条、饺子和车站的教学向量是 (1,0)、(0.8,0.6)、(0,1)。面条与饺子的点积为 0.8。</desc>
+<defs><marker id='arrow' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='3.5' markerHeight='3.5' orient='auto-start-reverse'><path d='M0 0 10 5 0 10Z' fill='context-stroke'/></marker></defs>
+<rect width='640' height='360' fill='#f7f9fc'/>
+<g stroke-linecap='round' stroke-linejoin='round' font-family='system-ui, sans-serif'>
+<line x1='132' y1='276' x2='469' y2='276' stroke='#a9b7c6' stroke-width='2' marker-end='url(#arrow)'/>
+<line x1='167' y1='296' x2='167' y2='52' stroke='#a9b7c6' stroke-width='2' marker-end='url(#arrow)'/>
+<path d='M354 276 A187 187 0 0 0 167 89' fill='none' stroke='#dce4ec' stroke-width='2' stroke-dasharray='6 7'/>
+<line x1='167' y1='276' x2='354' y2='276' stroke='#4568b3' stroke-width='4' marker-end='url(#arrow)'/>
+<line x1='167' y1='276' x2='316.6' y2='163.8' stroke='#248577' stroke-width='4' marker-end='url(#arrow)'/>
+<line x1='167' y1='276' x2='167' y2='89' stroke='#8171ab' stroke-width='4' marker-end='url(#arrow)'/>
+<line x1='316.6' y1='163.8' x2='316.6' y2='276' stroke='#a9b7c6' stroke-width='2' stroke-dasharray='6 7'/>
+<circle cx='167' cy='276' r='5' fill='#25354b'/>
+<text x='372' y='316' font-size='21' font-weight='500' text-anchor='start' fill='#4568b3'>面条 (1, 0)</text>
+<text x='335.6' y='160.8' font-size='21' font-weight='500' text-anchor='start' fill='#248577'>饺子 (0.8, 0.6)</text>
+<text x='182' y='79' font-size='21' font-weight='500' text-anchor='start' fill='#8171ab'>车站 (0, 1)</text>
+<text x='309.6' y='301' font-size='17' font-weight='500' text-anchor='middle' fill='#25354b'>0.8</text>
+</g>
+</svg>

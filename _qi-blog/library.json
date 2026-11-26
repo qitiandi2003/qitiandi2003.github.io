@@ -1,14 +1,14 @@
 {
   "picks": [
+    "gaussian-splatting",
     "stereo-disparity-depth",
-    "word-segmentation",
-    "icp"
+    "gpt-sampling"
   ],
   "paths": [
     {
       "id": "geometry",
       "name": "定位与建图",
-      "description": "从一台移动相机的坐标开始，学习点云对齐，再看机器人怎样在地图上找到位置和路径。",
+      "description": "从相机和点云的坐标开始，依次学习局部运动、回环和地图规划。",
       "notes": [
         "slam",
         "icp",
@@ -20,45 +20,107 @@
         "lidar-place-ambiguity",
         "rtabmap-pose-graph",
         "multi-session-graph",
+        "splat-incremental",
         "octomap-free-unknown",
         "rolling-obstacle-map",
-        "grounded-astar",
         "twin-floor-frame",
-        "splat-incremental"
-      ]
+        "grounded-astar"
+      ],
+      "stages": [
+        {
+          "name": "运动与坐标",
+          "description": "先认识相机和路标，再用点云与坐标变换算出两次观测之间的运动。",
+          "begin": "slam"
+        },
+        {
+          "name": "从连续观测估计运动",
+          "description": "把采样时间、距离误差和图像亮度放进运动估计，逐项检查它们的假设。",
+          "begin": "livo-scan-time"
+        },
+        {
+          "name": "找回旧位置，拼好整张图",
+          "description": "从辨认同一地点，到修正一整圈轨迹，再合并多次独立采集。",
+          "begin": "visual-relocalization"
+        },
+        {
+          "name": "地图上的可行空间",
+          "description": "区分未知和可通行，跟踪障碍的消失，最后让机器人在真实尺度上规划路线。",
+          "begin": "octomap-free-unknown"
+        }
+      ],
+      "visual": "assets/lessons/rtabmap-pose-graph.svg",
+      "visualLabel": "相邻观测与回环约束"
     },
     {
       "id": "vision",
       "name": "感知与标定",
-      "description": "先读懂一个像素，再用两台相机量距离，最后让相机、惯性传感器和激光雷达共享坐标。",
+      "description": "先读懂一幅图中的像素，再学习两台相机怎样测距、多种传感器怎样对齐。",
       "notes": [
+        "camera-frame-buffer",
         "opencv",
+        "scale-lock",
         "stereo-disparity-depth",
+        "stereo-trigger-exposure",
+        "crestereo-confidence",
         "apriltag-pose-check",
         "calibration",
         "lidar-camera-calibration",
-        "stereo-trigger-exposure",
-        "event-camera-windows",
-        "crestereo-confidence",
-        "camera-frame-buffer",
-        "scale-lock"
-      ]
+        "event-camera-windows"
+      ],
+      "stages": [
+        {
+          "name": "先读懂一帧图像",
+          "description": "从像素的内存布局、亮度边缘到跨帧判断，建立最小的视觉测量流程。",
+          "begin": "camera-frame-buffer"
+        },
+        {
+          "name": "从图像得到距离与位姿",
+          "description": "从两幅图的位移算距离，再检查同步与匹配，最后用已知尺寸估计姿态。",
+          "begin": "stereo-disparity-depth"
+        },
+        {
+          "name": "对齐不同传感器",
+          "description": "让相机、IMU 与雷达对同一个位置和时刻达成一致，再读异步亮度事件。",
+          "begin": "calibration"
+        }
+      ],
+      "visual": "assets/lessons/stereo-disparity-depth.svg",
+      "visualLabel": "双目视差与深度"
     },
     {
       "id": "graphics",
       "name": "图形渲染",
-      "description": "从拍摄角度、三角曲面到半透明高斯，理解照片怎样变成可以换视角的场景。",
+      "description": "围着同一个物体拍一圈，沿着采集、表面表示和新视角渲染一路读下去。",
       "notes": [
         "livo-gs-keyframes",
         "mesh-inspection",
         "gaussian-splatting",
         "multiview-floaters"
-      ]
+      ],
+      "stages": [
+        {
+          "name": "拍出可以重建的照片",
+          "description": "亲自挑出两张有视差的照片，再确定哪些角度还缺观测。",
+          "begin": "livo-gs-keyframes"
+        },
+        {
+          "name": "点、面与半透明高斯",
+          "description": "比较网格怎样连接表面，以及高斯怎样把多层颜色混进一个像素。",
+          "begin": "mesh-inspection"
+        },
+        {
+          "name": "检查陌生视角",
+          "description": "离开原来的拍摄位置，用视差和遮挡查明漂浮伪影。",
+          "begin": "multiview-floaters"
+        }
+      ],
+      "visual": "assets/lessons/multiview-floaters.svg",
+      "visualLabel": "近点与远点的视差"
     },
     {
       "id": "learning",
       "name": "机器学习",
-      "description": "从中文词语的边界起步，沿着词向量、分类和序列模型，读到语言模型如何生成下一句话。",
+      "description": "用一句中文和一小组计数开始，逐步读到文本表示、分类和逐词生成。",
       "notes": [
         "word-segmentation",
         "bayes-mail",
@@ -67,24 +129,62 @@
         "seq2seq-translation",
         "bert-sentiment",
         "gpt-sampling"
-      ]
+      ],
+      "stages": [
+        {
+          "name": "词与训练数据",
+          "description": "确定一句话中的词界，然后用词频完成第一次分类。",
+          "begin": "word-segmentation"
+        },
+        {
+          "name": "让表示带上上下文",
+          "description": "从词向量的距离走到循环网络，再跟踪编码器与解码器怎样传递信息。",
+          "begin": "word-embeddings"
+        },
+        {
+          "name": "阅读与生成",
+          "description": "先用上下文判读一条评论，再改变温度，观察模型怎样选出下一个词。",
+          "begin": "bert-sentiment"
+        }
+      ],
+      "visual": "assets/lessons/word-embeddings.svg",
+      "visualLabel": "词向量与夹角"
     },
     {
       "id": "systems",
       "name": "系统与通信",
-      "description": "从字节在网络上的传递，到机器人消息的订阅与回放，弄清程序之间究竟交换了什么。",
+      "description": "从机器人里的程序怎样传消息开始，读懂传感器数据，再追到网络字节和系统进程。",
       "notes": [
+        "ros2",
+        "rgbd-sensor-contract",
         "network",
         "ipv4-route-selection",
-        "oneshot-service",
-        "ros2",
-        "rgbd-sensor-contract"
-      ]
+        "oneshot-service"
+      ],
+      "stages": [
+        {
+          "name": "机器人里的程序怎样通信",
+          "description": "在模拟海龟上观察 ROS 图，再把一帧彩色图和深度数据对齐。",
+          "begin": "ros2"
+        },
+        {
+          "name": "消息如何穿过网络",
+          "description": "从应用消息的边界往下看，弄清楚一段数据怎样选路离开计算机。",
+          "begin": "network"
+        },
+        {
+          "name": "管理运行中的任务",
+          "description": "认识一次性服务的生命周期，用状态和退出记录判断程序是否完成。",
+          "begin": "oneshot-service"
+        }
+      ],
+      "visual": "assets/lessons/ros2.svg",
+      "visualLabel": "节点与通信接口"
     },
     {
       "id": "engineering",
       "name": "工程实践",
-      "description": "用状态机、后台任务、录制队列和回归测试，解决日常程序中常见的顺序与时机问题。",
+      "description": "沿着状态、异步处理和交付三个环节，观察程序怎样在现实条件下可靠工作。",
       "notes": [
         "dosing-states",
         "navigation-settling",
@@ -95,7 +195,26 @@
         "splat-model-manifest",
         "ros-binary-package",
         "static-pages"
-      ]
+      ],
+      "stages": [
+        {
+          "name": "状态与完成条件",
+          "description": "明确每个状态的输入和退出条件，用到达判定和网页恢复检验这些条件。",
+          "begin": "dosing-states"
+        },
+        {
+          "name": "异步处理与验证",
+          "description": "追踪数据在采集和写盘之间如何排队，再为长任务的完成和配置回归留下证据。",
+          "begin": "session-recording"
+        },
+        {
+          "name": "交付到另一台机器",
+          "description": "从数据清单、二进制依赖到网页路径，检查产物离开原环境后能否使用。",
+          "begin": "splat-model-manifest"
+        }
+      ],
+      "visual": "assets/lessons/session-recording.svg",
+      "visualLabel": "采集与写盘速率"
     }
   ]
 }

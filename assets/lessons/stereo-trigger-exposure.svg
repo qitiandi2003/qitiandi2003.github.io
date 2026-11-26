@@ -1,0 +1,33 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360' role='img' aria-labelledby='title desc'>
+<title id='title'>相同触发下的两段曝光</title><desc id='desc'>两相机同时开始曝光，左相机持续 2 毫秒，右相机持续 10 毫秒，曝光中点相差 4 毫秒。</desc>
+<defs><marker id='arrow' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='3.5' markerHeight='3.5' orient='auto-start-reverse'><path d='M0 0 10 5 0 10Z' fill='context-stroke'/></marker></defs>
+<rect width='640' height='360' fill='#f7f9fc'/>
+<g stroke-linecap='round' stroke-linejoin='round' font-family='system-ui, sans-serif'>
+<line x1='128' y1='70' x2='128' y2='263' stroke='#25354b' stroke-width='2' stroke-dasharray='6 7'/>
+<text x='128' y='51' font-size='21' font-weight='500' text-anchor='middle' fill='#25354b'>触发</text>
+<text x='64' y='134' font-size='22' font-weight='500' text-anchor='middle' fill='#25354b'>左</text>
+<text x='64' y='218' font-size='22' font-weight='500' text-anchor='middle' fill='#25354b'>右</text>
+<rect x='128' y='102' width='84' height='44' rx='6' fill='#e6edf9' stroke='none'/>
+<rect x='128' y='186' width='420' height='44' rx='6' fill='#d9eee8' stroke='none'/>
+<line x1='170' y1='98' x2='170' y2='149' stroke='#4568b3' stroke-width='3'/>
+<circle cx='170' cy='124' r='5' fill='#4568b3'/>
+<text x='188' y='89' font-size='19' font-weight='500' text-anchor='middle' fill='#4568b3'>1 ms</text>
+<line x1='338' y1='182' x2='338' y2='233' stroke='#248577' stroke-width='3'/>
+<circle cx='338' cy='208' r='5' fill='#248577'/>
+<text x='356' y='173' font-size='19' font-weight='500' text-anchor='middle' fill='#248577'>5 ms</text>
+<line x1='126' y1='269' x2='565' y2='269' stroke='#a9b7c6' stroke-width='2' marker-end='url(#arrow)'/>
+<line x1='128' y1='264' x2='128' y2='275' stroke='#a9b7c6' stroke-width='2'/>
+<text x='128' y='298' font-size='17' font-weight='500' text-anchor='middle' fill='#25354b'>0</text>
+<line x1='212' y1='264' x2='212' y2='275' stroke='#a9b7c6' stroke-width='2'/>
+<text x='212' y='298' font-size='17' font-weight='500' text-anchor='middle' fill='#25354b'>2</text>
+<line x1='296' y1='264' x2='296' y2='275' stroke='#a9b7c6' stroke-width='2'/>
+<text x='296' y='298' font-size='17' font-weight='500' text-anchor='middle' fill='#25354b'>4</text>
+<line x1='380' y1='264' x2='380' y2='275' stroke='#a9b7c6' stroke-width='2'/>
+<text x='380' y='298' font-size='17' font-weight='500' text-anchor='middle' fill='#25354b'>6</text>
+<line x1='464' y1='264' x2='464' y2='275' stroke='#a9b7c6' stroke-width='2'/>
+<text x='464' y='298' font-size='17' font-weight='500' text-anchor='middle' fill='#25354b'>8</text>
+<line x1='548' y1='264' x2='548' y2='275' stroke='#a9b7c6' stroke-width='2'/>
+<text x='548' y='298' font-size='17' font-weight='500' text-anchor='middle' fill='#25354b'>10</text>
+<text x='350' y='334' font-size='21' font-weight='500' text-anchor='middle' fill='#25354b'>时间 (ms)</text>
+</g>
+</svg>

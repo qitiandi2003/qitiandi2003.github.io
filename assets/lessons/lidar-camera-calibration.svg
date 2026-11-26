@@ -1,0 +1,28 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360' role='img' aria-labelledby='title desc'>
+<title id='title'>同一平移误差在不同深度上的投影</title><desc id='desc'>像素焦距为 600，同样的 12 毫米横向偏差随着深度增加而产生更小的像素误差。</desc>
+<defs><marker id='arrow' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='3.5' markerHeight='3.5' orient='auto-start-reverse'><path d='M0 0 10 5 0 10Z' fill='context-stroke'/></marker></defs>
+<rect width='640' height='360' fill='#f7f9fc'/>
+<g stroke-linecap='round' stroke-linejoin='round' font-family='system-ui, sans-serif'>
+<line x1='88' y1='281' x2='563' y2='281' stroke='#dce4ec' stroke-width='1.5'/>
+<text x='70' y='287' font-size='17' font-weight='500' text-anchor='middle' fill='#25354b'>0</text>
+<line x1='88' y1='221' x2='563' y2='221' stroke='#dce4ec' stroke-width='1.5'/>
+<text x='70' y='227' font-size='17' font-weight='500' text-anchor='middle' fill='#25354b'>2</text>
+<line x1='88' y1='161' x2='563' y2='161' stroke='#dce4ec' stroke-width='1.5'/>
+<text x='70' y='167' font-size='17' font-weight='500' text-anchor='middle' fill='#25354b'>4</text>
+<line x1='88' y1='101' x2='563' y2='101' stroke='#dce4ec' stroke-width='1.5'/>
+<text x='70' y='107' font-size='17' font-weight='500' text-anchor='middle' fill='#25354b'>6</text>
+<line x1='90' y1='280' x2='580' y2='280' stroke='#a9b7c6' stroke-width='2' marker-end='url(#arrow)'/>
+<line x1='90' y1='282' x2='90' y2='42' stroke='#a9b7c6' stroke-width='2' marker-end='url(#arrow)'/>
+<text x='75' y='31' font-size='19' font-weight='500' text-anchor='middle' fill='#25354b'>像素误差</text>
+<text x='558' y='326' font-size='20' font-weight='500' text-anchor='middle' fill='#25354b'>深度 (m)</text>
+<path d='M92 65 L95.24 74.3014 L98.48 82.8349 L101.72 90.6916 L104.96 97.9492 L108.2 104.673 L111.44 110.921 L114.68 116.741 L117.92 122.176 L121.16 127.263 L124.4 132.034 L127.64 136.518 L130.88 140.74 L134.12 144.722 L137.36 148.485 L140.6 152.045 L143.84 155.419 L147.08 158.62 L150.32 161.663 L153.56 164.558 L156.8 167.316 L160.04 169.946 L163.28 172.457 L166.52 174.857 L169.76 177.154 L173 179.353 L176.24 181.461 L179.48 183.483 L182.72 185.425 L185.96 187.291 L189.2 189.085 L192.44 190.812 L195.68 192.475 L198.92 194.078 L202.16 195.625 L205.4 197.117 L208.64 198.557 L211.88 199.949 L215.12 201.295 L218.36 202.597 L221.6 203.857 L224.84 205.077 L228.08 206.26 L231.32 207.405 L234.56 208.517 L237.8 209.595 L241.04 210.642 L244.28 211.658 L247.52 212.646 L250.76 213.605 L254 214.538 L257.24 215.446 L260.48 216.329 L263.72 217.189 L266.96 218.026 L270.2 218.842 L273.44 219.636 L276.68 220.411 L279.92 221.166 L283.16 221.903 L286.4 222.622 L289.64 223.323 L292.88 224.008 L296.12 224.677 L299.36 225.33 L302.6 225.968 L305.84 226.592 L309.08 227.202 L312.32 227.798 L315.56 228.381 L318.8 228.952 L322.04 229.51 L325.28 230.057 L328.52 230.592 L331.76 231.115 L335 231.629 L338.24 232.131 L341.48 232.624 L344.72 233.106 L347.96 233.58 L351.2 234.043 L354.44 234.498 L357.68 234.945 L360.92 235.382 L364.16 235.812 L367.4 236.233 L370.64 236.647 L373.88 237.053 L377.12 237.452 L380.36 237.843 L383.6 238.228 L386.84 238.605 L390.08 238.977 L393.32 239.341 L396.56 239.7 L399.8 240.052 L403.04 240.398 L406.28 240.739 L409.52 241.074 L412.76 241.403 L416 241.727 L419.24 242.046 L422.48 242.36 L425.72 242.668 L428.96 242.972 L432.2 243.271 L435.44 243.565 L438.68 243.855 L441.92 244.14 L445.16 244.421 L448.4 244.697 L451.64 244.97 L454.88 245.238 L458.12 245.503 L461.36 245.763 L464.6 246.02 L467.84 246.273 L471.08 246.523 L474.32 246.769 L477.56 247.011 L480.8 247.25 L484.04 247.486 L487.28 247.718 L490.52 247.947 L493.76 248.173 L497 248.396 L500.24 248.616 L503.48 248.833 L506.72 249.047 L509.96 249.259 L513.2 249.467 L516.44 249.673 L519.68 249.876 L522.92 250.077 ' fill='none' stroke='#4568b3' stroke-width='5'/>
+<line x1='236' y1='209' x2='236' y2='280' stroke='#a9b7c6' stroke-width='1.4' stroke-dasharray='6 7'/>
+<circle cx='236' cy='209' r='7' fill='#248577'/>
+<text x='236' y='307' font-size='18' font-weight='500' text-anchor='middle' fill='#25354b'>3</text>
+<text x='244' y='192' font-size='20' font-weight='500' text-anchor='start' fill='#4568b3'>2.4 px</text>
+<line x1='452' y1='245' x2='452' y2='280' stroke='#a9b7c6' stroke-width='1.4' stroke-dasharray='6 7'/>
+<circle cx='452' cy='245' r='7' fill='#248577'/>
+<text x='452' y='307' font-size='18' font-weight='500' text-anchor='middle' fill='#25354b'>6</text>
+<text x='460' y='228' font-size='20' font-weight='500' text-anchor='start' fill='#4568b3'>1.2 px</text>
+</g>
+</svg>

@@ -70,6 +70,13 @@ window.QI_ARTICLES = [
     "topic": "多会话建图"
   },
   {
+    "keywords": "补拍 增量重建 固定位姿 COLMAP 稀疏点云 高斯训练 新旧视图 增量训练 基线 定位与建图",
+    "slug": "splat-incremental",
+    "summary": "区分新照片定位、三角化和联合优化，从两段有重叠的拍摄理解怎样扩展模型并复查旧视角。",
+    "title": "给已有的三维重建补几张照片",
+    "topic": "增量重建"
+  },
+  {
     "keywords": "OctoMap 八叉树 体素 占据 自由空间 未知 语义 标注 定位与建图",
     "slug": "octomap-free-unknown",
     "summary": "沿一条测距射线手画三类空间，理解为什么空白点云无法直接表示通道，以及多次观测如何更新体素。",
@@ -84,13 +91,6 @@ window.QI_ARTICLES = [
     "topic": "动态障碍"
   },
   {
-    "keywords": "A* 体素规划 地形 支撑 坡度 足迹 代价 启发函数 定位与建图",
-    "slug": "grounded-astar",
-    "summary": "先把体素地图变成机器人能够移动的图，再手算一次 A* 排序，比较绕行距离与贴近障碍的代价。",
-    "title": "地面机器人怎样用 A* 绕开障碍",
-    "topic": "地形规划"
-  },
-  {
     "keywords": "数字孪生 导航 地面 坐标系 尺度 对齐 Nav2 footprint 通行 定位与建图",
     "slug": "twin-floor-frame",
     "summary": "利用已知距离、地面平面和前进方向恢复模型的米制参考系，再用独立量测核对地图里的位置与通行宽度。",
@@ -98,11 +98,18 @@ window.QI_ARTICLES = [
     "topic": "数字孪生"
   },
   {
-    "keywords": "补拍 增量重建 固定位姿 COLMAP 稀疏点云 高斯训练 新旧视图 增量训练 基线 定位与建图",
-    "slug": "splat-incremental",
-    "summary": "区分新照片定位、三角化和联合优化，从两段有重叠的拍摄理解怎样扩展模型并复查旧视角。",
-    "title": "给已有的三维重建补几张照片",
-    "topic": "增量重建"
+    "keywords": "A* 体素规划 地形 支撑 坡度 足迹 代价 启发函数 定位与建图",
+    "slug": "grounded-astar",
+    "summary": "先把体素地图变成机器人能够移动的图，再手算一次 A* 排序，比较绕行距离与贴近障碍的代价。",
+    "title": "地面机器人怎样用 A* 绕开障碍",
+    "topic": "地形规划"
+  },
+  {
+    "keywords": "工业相机 采集 C++ OpenCV cv::Mat Bayer 行跨度 buffer 生命周期 内存 感知与标定",
+    "slug": "camera-frame-buffer",
+    "summary": "理解像素格式、行跨度和缓冲区所有权，排查花屏、偏色与跨线程图像串帧。",
+    "title": "相机画面为什么会串帧？",
+    "topic": "工业相机"
   },
   {
     "keywords": "OpenCV 计算机视觉 Sobel 边缘检测 液面 梯度 绿色通道 BGR 感知与标定",
@@ -112,11 +119,32 @@ window.QI_ARTICLES = [
     "topic": "OpenCV"
   },
   {
+    "keywords": "自动定容 瓶身 刻度线 锁定 Sobel HoughLinesP GapStability OpenCV 稳定窗口 感知与标定",
+    "slug": "scale-lock",
+    "summary": "用候选线的位置窗口区分“短时抖动小”和“位置已经对准”。",
+    "title": "怎样判断图像中的刻度已经稳定",
+    "topic": "刻度检测"
+  },
+  {
     "keywords": "SGM SGBM 视差 双目 深度 RealSense 极线校正 基线 定点 感知与标定",
     "slug": "stereo-disparity-depth",
     "summary": "左右图像中同一点的横向偏移可以换算成深度。距离越远，一像素误差的代价越大。",
     "title": "双目相机怎样用视差计算深度",
     "topic": "SGM 双目深度"
+  },
+  {
+    "keywords": "双目 工业相机 曝光 同步 时间戳 硬件触发 增益 运动模糊 感知与标定",
+    "slug": "stereo-trigger-exposure",
+    "summary": "区分触发、曝光、设备时间戳和到达时间，估算时间差怎样污染立体匹配。",
+    "title": "双目同步要对齐哪一个时刻",
+    "topic": "双目采集"
+  },
+  {
+    "keywords": "CREStereo 左右一致性 双目匹配 视差掩码 置信度 亚像素 深度 感知与标定",
+    "slug": "crestereo-confidence",
+    "summary": "从左图出发找到右图，再从右图走回来，检查同一个像素能否回到起点。",
+    "title": "用左右一致性检查双目匹配",
+    "topic": "CREStereo"
   },
   {
     "keywords": "AprilTag 标签 PnP 平面标靶 相机位姿 距离 检测边长 重投影 感知与标定",
@@ -140,39 +168,11 @@ window.QI_ARTICLES = [
     "topic": "雷达与相机标定"
   },
   {
-    "keywords": "双目 工业相机 曝光 同步 时间戳 硬件触发 增益 运动模糊 感知与标定",
-    "slug": "stereo-trigger-exposure",
-    "summary": "区分触发、曝光、设备时间戳和到达时间，估算时间差怎样污染立体匹配。",
-    "title": "双目同步要对齐哪一个时刻",
-    "topic": "双目采集"
-  },
-  {
     "keywords": "事件相机 Prophesee 事件流 极性 时间戳 时间窗 RGBD ROS2 感知与标定",
     "slug": "event-camera-windows",
     "summary": "读懂一个事件的四个字段，再选择时间窗，把异步观测积成可看的轮廓。",
     "title": "事件相机如何把亮度变化变成图像",
     "topic": "事件相机"
-  },
-  {
-    "keywords": "CREStereo 左右一致性 双目匹配 视差掩码 置信度 亚像素 深度 感知与标定",
-    "slug": "crestereo-confidence",
-    "summary": "从左图出发找到右图，再从右图走回来，检查同一个像素能否回到起点。",
-    "title": "用左右一致性检查双目匹配",
-    "topic": "CREStereo"
-  },
-  {
-    "keywords": "工业相机 采集 C++ OpenCV cv::Mat Bayer 行跨度 buffer 生命周期 内存 感知与标定",
-    "slug": "camera-frame-buffer",
-    "summary": "理解像素格式、行跨度和缓冲区所有权，排查花屏、偏色与跨线程图像串帧。",
-    "title": "相机画面为什么会串帧？",
-    "topic": "工业相机"
-  },
-  {
-    "keywords": "自动定容 瓶身 刻度线 锁定 Sobel HoughLinesP GapStability OpenCV 稳定窗口 感知与标定",
-    "slug": "scale-lock",
-    "summary": "用候选线的位置窗口区分“短时抖动小”和“位置已经对准”。",
-    "title": "怎样判断图像中的刻度已经稳定",
-    "topic": "刻度检测"
   },
   {
     "keywords": "3DGS 训练数据 相机轨迹 曝光时刻 相机外参 COLMAP Nerfstudio 重投影 图形渲染",
@@ -252,6 +252,20 @@ window.QI_ARTICLES = [
     "topic": "GPT 采样"
   },
   {
+    "keywords": "ROS2 ROS 2 Jazzy turtlesim 节点 包 消息 话题 服务 动作 通信 ROS 图 CLI rosbag2 QoS 录包 回放 系统与通信",
+    "slug": "ros2",
+    "summary": "在 Jazzy 的海龟模拟器里搭一张通信图。先用话题控制速度，再调用服务、观察动作反馈，最后录下命令并验证回放。",
+    "title": "用模拟海龟学 ROS 2",
+    "topic": "ROS 2"
+  },
+  {
+    "keywords": "RGB-D ROS 2 图像 深度 内参 时间戳 同步 里程计 TF 系统与通信",
+    "slug": "rgbd-sensor-contract",
+    "summary": "解释 RGB-D 输入的颜色、深度、内参、时间戳和坐标系，并用一个已知像素计算相机空间的位置。",
+    "title": "RGB-D 相机的数据与时间对齐",
+    "topic": "RGB-D 接口"
+  },
+  {
     "keywords": "TCP IP 计算机网络 字节序 半包 粘包 协议 socket 系统与通信",
     "slug": "network",
     "summary": "从一条 15 字节的控制消息入手，计算接收缓冲区何时能交付一帧，并核对字段的字节序。",
@@ -271,20 +285,6 @@ window.QI_ARTICLES = [
     "summary": "区分服务单元、操作系统进程和任务留下的效果，解释 active (exited) 与一次性启动的关系。",
     "title": "读懂 systemd 的 active (exited)",
     "topic": "Linux 进程"
-  },
-  {
-    "keywords": "ROS2 ROS 2 rosbag2 QoS 机器人 录包 回放 TF 系统与通信",
-    "slug": "ros2",
-    "summary": "从发布和订阅开始，读懂 rosbag2 的消息统计、时间戳与 QoS，再用转弯时的轨迹跳变做一次离线诊断。",
-    "title": "ROS 2 话题、录包与离线回放",
-    "topic": "ROS 2"
-  },
-  {
-    "keywords": "RGB-D ROS 2 图像 深度 内参 时间戳 同步 里程计 TF 系统与通信",
-    "slug": "rgbd-sensor-contract",
-    "summary": "解释 RGB-D 输入的颜色、深度、内参、时间戳和坐标系，并用一个已知像素计算相机空间的位置。",
-    "title": "RGB-D 相机的数据与时间对齐",
-    "topic": "RGB-D 接口"
   },
   {
     "keywords": "自动定容 工作流 状态机 注液 dosing 完成事件 视觉测量 上位机 工程实践",

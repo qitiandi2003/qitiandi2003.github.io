@@ -1,0 +1,30 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360' role='img' aria-labelledby='title desc'>
+<title id='title'>字符顺序如何改变状态</title><desc id='desc'>示意规则 h = 0.5h旧 + x，从 0 开始，读 Li 的终态是 2.5，读 iL 的终态是 2。圆点标出每一步的状态。</desc>
+<defs><marker id='arrow' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='3.5' markerHeight='3.5' orient='auto-start-reverse'><path d='M0 0 10 5 0 10Z' fill='context-stroke'/></marker></defs>
+<rect width='640' height='360' fill='#f7f9fc'/>
+<g stroke-linecap='round' stroke-linejoin='round' font-family='system-ui, sans-serif'>
+<line x1='96' y1='280' x2='554' y2='280' stroke='#a9b7c6' stroke-width='2'/>
+<line x1='96' y1='197' x2='554' y2='197' stroke='#dce4ec' stroke-width='1.5'/>
+<text x='69' y='203' font-size='18' font-weight='500' text-anchor='middle' fill='#25354b'>1</text>
+<line x1='96' y1='115' x2='554' y2='115' stroke='#dce4ec' stroke-width='1.5'/>
+<text x='69' y='121' font-size='18' font-weight='500' text-anchor='middle' fill='#25354b'>2</text>
+<line x1='117' y1='279' x2='321' y2='197' stroke='#4568b3' stroke-width='4'/>
+<circle cx='321' cy='197' r='7' fill='#4568b3'/>
+<line x1='321' y1='197' x2='513' y2='74' stroke='#4568b3' stroke-width='4'/>
+<circle cx='513' cy='74' r='7' fill='#4568b3'/>
+<text x='555' y='81' font-size='21' font-weight='500' text-anchor='middle' fill='#4568b3'>2.5</text>
+<line x1='117' y1='279' x2='321' y2='115' stroke='#248577' stroke-width='4'/>
+<circle cx='321' cy='115' r='7' fill='#248577'/>
+<line x1='321' y1='115' x2='513' y2='115' stroke='#248577' stroke-width='4'/>
+<circle cx='513' cy='115' r='7' fill='#248577'/>
+<text x='555' y='122' font-size='21' font-weight='500' text-anchor='middle' fill='#248577'>2.0</text>
+<circle cx='117' cy='279' r='6' fill='#25354b'/>
+<text x='114' y='311' font-size='21' font-weight='500' text-anchor='middle' fill='#25354b'>开始</text>
+<text x='321' y='311' font-size='21' font-weight='500' text-anchor='middle' fill='#25354b'>第 1 字符</text>
+<text x='510' y='311' font-size='21' font-weight='500' text-anchor='middle' fill='#25354b'>第 2 字符</text>
+<circle cx='203' cy='45' r='7' fill='#4568b3'/>
+<text x='238' y='52' font-size='22' font-weight='500' text-anchor='middle' fill='#4568b3'>Li</text>
+<circle cx='379' cy='45' r='7' fill='#248577'/>
+<text x='414' y='52' font-size='22' font-weight='500' text-anchor='middle' fill='#248577'>iL</text>
+</g>
+</svg>

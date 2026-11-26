@@ -1,0 +1,30 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360' role='img' aria-labelledby='title desc'>
+<title id='title'>从灰度样本到液面边缘</title><desc id='desc'>同一行五个灰度样本及四个相邻差值。第三、四个样本之间的跳变最大。</desc>
+<defs><marker id='arrow' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='3.5' markerHeight='3.5' orient='auto-start-reverse'><path d='M0 0 10 5 0 10Z' fill='context-stroke'/></marker></defs>
+<rect width='640' height='360' fill='#f7f9fc'/>
+<g stroke-linecap='round' stroke-linejoin='round' font-family='system-ui, sans-serif'>
+<text x='68' y='45' font-size='21' font-weight='500' text-anchor='middle' fill='#25354b'>灰度值</text>
+<text x='95' y='207' font-size='21' font-weight='500' text-anchor='middle' fill='#25354b'>相邻差值</text>
+<rect x='78' y='70' width='74' height='64' rx='5' fill='#314661' stroke='none'/>
+<text x='115' y='111' font-size='22' font-weight='500' text-anchor='middle' fill='#ffffff'>30</text>
+<rect x='176' y='70' width='74' height='64' rx='5' fill='#314661' stroke='none'/>
+<text x='213' y='111' font-size='22' font-weight='500' text-anchor='middle' fill='#ffffff'>32</text>
+<rect x='274' y='70' width='74' height='64' rx='5' fill='#314661' stroke='none'/>
+<text x='311' y='111' font-size='22' font-weight='500' text-anchor='middle' fill='#ffffff'>34</text>
+<rect x='372' y='70' width='74' height='64' rx='5' fill='#91a9cb' stroke='none'/>
+<text x='409' y='111' font-size='22' font-weight='500' text-anchor='middle' fill='#ffffff'>110</text>
+<rect x='470' y='70' width='74' height='64' rx='5' fill='#96adce' stroke='none'/>
+<text x='507' y='111' font-size='22' font-weight='500' text-anchor='middle' fill='#ffffff'>115</text>
+<line x1='123' y1='285' x2='515' y2='285' stroke='#a9b7c6' stroke-width='2'/>
+<rect x='144' y='282' width='40' height='2' rx='2' fill='#4568b3' stroke='none'/>
+<text x='164' y='317' font-size='21' font-weight='500' text-anchor='middle' fill='#25354b'>2</text>
+<rect x='242' y='282' width='40' height='2' rx='2' fill='#4568b3' stroke='none'/>
+<text x='262' y='317' font-size='21' font-weight='500' text-anchor='middle' fill='#25354b'>2</text>
+<rect x='340' y='208' width='40' height='76' rx='2' fill='#248577' stroke='none'/>
+<text x='360' y='317' font-size='21' font-weight='500' text-anchor='middle' fill='#248577'>76</text>
+<rect x='438' y='279' width='40' height='5' rx='2' fill='#4568b3' stroke='none'/>
+<text x='458' y='317' font-size='21' font-weight='500' text-anchor='middle' fill='#25354b'>5</text>
+<line x1='361' y1='144' x2='361' y2='195' stroke='#248577' stroke-width='2' stroke-dasharray='6 7'/>
+<text x='450' y='181' font-size='20' font-weight='500' text-anchor='middle' fill='#248577'>液面候选</text>
+</g>
+</svg>

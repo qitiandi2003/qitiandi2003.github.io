@@ -1,0 +1,42 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360' role='img' aria-labelledby='title desc'>
+<title id='title'>截断可能删掉评论的转折</title><desc id='desc'>两条评论具有相同前缀和不同后缀。截断后进入模型的有效 token 完全一样，分类器失去了区分两句的证据。图中用字示意。</desc>
+<defs><marker id='arrow' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='3.5' markerHeight='3.5' orient='auto-start-reverse'><path d='M0 0 10 5 0 10Z' fill='context-stroke'/></marker></defs>
+<rect width='640' height='360' fill='#f7f9fc'/>
+<g stroke-linecap='round' stroke-linejoin='round' font-family='system-ui, sans-serif'>
+<text x='48' y='127' font-size='21' font-weight='500' text-anchor='middle' fill='#25354b'>甲</text>
+<rect x='87' y='95' width='55' height='50' rx='8' fill='#e6edf9' stroke='none'/>
+<text x='114' y='129' font-size='24' font-weight='500' text-anchor='middle' fill='#4568b3'>房</text>
+<rect x='152' y='95' width='55' height='50' rx='8' fill='#e6edf9' stroke='none'/>
+<text x='179' y='129' font-size='24' font-weight='500' text-anchor='middle' fill='#4568b3'>间</text>
+<rect x='217' y='95' width='55' height='50' rx='8' fill='#e6edf9' stroke='none'/>
+<text x='244' y='129' font-size='24' font-weight='500' text-anchor='middle' fill='#4568b3'>明</text>
+<rect x='282' y='95' width='55' height='50' rx='8' fill='#e6edf9' stroke='none'/>
+<text x='309' y='129' font-size='24' font-weight='500' text-anchor='middle' fill='#4568b3'>亮</text>
+<rect x='347' y='95' width='55' height='50' rx='8' fill='#ede8f4' stroke='none'/>
+<text x='374' y='129' font-size='24' font-weight='500' text-anchor='middle' fill='#8171ab'>但</text>
+<rect x='412' y='95' width='55' height='50' rx='8' fill='#ede8f4' stroke='none'/>
+<text x='439' y='129' font-size='24' font-weight='500' text-anchor='middle' fill='#8171ab'>很</text>
+<rect x='477' y='95' width='55' height='50' rx='8' fill='#ede8f4' stroke='none'/>
+<text x='504' y='129' font-size='24' font-weight='500' text-anchor='middle' fill='#8171ab'>吵</text>
+<text x='48' y='215' font-size='21' font-weight='500' text-anchor='middle' fill='#25354b'>乙</text>
+<rect x='87' y='183' width='55' height='50' rx='8' fill='#e6edf9' stroke='none'/>
+<text x='114' y='217' font-size='24' font-weight='500' text-anchor='middle' fill='#4568b3'>房</text>
+<rect x='152' y='183' width='55' height='50' rx='8' fill='#e6edf9' stroke='none'/>
+<text x='179' y='217' font-size='24' font-weight='500' text-anchor='middle' fill='#4568b3'>间</text>
+<rect x='217' y='183' width='55' height='50' rx='8' fill='#e6edf9' stroke='none'/>
+<text x='244' y='217' font-size='24' font-weight='500' text-anchor='middle' fill='#4568b3'>明</text>
+<rect x='282' y='183' width='55' height='50' rx='8' fill='#e6edf9' stroke='none'/>
+<text x='309' y='217' font-size='24' font-weight='500' text-anchor='middle' fill='#4568b3'>亮</text>
+<rect x='347' y='183' width='55' height='50' rx='8' fill='#d9eee8' stroke='none'/>
+<text x='374' y='217' font-size='24' font-weight='500' text-anchor='middle' fill='#248577'>也</text>
+<rect x='412' y='183' width='55' height='50' rx='8' fill='#d9eee8' stroke='none'/>
+<text x='439' y='217' font-size='24' font-weight='500' text-anchor='middle' fill='#248577'>安</text>
+<rect x='477' y='183' width='55' height='50' rx='8' fill='#d9eee8' stroke='none'/>
+<text x='504' y='217' font-size='24' font-weight='500' text-anchor='middle' fill='#248577'>静</text>
+<line x1='340' y1='58' x2='340' y2='266' stroke='#25354b' stroke-width='2' stroke-dasharray='6 7'/>
+<text x='223' y='56' font-size='24' font-weight='500' text-anchor='middle' fill='#4568b3'>共同前缀</text>
+<text x='470' y='56' font-size='24' font-weight='500' text-anchor='middle' fill='#25354b'>不同结尾</text>
+<line x1='88' y1='278' x2='337' y2='278' stroke='#4568b3' stroke-width='3'/>
+<text x='210' y='318' font-size='21' font-weight='500' text-anchor='middle' fill='#4568b3'>截断后保留</text>
+</g>
+</svg>

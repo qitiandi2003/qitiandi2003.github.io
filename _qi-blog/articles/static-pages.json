@@ -7,6 +7,7 @@
       "title": "一页文章在服务器上是什么",
       "paragraphs": [
         "假设发布目录里有首页 index.html，另外有 assets/site.css 和 notes/photo/index.html。许多静态服务器会把以斜杠结尾的目录请求映射到该目录的 index.html。所以访问 /notes/photo/ 可能得到一份完整文章，即使浏览器地址栏没有显示文件名。是否提供这项目录索引，由服务器配置决定。",
+        "URL 中的协议、主机、可选端口共同决定来源，路径说明要取这个来源下的哪个资源。把文件从本机桌面挪到某个 HTTP 服务，浏览器看到的基础 URL 也变了。测试时从 HTTP 入口打开页面，才会覆盖服务器的目录索引、资源类型和缺失文件处理等实际行为。",
         "浏览器解析下一条链接时依据的是当前文档的基础 URL。它不认识你的编辑器工作目录，也不知道哪层文件夹在本机叫作“项目根目录”。若 HTML 中声明了 base 元素，基础 URL 还会发生改变。没有声明时，可以先从地址栏里的最终 URL 推算。"
       ]
     },
@@ -15,8 +16,11 @@
       "paragraphs": [
         "设站点入口为 `https://example.org/journal/`，样式表位于这个入口下的 assets/site.css。首页写 `assets/site.css` 时，浏览器从 /journal/ 往下找，得到 /journal/assets/site.css，符合目录布局。",
         "现在打开文章页 `https://example.org/journal/notes/photo/`。同样写 `assets/site.css`，结果就变成 /journal/notes/photo/assets/site.css。若要指向同一份样式，应从文章目录向上两层，再进入 assets，写成 `../../assets/site.css`。先去掉 photo，再去掉 notes，剩下正好是 /journal/。",
-        "还有一种写法以斜杠开头，例如 `/assets/site.css`。它从域名根目录寻找，因此在站点挂在 /journal/ 时会绕过这一层。它在域名根目录部署的站点上可能工作得很好，搬到子路径以后才暴露问题。URL 的尾部是否有斜杠同样重要，/journal/ 与 /journal 对相对地址的解析基准并不完全相同。"
-      ]
+        "还有一种写法以斜杠开头，例如 `/assets/site.css`。它从域名根目录寻找，因此在站点挂在 /journal/ 时会绕过这一层。它在域名根目录部署的站点上可能工作得很好，搬到子路径以后才暴露问题。URL 的尾部是否有斜杠同样重要，/journal/ 与 /journal 对相对地址的解析基准并不完全相同。",
+        "可以在浏览器开发者工具的控制台把“基础地址＋相对引用”直接交给 URL 构造器。它只在本地解析字符串，不必发出网络请求。先预测 /journal/notes/photo/ 向上两层的结果，再比较输出，是学习相对路径的一个小型单元测试。"
+      ],
+      "codeTitle": "浏览器控制台 · 核对相对引用",
+      "code": "new URL(\"../../assets/site.css\", \"https://example.org/journal/notes/photo/\").href\n// https://example.org/journal/assets/site.css"
     },
     {
       "title": "问号和井号各自归谁处理",
@@ -52,5 +56,8 @@
   "group": "engineering",
   "keywords": "HTML 静态网站 相对路径 URL 子路径 目录 查询参数 锚点 部署 浏览器 CSS",
   "published": "2026-11-26",
-  "intro": "一个静态网站可以只由 HTML、样式表、图片和脚本组成。浏览器拿到 HTML 后，还会按其中的地址继续取样式和图片。因此，文章能打开但版式消失，经常是第二次请求走错了地方。"
+  "intro": "一个静态网站可以只由 HTML、样式表、图片和脚本组成。浏览器拿到 HTML 后，还会按其中的地址继续取样式和图片。因此，文章能打开但版式消失，经常是第二次请求走错了地方。",
+  "visual": "assets/lessons/static-pages.svg",
+  "visualCaption": "文章在 journal/notes/photo/，样式在 journal/assets/。从文章目录向上两层回到 journal/，再沿 assets/site.css 找到样式表。",
+  "visualSection": 2
 }

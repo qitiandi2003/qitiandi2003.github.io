@@ -1,0 +1,24 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360' role='img' aria-labelledby='title desc'>
+<title id='title'>按区间抽选下一个词</title><desc id='desc'>候选词按概率分段：茶占 0 至 0.665，水到 0.910，奶到 1。随机数 0.80 选中第二段。</desc>
+<defs><marker id='arrow' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='3.5' markerHeight='3.5' orient='auto-start-reverse'><path d='M0 0 10 5 0 10Z' fill='context-stroke'/></marker></defs>
+<rect width='640' height='360' fill='#f7f9fc'/>
+<g stroke-linecap='round' stroke-linejoin='round' font-family='system-ui, sans-serif'>
+<text x='322' y='66' font-size='24' font-weight='500' text-anchor='middle' fill='#25354b'>温度 T = 1</text>
+<rect x='64' y='141' width='340.48' height='61' rx='1' fill='#4568b3' stroke='none'/>
+<text x='234.24' y='181' font-size='24' font-weight='500' text-anchor='middle' fill='#ffffff'>茶</text>
+<line x1='64' y1='209' x2='64' y2='218' stroke='#25354b' stroke-width='1.5'/>
+<rect x='404.48' y='141' width='125.44' height='61' rx='1' fill='#248577' stroke='none'/>
+<text x='467.2' y='181' font-size='24' font-weight='500' text-anchor='middle' fill='#ffffff'>水</text>
+<line x1='404.48' y1='209' x2='404.48' y2='218' stroke='#25354b' stroke-width='1.5'/>
+<rect x='529.92' y='141' width='46.08' height='61' rx='1' fill='#8171ab' stroke='none'/>
+<text x='552.96' y='181' font-size='24' font-weight='500' text-anchor='middle' fill='#ffffff'>奶</text>
+<line x1='529.92' y1='209' x2='529.92' y2='218' stroke='#25354b' stroke-width='1.5'/>
+<text x='64' y='247' font-size='18' font-weight='500' text-anchor='middle' fill='#25354b'>0</text>
+<text x='404.48' y='247' font-size='18' font-weight='500' text-anchor='middle' fill='#25354b'>0.665</text>
+<text x='529.92' y='247' font-size='18' font-weight='500' text-anchor='middle' fill='#25354b'>0.910</text>
+<text x='576' y='247' font-size='18' font-weight='500' text-anchor='middle' fill='#25354b'>1</text>
+<line x1='473.6' y1='99' x2='473.6' y2='135' stroke='#25354b' stroke-width='3' marker-end='url(#arrow)'/>
+<text x='473.6' y='89' font-size='21' font-weight='500' text-anchor='middle' fill='#25354b'>0.80</text>
+<text x='320' y='307' font-size='23' font-weight='500' text-anchor='middle' fill='#248577'>均匀抽取一次 → 水</text>
+</g>
+</svg>

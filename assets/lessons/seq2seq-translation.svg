@@ -1,0 +1,32 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360' role='img' aria-labelledby='title desc'>
+<title id='title'>解码每个词时的注意力</title><desc id='desc'>每一行是一个输出词在三个源词上的注意力权重。最后一行权重为 0.1、0.2、0.7；颜色越深权重越大。</desc>
+<defs><marker id='arrow' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='3.5' markerHeight='3.5' orient='auto-start-reverse'><path d='M0 0 10 5 0 10Z' fill='context-stroke'/></marker></defs>
+<rect width='640' height='360' fill='#f7f9fc'/>
+<g stroke-linecap='round' stroke-linejoin='round' font-family='system-ui, sans-serif'>
+<text x='223' y='64' font-size='23' font-weight='500' text-anchor='middle' fill='#25354b'>Ich</text>
+<text x='120' y='120' font-size='24' font-weight='500' text-anchor='end' fill='#25354b'>I</text>
+<rect x='171' y='87' width='106' height='51' rx='4' fill='#4568b3' stroke='none'/>
+<text x='224' y='120' font-size='19' font-weight='500' text-anchor='middle' fill='#ffffff'>0.8</text>
+<rect x='285' y='87' width='106' height='51' rx='4' fill='#e6edf9' stroke='none'/>
+<text x='338' y='120' font-size='19' font-weight='500' text-anchor='middle' fill='#25354b'>0.15</text>
+<rect x='399' y='87' width='106' height='51' rx='4' fill='#e6edf9' stroke='none'/>
+<text x='452' y='120' font-size='19' font-weight='500' text-anchor='middle' fill='#25354b'>0.05</text>
+<text x='337' y='64' font-size='23' font-weight='500' text-anchor='middle' fill='#25354b'>trinke</text>
+<text x='120' y='182' font-size='24' font-weight='500' text-anchor='end' fill='#25354b'>drink</text>
+<rect x='171' y='149' width='106' height='51' rx='4' fill='#e6edf9' stroke='none'/>
+<text x='224' y='182' font-size='19' font-weight='500' text-anchor='middle' fill='#25354b'>0.1</text>
+<rect x='285' y='149' width='106' height='51' rx='4' fill='#4568b3' stroke='none'/>
+<text x='338' y='182' font-size='19' font-weight='500' text-anchor='middle' fill='#ffffff'>0.75</text>
+<rect x='399' y='149' width='106' height='51' rx='4' fill='#e6edf9' stroke='none'/>
+<text x='452' y='182' font-size='19' font-weight='500' text-anchor='middle' fill='#25354b'>0.15</text>
+<text x='451' y='64' font-size='23' font-weight='500' text-anchor='middle' fill='#25354b'>Kaffee</text>
+<text x='120' y='244' font-size='24' font-weight='500' text-anchor='end' fill='#25354b'>coffee</text>
+<rect x='171' y='211' width='106' height='51' rx='4' fill='#e6edf9' stroke='none'/>
+<text x='224' y='244' font-size='19' font-weight='500' text-anchor='middle' fill='#25354b'>0.1</text>
+<rect x='285' y='211' width='106' height='51' rx='4' fill='#c8d9f0' stroke='none'/>
+<text x='338' y='244' font-size='19' font-weight='500' text-anchor='middle' fill='#25354b'>0.2</text>
+<rect x='399' y='211' width='106' height='51' rx='4' fill='#4568b3' stroke='none'/>
+<text x='452' y='244' font-size='19' font-weight='500' text-anchor='middle' fill='#ffffff'>0.7</text>
+<text x='343' y='309' font-size='20' font-weight='500' text-anchor='middle' fill='#248577'>每行权重之和 = 1</text>
+</g>
+</svg>

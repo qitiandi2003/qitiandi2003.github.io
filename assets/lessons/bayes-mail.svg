@@ -1,0 +1,33 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360' role='img' aria-labelledby='title desc'>
+<title id='title'>两类邮件的词频</title><desc id='desc'>从训练邮件中统计三个词的次数。广告类为 3、2、1，工作类为 0、1、5，每组总计六次。</desc>
+<defs><marker id='arrow' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='3.5' markerHeight='3.5' orient='auto-start-reverse'><path d='M0 0 10 5 0 10Z' fill='context-stroke'/></marker></defs>
+<rect width='640' height='360' fill='#f7f9fc'/>
+<g stroke-linecap='round' stroke-linejoin='round' font-family='system-ui, sans-serif'>
+<circle cx='206' cy='47' r='7' fill='#4568b3'/>
+<text x='248' y='54' font-size='21' font-weight='500' text-anchor='middle' fill='#25354b'>广告</text>
+<circle cx='369' cy='47' r='7' fill='#248577'/>
+<text x='411' y='54' font-size='21' font-weight='500' text-anchor='middle' fill='#25354b'>工作</text>
+<text x='87' y='124' font-size='24' font-weight='500' text-anchor='middle' fill='#25354b'>优惠</text>
+<rect x='154' y='93' width='49' height='21' rx='4' fill='#4568b3' stroke='none'/>
+<rect x='211' y='93' width='49' height='21' rx='4' fill='#4568b3' stroke='none'/>
+<rect x='268' y='93' width='49' height='21' rx='4' fill='#4568b3' stroke='none'/>
+<text x='336' y='111' font-size='19' font-weight='500' text-anchor='middle' fill='#4568b3'>3</text>
+<text x='165' y='141' font-size='19' font-weight='500' text-anchor='middle' fill='#248577'>0</text>
+<text x='87' y='201' font-size='24' font-weight='500' text-anchor='middle' fill='#25354b'>领取</text>
+<rect x='154' y='170' width='49' height='21' rx='4' fill='#4568b3' stroke='none'/>
+<rect x='211' y='170' width='49' height='21' rx='4' fill='#4568b3' stroke='none'/>
+<text x='279' y='188' font-size='19' font-weight='500' text-anchor='middle' fill='#4568b3'>2</text>
+<rect x='154' y='200' width='49' height='21' rx='4' fill='#248577' stroke='none'/>
+<text x='222' y='218' font-size='19' font-weight='500' text-anchor='middle' fill='#248577'>1</text>
+<text x='87' y='278' font-size='24' font-weight='500' text-anchor='middle' fill='#25354b'>会议</text>
+<rect x='154' y='247' width='49' height='21' rx='4' fill='#4568b3' stroke='none'/>
+<text x='222' y='265' font-size='19' font-weight='500' text-anchor='middle' fill='#4568b3'>1</text>
+<rect x='154' y='277' width='49' height='21' rx='4' fill='#248577' stroke='none'/>
+<rect x='211' y='277' width='49' height='21' rx='4' fill='#248577' stroke='none'/>
+<rect x='268' y='277' width='49' height='21' rx='4' fill='#248577' stroke='none'/>
+<rect x='325' y='277' width='49' height='21' rx='4' fill='#248577' stroke='none'/>
+<rect x='382' y='277' width='49' height='21' rx='4' fill='#248577' stroke='none'/>
+<text x='450' y='295' font-size='19' font-weight='500' text-anchor='middle' fill='#248577'>5</text>
+<text x='526' y='326' font-size='18' font-weight='500' text-anchor='middle' fill='#25354b'>出现次数</text>
+</g>
+</svg>

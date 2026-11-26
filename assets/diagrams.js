@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const paper = '#f2f1e9', ink = '#343e38', teal = '#367477', rust = '#a04e36', rule = '#cfcec1';
+  const paper = '#f1f5fa', ink = '#24354c', teal = '#256b90', rust = '#af503f', rule = '#c8d3de';
   function line(ctx, x1, y1, x2, y2, color, width = 1) {
     ctx.strokeStyle = color;
     ctx.lineWidth = width;

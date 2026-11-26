@@ -142,6 +142,42 @@
     renderFilters();
   }
 
+  function setupIllustration() {
+    const link = document.querySelector('.figure-zoom');
+    if (!link || typeof HTMLDialogElement === 'undefined') return;
+    const dialog = document.createElement('dialog');
+    dialog.className = 'figure-dialog';
+    dialog.setAttribute('aria-label', '放大图解');
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'quiet-button';
+    close.textContent = '关闭图解';
+    const image = document.createElement('img');
+    image.alt = link.closest('figure').querySelector('.caption-text').textContent;
+    const viewport = document.createElement('div');
+    viewport.className = 'figure-viewport';
+    viewport.tabIndex = 0;
+    viewport.setAttribute('role', 'region');
+    viewport.setAttribute('aria-label','放大的教学图');
+    const hint = document.createElement('p');
+    hint.className = 'pan-hint';
+    hint.textContent = '左右滑动查看图解细节';
+    viewport.append(image);
+    dialog.append(close, hint, viewport);
+    document.body.append(dialog);
+    link.addEventListener('click', event => {
+      if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      image.src = link.href;
+      dialog.showModal();
+      viewport.scrollLeft = 0;
+      close.focus();
+    });
+    close.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+    dialog.addEventListener('close', () => link.focus());
+  }
+
   function init() {
     if (document.querySelector('.home') && new URLSearchParams(location.search).has('group')) {
       location.replace('notes/' + location.search + location.hash);
@@ -151,10 +187,22 @@
     if (progress) {
       const toc = document.querySelector('.toc details');
       if (matchMedia('(max-width: 690px)').matches) toc.open = false;
+      const links = [...toc.querySelectorAll('a[href^="#"]')];
+      const sections = links.map(link => document.getElementById(link.hash.slice(1)));
+      let current;
       let pending = false;
       function updateProgress() {
         const distance = document.documentElement.scrollHeight - innerHeight;
         progress.style.transform = 'scaleX(' + (distance > 0 ? Math.min(1, Math.max(0, scrollY / distance)) : 1) + ')';
+        let active = links[0];
+        for (const [index, element] of sections.entries()) {
+          if (element && element.getBoundingClientRect().top < innerHeight * .32) active = links[index];
+        }
+        if (current !== active) {
+          current?.removeAttribute('aria-current');
+          active?.setAttribute('aria-current', 'location');
+          current = active;
+        }
         pending = false;
       }
       function schedule() {
@@ -165,6 +213,7 @@
       addEventListener('load', schedule);
       updateProgress();
     }
+    setupIllustration();
     setupSearch();
     setupFilters();
   }

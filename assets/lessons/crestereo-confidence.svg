@@ -1,0 +1,33 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360' role='img' aria-labelledby='title desc'>
+<title id='title'>左右像素往返检查</title><desc id='desc'>左图 120 列映到右图 108 列。正确近似返回 119.5，错误返回 114；两者的往返差分别是 0.5 与 6 像素。</desc>
+<defs><marker id='arrow' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='3.5' markerHeight='3.5' orient='auto-start-reverse'><path d='M0 0 10 5 0 10Z' fill='context-stroke'/></marker></defs>
+<rect width='640' height='360' fill='#f7f9fc'/>
+<g stroke-linecap='round' stroke-linejoin='round' font-family='system-ui, sans-serif'>
+<text x='40' y='113' font-size='20' font-weight='500' text-anchor='middle' fill='#25354b'>左</text>
+<line x1='76' y1='106' x2='587' y2='106' stroke='#a9b7c6' stroke-width='3'/>
+<line x1='202' y1='99' x2='202' y2='113' stroke='#a9b7c6' stroke-width='2'/>
+<text x='202' y='89' font-size='19' font-weight='500' text-anchor='middle' fill='#25354b'>108</text>
+<line x1='364' y1='99' x2='364' y2='113' stroke='#a9b7c6' stroke-width='2'/>
+<text x='364' y='89' font-size='19' font-weight='500' text-anchor='middle' fill='#25354b'>114</text>
+<line x1='526' y1='99' x2='526' y2='113' stroke='#a9b7c6' stroke-width='2'/>
+<text x='526' y='89' font-size='19' font-weight='500' text-anchor='middle' fill='#25354b'>120</text>
+<text x='40' y='233' font-size='20' font-weight='500' text-anchor='middle' fill='#25354b'>右</text>
+<line x1='76' y1='226' x2='587' y2='226' stroke='#a9b7c6' stroke-width='3'/>
+<line x1='202' y1='219' x2='202' y2='233' stroke='#a9b7c6' stroke-width='2'/>
+<text x='202' y='263' font-size='19' font-weight='500' text-anchor='middle' fill='#25354b'>108</text>
+<line x1='364' y1='219' x2='364' y2='233' stroke='#a9b7c6' stroke-width='2'/>
+<text x='364' y='263' font-size='19' font-weight='500' text-anchor='middle' fill='#25354b'>114</text>
+<line x1='526' y1='219' x2='526' y2='233' stroke='#a9b7c6' stroke-width='2'/>
+<text x='526' y='263' font-size='19' font-weight='500' text-anchor='middle' fill='#25354b'>120</text>
+<line x1='526' y1='105' x2='202' y2='222' stroke='#4568b3' stroke-width='3' marker-end='url(#arrow)'/>
+<line x1='207' y1='232' x2='512.5' y2='116' stroke='#248577' stroke-width='4' marker-end='url(#arrow)'/>
+<line x1='206' y1='216' x2='364' y2='116' stroke='#8171ab' stroke-width='3' stroke-dasharray='6 7' marker-end='url(#arrow)'/>
+<circle cx='526' cy='106' r='7' fill='#4568b3'/>
+<circle cx='202' cy='226' r='7' fill='#4568b3'/>
+<circle cx='512.5' cy='106' r='5' fill='#248577'/>
+<circle cx='364' cy='106' r='5' fill='#8171ab'/>
+<text x='342' y='301' font-size='20' font-weight='500' text-anchor='middle' fill='#25354b'>往返差</text>
+<text x='238' y='330' font-size='22' font-weight='500' text-anchor='middle' fill='#8171ab'>6 px</text>
+<text x='440' y='330' font-size='22' font-weight='500' text-anchor='middle' fill='#248577'>0.5 px</text>
+</g>
+</svg>

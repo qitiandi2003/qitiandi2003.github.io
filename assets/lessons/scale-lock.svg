@@ -1,0 +1,41 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360' role='img' aria-labelledby='title desc'>
+<title id='title'>同一窗口的抖动和目标偏差</title><desc id='desc'>蓝线位置稳定但离目标六个像素；绿线围绕目标 100 像素小幅波动。</desc>
+<defs><marker id='arrow' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='3.5' markerHeight='3.5' orient='auto-start-reverse'><path d='M0 0 10 5 0 10Z' fill='context-stroke'/></marker></defs>
+<rect width='640' height='360' fill='#f7f9fc'/>
+<g stroke-linecap='round' stroke-linejoin='round' font-family='system-ui, sans-serif'>
+<line x1='84' y1='255' x2='556' y2='255' stroke='#dce4ec' stroke-width='1'/>
+<text x='65' y='261' font-size='18' font-weight='500' text-anchor='middle' fill='#25354b'>99</text>
+<line x1='84' y1='233' x2='556' y2='233' stroke='#248577' stroke-width='2' stroke-dasharray='6 7'/>
+<line x1='84' y1='211' x2='556' y2='211' stroke='#dce4ec' stroke-width='1'/>
+<text x='65' y='217' font-size='18' font-weight='500' text-anchor='middle' fill='#25354b'>101</text>
+<line x1='84' y1='101' x2='556' y2='101' stroke='#dce4ec' stroke-width='1'/>
+<line x1='84' y1='79' x2='556' y2='79' stroke='#dce4ec' stroke-width='1'/>
+<text x='65' y='85' font-size='18' font-weight='500' text-anchor='middle' fill='#25354b'>107</text>
+<text x='113' y='45' font-size='20' font-weight='500' text-anchor='middle' fill='#25354b'>检测位置 (px)</text>
+<circle cx='112' cy='101' r='6' fill='#4568b3'/>
+<line x1='112' y1='101' x2='212' y2='79' stroke='#4568b3' stroke-width='3'/>
+<circle cx='212' cy='79' r='6' fill='#4568b3'/>
+<line x1='212' y1='79' x2='312' y2='101' stroke='#4568b3' stroke-width='3'/>
+<circle cx='312' cy='101' r='6' fill='#4568b3'/>
+<line x1='312' y1='101' x2='412' y2='101' stroke='#4568b3' stroke-width='3'/>
+<circle cx='412' cy='101' r='6' fill='#4568b3'/>
+<line x1='412' y1='101' x2='512' y2='79' stroke='#4568b3' stroke-width='3'/>
+<circle cx='512' cy='79' r='6' fill='#4568b3'/>
+<circle cx='112' cy='255' r='6' fill='#248577'/>
+<line x1='112' y1='255' x2='212' y2='233' stroke='#248577' stroke-width='3'/>
+<circle cx='212' cy='233' r='6' fill='#248577'/>
+<line x1='212' y1='233' x2='312' y2='211' stroke='#248577' stroke-width='3'/>
+<circle cx='312' cy='211' r='6' fill='#248577'/>
+<line x1='312' y1='211' x2='412' y2='233' stroke='#248577' stroke-width='3'/>
+<circle cx='412' cy='233' r='6' fill='#248577'/>
+<line x1='412' y1='233' x2='512' y2='233' stroke='#248577' stroke-width='3'/>
+<circle cx='512' cy='233' r='6' fill='#248577'/>
+<text x='112' y='299' font-size='18' font-weight='500' text-anchor='middle' fill='#25354b'>1</text>
+<text x='212' y='299' font-size='18' font-weight='500' text-anchor='middle' fill='#25354b'>2</text>
+<text x='312' y='299' font-size='18' font-weight='500' text-anchor='middle' fill='#25354b'>3</text>
+<text x='412' y='299' font-size='18' font-weight='500' text-anchor='middle' fill='#25354b'>4</text>
+<text x='512' y='299' font-size='18' font-weight='500' text-anchor='middle' fill='#25354b'>5</text>
+<text x='554' y='331' font-size='20' font-weight='500' text-anchor='middle' fill='#25354b'>帧序</text>
+<text x='526' y='219' font-size='17' font-weight='500' text-anchor='middle' fill='#248577'>目标 100</text>
+</g>
+</svg>
