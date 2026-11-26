@@ -185,24 +185,10 @@
     }
     const progress = document.querySelector('.reading-progress span');
     if (progress) {
-      const toc = document.querySelector('.toc details');
-      if (matchMedia('(max-width: 690px)').matches) toc.open = false;
-      const links = [...toc.querySelectorAll('a[href^="#"]')];
-      const sections = links.map(link => document.getElementById(link.hash.slice(1)));
-      let current;
       let pending = false;
       function updateProgress() {
         const distance = document.documentElement.scrollHeight - innerHeight;
         progress.style.transform = 'scaleX(' + (distance > 0 ? Math.min(1, Math.max(0, scrollY / distance)) : 1) + ')';
-        let active = links[0];
-        for (const [index, element] of sections.entries()) {
-          if (element && element.getBoundingClientRect().top < innerHeight * .32) active = links[index];
-        }
-        if (current !== active) {
-          current?.removeAttribute('aria-current');
-          active?.setAttribute('aria-current', 'location');
-          current = active;
-        }
         pending = false;
       }
       function schedule() {
