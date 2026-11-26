@@ -153,6 +153,7 @@
     });
     dialog.addEventListener('close', () => {
       document.documentElement.classList.remove('search-open');
+      if (opener?.closest('#pet-menu[hidden]')) opener = document.querySelector('.pet-character');
       if (opener && opener.isConnected) opener.focus();
     });
     dialog.addEventListener('click', event => {
@@ -431,6 +432,40 @@
     window.addEventListener('pagehide', clear);
   }
 
+  function schedulePet() {
+    const base = document.documentElement.dataset.base || './';
+    function load() {
+      if (document.hidden) {
+        document.addEventListener('visibilitychange', idle, {once: true});
+        return;
+      }
+      if (document.getElementById('pet-styles')) return;
+      const css = document.createElement('link');
+      css.id = 'pet-styles';
+      css.rel = 'stylesheet';
+      css.href = base + 'assets/pet.css?v=pet-1';
+      css.fetchPriority = 'low';
+      css.onload = function loadPetScript() {
+        if (document.hidden) {
+          document.addEventListener('visibilitychange', loadPetScript, {once: true});
+          return;
+        }
+        const script = document.createElement('script');
+        script.async = true;
+        script.fetchPriority = 'low';
+        script.src = base + 'assets/pet.js?v=pet-1';
+        document.head.append(script);
+      };
+      document.head.append(css);
+    }
+    function idle() {
+      if ('requestIdleCallback' in window) window.requestIdleCallback(load, {timeout: 1500});
+      else setTimeout(load, 250);
+    }
+    if (document.readyState === 'complete') idle();
+    else window.addEventListener('load', idle, {once: true});
+  }
+
   function init() {
     if (document.querySelector('.home') && new URLSearchParams(location.search).has('group')) {
       location.replace('notes/' + location.search + location.hash);
@@ -463,6 +498,7 @@
     setupSearch();
     setupFilters(setupMotion());
     setupPrefetch();
+    schedulePet();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once: true});
   else init();
