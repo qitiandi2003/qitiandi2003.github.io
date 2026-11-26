@@ -32,9 +32,10 @@
   const sprite = root.querySelector('.pet-sprite');
   const message = root.querySelector('.pet-message');
   const effects = root.querySelector('.pet-effects');
+  let landscape = null;
   try {
     const base = document.documentElement.dataset.base || './';
-    const response = await fetch(base + 'assets/pet-bear-rig.svg?v=pet-3', {mode: 'same-origin'});
+    const response = await fetch(base + 'assets/pet-bear-rig.svg?v=pet-4', {mode: 'same-origin'});
     if (!response.ok || !/^image\/svg\+xml(?:\s*;|$)/i.test(response.headers.get('content-type') || '')) {
       throw new Error('Artwork unavailable');
     }
@@ -42,6 +43,12 @@
     if (svg.namespaceURI !== 'http://www.w3.org/2000/svg' || svg.localName !== 'svg' || svg.querySelector('parsererror') ||
         !svg.classList.contains('pb-rig') || svg.getAttribute('viewBox')?.trim().split(/[\s,]+/).join(' ') !== '0 0 48 56') {
       throw new Error('Unexpected artwork');
+    }
+    const scenery = svg.querySelector('.pb-landscape');
+    if (scenery && svg.querySelector('.pb-profile')) {
+      landscape = document.importNode(scenery, true);
+      scenery.remove();
+      root.prepend(landscape);
     }
     sprite.replaceChildren(document.importNode(svg, true));
     root.dataset.art = 'rig';
@@ -67,6 +74,7 @@
   let preference = null, position = null, press = null, ignoreClick = false;
   let frame, timer, layoutFrame, nextPat = 0;
   let idleTimer, idleStep = 0, phaseTimer, acting = false;
+  const seasons = ['spring', 'summer', 'autumn', 'winter'];
 
   function viewport() {
     const view = window.visualViewport;
@@ -124,7 +132,7 @@
   }
   function scheduleLayout(event) {
     if (event.type === 'scroll' && event.currentTarget === window && menu.hidden) return;
-    if (root.dataset.idle === 'walk') { stopIdle(); resumeIdle(); }
+    if (onTrail()) { stopIdle(); resumeIdle(); }
     if (document.hidden || press || layoutFrame || (!position && menu.hidden)) return;
     layoutFrame = requestAnimationFrame(() => { layoutFrame = 0; if (!press) layout(); });
   }
@@ -182,37 +190,74 @@
       root.dataset.collapsed === 'false' && !root.dataset.phase && !press && !acting && menu.hidden &&
       !character.matches(':focus-visible');
   }
+  function onTrail() {
+    return ['walk', 'inspect', 'turn'].includes(root.dataset.idle);
+  }
   function stopIdle() {
     clearTimeout(idleTimer); idleTimer = 0; idleStep = 0;
-    const here = root.dataset.idle === 'walk' ? root.getBoundingClientRect() : null;
+    const here = onTrail() ? root.getBoundingClientRect() : null;
     root.dataset.idle = 'rest';
     delete root.dataset.direction;
-    // Freeze an interrupted walk at the rendered pixel. Only explicit moves write storage.
+    // Let an interaction pick the bear up where it is, including between two steps.
     if (here) position = moveTo(here.left, here.top);
+  }
+  function setLandscape(start, end, right) {
+    const firstStroll = !root.dataset.season;
+    const choices = seasons.filter(season => season !== root.dataset.season);
+    root.dataset.season = choices[Math.floor(Math.random() * choices.length)];
+
+    // The little path stays in place while the bear walks across it.
+    const spriteRect = sprite.getBoundingClientRect(), unit = spriteRect.width / 48;
+    const left = Math.min(start, end), width = Math.abs(end - start) + root.offsetWidth;
+    const landmark = end + root.offsetWidth * (right ? .87 : .13);
+    Object.assign(landscape.style, {
+      left: left + 'px', top: spriteRect.top + (55 - 27) * unit + 'px',
+      width: width + 'px', height: 34 * unit + 'px'
+    });
+    landscape.style.setProperty('--pb-landmark-x', (120 * (landmark - left) / width - 59) + 'px');
+    return firstStroll || Math.random() < .55;
+  }
+  function stroll(ms) {
+    const here = root.getBoundingClientRect(), bounds = travel();
+    place(here.left, here.top);
+    const start = root.getBoundingClientRect();
+    const distance = 64 + Math.round(Math.random() * 48);
+    const roomLeft = start.left - bounds.x, roomRight = bounds.x + bounds.w - start.left;
+    const right = Math.min(roomLeft, roomRight) >= distance ? Math.random() < .5 : roomRight > roomLeft;
+    const end = clamp(start.left + (right ? distance : -distance), bounds.x, bounds.x + bounds.w);
+    const leg = ms / 2;
+    const notice = landscape && setLandscape(start.left, end, right);
+
+    root.style.setProperty('--pet-walk-leg-duration', leg + 'ms');
+    root.dataset.direction = right ? 'right' : 'left';
+    root.dataset.idle = 'walk';
+    place(end, start.top);
+    function goBack() {
+      root.dataset.direction = right ? 'left' : 'right';
+      root.dataset.idle = 'walk';
+      place(start.left, start.top);
+      idleTimer = setTimeout(nextIdle, leg);
+    }
+    function turnAround() {
+      if (!landscape) { goBack(); return; }
+      root.dataset.idle = 'turn';
+      idleTimer = setTimeout(goBack, 180);
+    }
+    idleTimer = setTimeout(() => {
+      if (notice) {
+        root.dataset.idle = 'inspect';
+        idleTimer = setTimeout(turnAround, 2700);
+      } else turnAround();
+    }, leg);
   }
   function nextIdle() {
     idleTimer = 0;
     if (!canIdle()) { stopIdle(); return; }
-    if (root.dataset.idle === 'walk') { root.dataset.idle = 'rest'; delete root.dataset.direction; layout(); }
+    if (onTrail()) { root.dataset.idle = 'rest'; delete root.dataset.direction; layout(); }
     const [state, ms] = cycle[idleStep];
     idleStep = (idleStep + 1) % cycle.length;
-    if (state === 'walk') {
-      const here = root.getBoundingClientRect(), b = travel();
-      place(here.left, here.top);
-      const start = root.getBoundingClientRect();
-      const distance = 64 + Math.round(Math.random() * 48);
-      const roomLeft = start.left - b.x, roomRight = b.x + b.w - start.left;
-      const right = Math.min(roomLeft, roomRight) >= distance ? Math.random() < .5 : roomRight > roomLeft;
-      root.style.setProperty('--pet-walk-leg-duration', ms / 2 + 'ms');
-      root.dataset.direction = right ? 'right' : 'left';
-      root.dataset.idle = 'walk';
-      moveTo(start.left + (right ? distance : -distance), start.top);
-      idleTimer = setTimeout(() => {
-        root.dataset.direction = right ? 'left' : 'right';
-        place(start.left, start.top);
-        idleTimer = setTimeout(nextIdle, ms / 2);
-      }, ms / 2);
-    } else {
+    if (state === 'walk') stroll(ms);
+    else {
       root.dataset.idle = state;
       idleTimer = setTimeout(nextIdle, ms);
     }
@@ -381,7 +426,9 @@
   wide.addEventListener('change', applySize);
   reduced.addEventListener('change', () => { stopIdle(); stopEffect(); clearPhase(); applySize(); resumeIdle(); });
   window.addEventListener('storage', event => {
-    if (event.key === sizeKey || event.key === positionKey || event.key === null) { endPress(); readSettings(); }
+    if (event.key === sizeKey || event.key === positionKey || event.key === null) {
+      endPress(); stopIdle(); readSettings(); resumeIdle();
+    }
   });
   window.addEventListener('pagehide', pause);
   window.addEventListener('pageshow', event => { if (event.persisted) { readSettings(); syncPaused(); } });

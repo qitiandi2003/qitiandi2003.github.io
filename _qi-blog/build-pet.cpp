@@ -19,23 +19,24 @@ constexpr int height = 56;
 // S — cool coat shadow, J — rose frames, T — stethoscope. The small colour
 // vocabulary keeps edges distinct even on the single-pixel mobile badge.
 const std::map<char, std::string> palette = {
-    {'o', "#654939"}, {'s', "#b47e50"}, {'t', "#d39b61"}, {'g', "#ecc181"},
-    {'f', "#f6cf90"}, {'h', "#ffdfa4"}, {'l', "#ffedba"}, {'e', "#b77c63"},
+    {'o', "#5e443a"}, {'s', "#a97250"}, {'t', "#c98f60"}, {'g', "#e6b477"},
+    {'f', "#f3c98f"}, {'h', "#ffdfa4"}, {'l', "#fff0bc"}, {'e', "#b77c63"},
     {'p', "#df9f85"}, {'r', "#edb29b"}, {'m', "#ffe4b6"}, {'w', "#fff0d0"},
-    {'n', "#493833"}, {'k', "#3a302f"}, {'O', "#596367"}, {'S', "#9eacaf"},
-    {'M', "#bfcccf"}, {'W', "#eaf0ec"}, {'F', "#fffcf3"}, {'B', "#527d9b"},
+    {'n', "#493833"}, {'k', "#352829"}, {'O', "#4f6067"}, {'S', "#92abb3"},
+    {'M', "#b3c7ce"}, {'W', "#e1edf0"}, {'F', "#fffcf3"}, {'B', "#527d9b"},
     {'A', "#80a9bd"}, {'C', "#b4ced6"}, {'T', "#476f78"}, {'D', "#648d92"},
     {'I', "#c1ddda"}, {'z', "#69839b"}, {'v', "#8c98b1"}, {'a', "#b5bfd5"},
     {'b', "#d6dbea"}, {'d', "#edeef2"}, {'y', "#e2a052"}, {'j', "#f8c272"},
     {'u', "#925832"}, {'q', "#6b4638"}, {'H', "#70894e"}, {'G', "#acc078"},
     {'R', "#bb5949"}, {'X', "#ab5b50"}, {'V', "#d46e61"}, {'P', "#ed9d82"},
     {'E', "#354b59"}, {'L', "#7ba59f"}, {'Y', "#8fc29e"}, {'Z', "#dad995"},
-    {'J', "#c46187"}, {'K', "#f4a7bd"}, {'N', "#a74b73"}, {'Q', "#de849e"},
+    {'J', "#c45482"}, {'K', "#ffc1d0"}, {'N', "#9a456c"}, {'Q', "#e589a6"},
     {'0', "#795e4a"}, {'1', "#a77e57"}, {'2', "#c39c70"}, {'3', "#dab78b"},
     {'4', "#ead0a8"}, {'5', "#f4e1bd"}, {'6', "#8da6a2"},
 };
 
-class Pixels {
+template<int Width, int Height>
+class PixelGrid {
 public:
     void dot(int x, int y, char ink) { pixels.at(y).at(x) = ink; }
 
@@ -76,26 +77,29 @@ public:
         }
     }
 
-    void write(std::ostream& out) const {
+    void write(std::ostream& out, const std::map<char, std::string>& colors = palette) const {
         // Join consecutive pixels by colour. CSS animates the parent SVG
         // groups, so an entire arm only needs one transform at runtime.
         std::map<char, std::ostringstream> paths;
-        for (int y = 0; y < height; ++y) {
-            for (int x = 0; x < width;) {
+        for (int y = 0; y < Height; ++y) {
+            for (int x = 0; x < Width;) {
                 const int start = x;
                 const char ink = pixels[y][x++];
-                while (x < width && pixels[y][x] == ink) ++x;
+                while (x < Width && pixels[y][x] == ink) ++x;
                 if (ink) paths[ink] << "M" << start << " " << y << "h" << x - start
                                     << "v1h-" << x - start << "z";
             }
         }
         for (const auto& [ink, path] : paths)
-            out << "<path fill=\"" << palette.at(ink) << "\" d=\"" << path.str() << "\"/>\n";
+            out << "<path fill=\"" << colors.at(ink) << "\" d=\"" << path.str() << "\"/>\n";
     }
 
 private:
-    std::array<std::array<char, width>, height> pixels{};
+    std::array<std::array<char, Width>, Height> pixels{};
 };
+
+using Pixels = PixelGrid<width, height>;
+using TrailPixels = PixelGrid<120, 34>;
 
 std::vector<Row> mirror(std::vector<Row> rows) {
     for (auto& [left, right] : rows) {
@@ -120,11 +124,13 @@ Pixels leg(bool right) {
 Pixels arm(bool right) {
     Pixels art;
     std::vector<Row> paw{{8,12},{6,13},{5,13},{5,13},{5,12},{6,11},{7,10}};
-    std::vector<Row> sleeve{{10,12},{8,13},{7,13},{6,13},{6,13},{5,13},{5,12},{6,12},{8,11}};
+    // The fabric covers the shoulder pivot in every pose, including a raised paw.
+    std::vector<Row> sleeve{{11,15},{10,16},{9,16},{8,16},{7,15},{6,14},{6,13},
+                            {5,13},{5,13},{5,13},{5,12},{6,12},{8,11}};
     art.silhouette(40, right ? mirror(paw) : paw, 'o', [](int x, int y, int, int hi) {
         return y >= 44 || x >= hi - 1 ? 't' : 'g';
     });
-    art.silhouette(35, right ? mirror(sleeve) : sleeve, 'O', [](int x, int y, int, int hi) {
+    art.silhouette(31, right ? mirror(sleeve) : sleeve, 'O', [](int x, int y, int, int hi) {
         if (y >= 40) return 'M';
         return x >= hi - 2 ? 'W' : 'F';
     });
@@ -133,13 +139,6 @@ Pixels arm(bool right) {
 
 Pixels torso() {
     Pixels art;
-    // Fixed upper sleeves overlap the moving forearms at the elbows. This
-    // leaves a white sleeve behind the raised paw even during a large turn.
-    std::vector<Row> shoulder{{14,16},{12,16},{11,16},{10,15},{9,15},{8,15},{8,14},{9,13},{10,12}};
-    for (bool right : {false, true})
-        art.silhouette(30, right ? mirror(shoulder) : shoulder, 'O',
-            [](int x, int, int, int hi) { return x >= hi - 2 ? 'W' : 'F'; });
-
     std::vector<Row> coat{
         {20,27},{16,31},{14,33},{13,34},{12,35},{12,35},{12,35},{12,35},{12,35},{12,35},
         {12,35},{11,36},{11,36},{11,36},{11,36},{11,36},{11,36},{11,36},{11,36},{10,37},
@@ -192,11 +191,12 @@ Pixels head() {
         if ((y <= 10 && x < hi - 4) || (x <= lo + 2 && y <= 17)) return 'h';
         return 'f';
     });
-    art.span(8, 18, 22, 'l');
-    art.span(9, 15, 19, 'l');
-    art.span(10, 13, 15, 'l');
-    art.span(27, 12, 16, 'g');
+    art.stamp(11, 8, {".......lllllll....","....llllllhhhh....","..lllhlhhhh.......",
+                       ".llhhhhhh.........",".lhhhh............"});
+    art.dots({{12,14},{14,12},{20,10},{13,25},{16,26},{31,27}}, 'h');
+    art.span(27, 12, 15, 'g');
     art.span(28, 14, 18, 'g');
+    art.span(29, 16, 19, 'g');
     art.stamp(17, 21, {"....mmmmm.....","..mmwwwwwmm...",".mmwwwwwwwmm..","mmwwwwwwwwwmm.",
                        "mmwwwwwwwwwmm.",".mmwwwwwwwmm..","..mmmmmmmmm...","....mmmmm....."});
     art.span(22, 10, 13, 'r');
@@ -416,39 +416,53 @@ void holdingHand(std::ostream& out, bool right, Point sleeve, Point palm, bool g
     out << "</g>\n";
 }
 
+void beginProp(std::ostream& out, const std::string& name, Point leftCuff, Point rightCuff) {
+    beginGroup(out, "pb-prop pb-" + name, false);
+    for (bool right : {false, true}) {
+        const auto [x, y] = right ? rightCuff : leftCuff;
+        // This short sleeve is stretched from its shoulder to the cuff as the prop moves.
+        out << "<g class=\"pb-reach pb-reach-" << (right ? 'r' : 'l')
+            << "\" style=\"--pb-cuff-x:" << x + 3 << ";--pb-cuff-y:" << y + 2 << "\">\n"
+            << "<path fill=\"" << palette.at('O') << "\" d=\"M-2 -2l1 -1h4l6 1v4l-6 1h-4l-1 -1z\"/>\n"
+            << "<path fill=\"" << palette.at('F') << "\" d=\"M-1 -2h4l6 1v2l-6 1h-4z\"/>\n"
+            << "<path fill=\"" << palette.at('M') << "\" d=\"M-1 1h10v1l-6 1h-4z\"/>\n</g>\n";
+    }
+    beginGroup(out, "pb-held-object");
+}
+
 void drawProps(std::ostream& out) {
-    beginGroup(out, "pb-prop pb-burger", false);
+    const Point burgerLeft{8,37}, burgerRight{34,37};
+    beginProp(out, "burger", burgerLeft, burgerRight);
     layer(out, "pb-burger-full", burger(false));
     layer(out, "pb-burger-bitten", burger(true), false);
-    holdingHand(out, false, {8,37}, {10,39});
-    holdingHand(out, true, {34,37}, {32,39});
-    out << "</g>\n";
+    holdingHand(out, false, burgerLeft, {10,39});
+    holdingHand(out, true, burgerRight, {32,39});
+    out << "</g>\n</g>\n";
 
-    beginGroup(out, "pb-prop pb-cola", false);
+    const Point colaLeft{15,40}, colaRight{34,39};
+    beginProp(out, "cola", colaLeft, colaRight);
     layer(out, "pb-cola-straw", straw());
     layer(out, "pb-cup", cup());
-    Pixels bentSleeve;
-    bentSleeve.stamp(9, 38, {"...MWFF......","..MWFFFFM....",".MFFFFFFFM...","..MWFFFFFM...",
-                             "....MMMMM...."});
-    bentSleeve.write(out);
-    holdingHand(out, false, {15,40}, {17,41});
-    holdingHand(out, true, {34,39}, {32,41});
-    out << "</g>\n";
+    holdingHand(out, false, colaLeft, {17,41});
+    holdingHand(out, true, colaRight, {32,41});
+    out << "</g>\n</g>\n";
 
-    beginGroup(out, "pb-prop pb-console", false);
+    const Point consoleLeft{7,38}, consoleRight{35,38};
+    beginProp(out, "console", consoleLeft, consoleRight);
     console().write(out);
     Pixels player;
     player.stamp(21, 37, {".Z","ZZ","ZZ"});
     layer(out, "pb-game-player", player);
-    holdingHand(out, false, {7,38}, {9,40}, true);
-    holdingHand(out, true, {35,38}, {33,40}, true);
-    out << "</g>\n";
+    holdingHand(out, false, consoleLeft, {9,40}, true);
+    holdingHand(out, true, consoleRight, {33,40}, true);
+    out << "</g>\n</g>\n";
 
-    beginGroup(out, "pb-prop pb-pillow", false);
+    const Point pillowLeft{7,37}, pillowRight{31,38};
+    beginProp(out, "pillow", pillowLeft, pillowRight);
     pillow().write(out);
-    holdingHand(out, false, {7,37}, {9,39});
-    holdingHand(out, true, {31,38}, {29,40});
-    out << "</g>\n";
+    holdingHand(out, false, pillowLeft, {9,39});
+    holdingHand(out, true, pillowRight, {29,40});
+    out << "</g>\n</g>\n";
 }
 
 void drawEffects(std::ostream& out) {
@@ -471,11 +485,203 @@ void drawEffects(std::ostream& out) {
     out << "</g>\n";
 }
 
+void drawProfile(std::ostream& out) {
+    Pixels face;
+    face.stamp(30, 3, {"..oooo...",".ohhgoo..","ohhfgto..","ogppgsto.","ogprpgto.",
+                       ".ogprgto.",".ogggto..","..oooo..."});
+    face.stamp(9, 2, {"...oooo....","..ohhhgo...",".ohllhgto..","ohhhffgsto.",
+                      "offepppgto.","offeprpgto.","ogfeprpgto.",".ogfgpgto..","..ogggto..."});
+    const std::vector<Row> headEdge{
+        {20,30},{16,33},{14,35},{12,36},{11,37},{10,38},{9,39},{9,39},{8,39},
+        {8,40},{8,40},{8,40},{8,40},{8,40},{8,41},{9,41},{9,41},{10,40},
+        {10,40},{11,39},{12,38},{14,37},{16,35},{18,33},{21,31},
+    };
+    face.silhouette(7, headEdge, 'o', [](int x, int y, int lo, int hi) {
+        if (y >= 29 || (y >= 17 && x == hi - 1)) return 't';
+        if (y >= 27 || x >= hi - 3) return 'g';
+        if (y <= 12 || (x <= lo + 3 && y <= 17)) return 'h';
+        return 'f';
+    });
+    face.stamp(12, 9, {"......lllllll.","...llllllhhhh.","..lllhlhh.....",".llhhhh......."});
+    face.dots({{10,23},{12,25},{15,26},{13,26},{18,28},{20,27},{37,25}}, 'g');
+    face.span(29, 20, 23, 'g');
+    face.stamp(25, 20, {"....mmmmm...","..mmwwwwwmm.",".mmwwwwwwwm.","mmwwwwnnnmm.",
+                        "mmwwwwwnwwm.",".mmwwnwnwnm.","..mmwwnnnmm.","....mmmmmm.."});
+    face.stamp(14, 21, {"..rrr...",".rprpr..","rprprrr.",".rrr.r.."});
+    face.dots({{38,21},{37,22},{38,22}}, 'r');
+
+    face.stamp(16, 13, {"...QQJJJJ...","..Q......J..",".J........J.","J..........J",
+                        "J..........J","J..........J",".N........J.","..N......J..","...NJJJJJ..."});
+    face.stamp(30, 14, {"..QJJJJ..",".Q.....J.","J.......J","J.......J","J.......J",
+                        ".N......J","..N....J.","...NJJJ.."});
+    face.span(16, 10, 16, 'J');
+    face.span(17, 11, 14, 'N');
+    face.span(16, 27, 30, 'Q');
+    face.stamp(8, 0, {".NN......N..","NQQNN...NQN.","NKKQQN.NKQQN","NQKQJNNJQQQN",
+                       ".NQJQJJQQQN.","..NNNJJJNN..","......N..N.."});
+
+    Pixels eye, closedEye;
+    eye.stamp(22, 16, {".nn.","nwnn","nkkk",".kk."});
+    eye.stamp(34, 16, {".nn","nwn","nkk",".kk"});
+    closedEye.stamp(21, 17, {".kkk.","kk.kk","k...k"});
+    closedEye.stamp(33, 17, {".kk.","k..k"});
+
+    Pixels coat, tail;
+    const std::vector<Row> coatEdge{{20,30},{18,32},{17,33},{16,34},{15,34},{15,34},
+        {15,34},{15,34},{15,34},{15,34},{15,34},{14,34},{14,34},{14,34},{14,34},
+        {14,34},{13,34},{13,34},{13,33},{14,32},{15,31},{16,31}};
+    coat.silhouette(29, coatEdge, 'O', [](int x, int y, int lo, int hi) {
+        if (y >= 48 || x == hi - 1) return 'M';
+        return x < lo + 4 || (y >= 43 && x < lo + 7) ? 'W' : 'F';
+    });
+    coat.stamp(27, 30, {"BBB.","ABBC",".ABC",".BCM","..CM","...M"});
+    coat.dots({{27,32},{28,33},{28,34},{29,35},{29,36},{30,37},{30,38},
+               {31,39},{31,40},{30,41},{29,40}}, 'T');
+    coat.stamp(27, 44, {".MMMM","MF..M",".M.M.","..MM."});
+    tail.stamp(9, 39, {"...oo....","..ohgoo..",".ofgfto..","ofgftsto.",
+                        "oggtsto..",".ostto...","..ooo...."});
+
+    Pixels farFoot, nearFoot;
+    farFoot.stamp(21, 47, {".OOOO.....","OMMMO.....","OMMMO.....",".ooo......",
+                           ".ostto....",".osttsoo..",".osttssso.","..ooooooo."});
+    nearFoot.stamp(19, 47, {".OOOO.....","OWFMO.....","OMMMO.....",".ooo......",
+                            ".ogtto....",".ofggtoo..",".ogttssso.","..ooooooo."});
+
+    Pixels nearArm, farArm;
+    nearArm.stamp(18, 31, {"...OOO....","..OFFMO...",".OFFFWMO..",".OFFFWMO..","OFFFFWMO..",
+                           "OFFFFWMO..","OFFFWMMO..",".OMMMMMO..",".OMMMMO...","..OOOOO...",
+                           "...ogto...","...ofto...","...ogso...","....oo...."});
+    farArm.stamp(28, 31, {"..OO......",".OMWO.....",".OMWWO....",".OMWWMO...","..OMWMMO..",
+                          "..OMWMMO..","...OMMMO..","...OMMMO..","...OOOO...","....oto...",
+                          "....ogso..",".....oo..."});
+
+    out << "<g class=\"pb-profile-shadow\" opacity=\"0\" fill=\"var(--pb-shadow,#6a5849)\">\n"
+        << "<path opacity=\".24\" d=\"M13 53h7v-1h16v1h7v1h3v1H34v1H16v-1h-6v-1h3z\"/>\n"
+        << "<path opacity=\".34\" d=\"M17 53h14v1h3v1H16v-1h1z\"/>\n</g>\n";
+    beginGroup(out, "pb-profile", false);
+    beginGroup(out, "pb-profile-body");
+    layer(out, "pb-profile-tail", tail);
+    layer(out, "pb-profile-far-foot", farFoot);
+    layer(out, "pb-profile-far-arm", farArm);
+    layer(out, "pb-profile-near-foot", nearFoot);
+    layer(out, "pb-profile-coat", coat);
+    layer(out, "pb-profile-near-arm", nearArm);
+    beginGroup(out, "pb-profile-head");
+    face.write(out);
+    out << "<path fill=\"var(--pb-light,#ffedba)\" opacity=\".53\" "
+        << "d=\"M18 9h6v1h-6zM15 10h4v1h-4zM14 11h3v1h-3zM13 12h2v1h-2z\"/>\n";
+    layer(out, "pb-profile-eye", eye);
+    layer(out, "pb-profile-smile", closedEye, false);
+    out << "</g>\n</g>\n</g>\n";
+}
+
+void drawLandscape(std::ostream& out) {
+    struct Scheme {
+        std::string name, grass, edge, accent, canopy, shade, stem, detail, glow;
+    };
+    const Scheme schemes[] = {
+        {"spring", "#aecb8e", "#829966", "#e7efb9", "#ecc3d3", "#d69fb7", "#997862", "#b85c82", "#f894b2"},
+        {"summer", "#9fc493", "#719778", "#d8e9b7", "#b9d9b7", "#91baa5", "#7b8d65", "#b97238", "#f9cd76"},
+        {"autumn", "#dcb278", "#a67c55", "#f3d09d", "#edc189", "#d6a171", "#a07554", "#ae6145", "#eeaa6d"},
+        {"winter", "#d8e8ee", "#99b7c5", "#fbfcf7", "#c1d9de", "#8fadb9", "#80a1ac", "#6b93a9", "#f3f9f8"},
+    };
+    out << "<svg class=\"pb-landscape\" x=\"0\" y=\"0\" width=\"120\" height=\"34\" viewBox=\"0 0 120 34\" "
+        << "preserveAspectRatio=\"none\" opacity=\"0\" aria-hidden=\"true\" shape-rendering=\"crispEdges\">\n"
+        << "<defs><radialGradient id=\"pb-trail-light\"><stop offset=\"0\" stop-color=\"var(--pb-light,#ffeec1)\" stop-opacity=\".9\"/>"
+        << "<stop offset=\"1\" stop-color=\"var(--pb-light,#ffeec1)\" stop-opacity=\"0\"/></radialGradient>"
+        << "<linearGradient id=\"pb-trail-ray\" x2=\".75\" y2=\"1\"><stop stop-color=\"#fff8df\" stop-opacity=\".72\"/>"
+        << "<stop offset=\"1\" stop-color=\"var(--pb-light,#ffeec1)\" stop-opacity=\"0\"/></linearGradient></defs>\n"
+        << "<ellipse cx=\"34\" cy=\"12\" rx=\"42\" ry=\"19\" fill=\"url(#pb-trail-light)\" shape-rendering=\"geometricPrecision\"/>\n";
+    for (const auto& season : schemes) {
+        const std::map<char, std::string> colors{{'g', season.grass}, {'e', season.edge}, {'a', season.accent},
+            {'c',season.canopy}, {'s',season.shade}, {'t',season.stem}, {'d',season.detail}, {'h',season.glow}};
+        beginGroup(out, "pb-season pb-season-" + season.name);
+        TrailPixels background;
+        background.stamp(55, 17, {".......................cccc.............", "...........ccc.......ccccccc...........",
+            ".........cccccc....ccccccccccc.........", "........ccccccccccccccccccccccc........",
+            ".......cccccccccccccccccccccccccc......", "...cccccccccccccccccccccccccccccccc....",
+            ".ccccccccccccccccccccccccccccccccccc...", "ccccccccccccccccccccccccccccccccccccc..",
+            ".cccccccccsssscccccssssccccccccccccccc.", "..ccccccssssssscccssssssscccccccccc...."});
+        if (season.name == "winter") {
+            background.stamp(15, 5, {".........c.........","........cac........",".......caaac.......",
+                "......caaaaac......",".......ssss........","......caaaaac......",".....caaaaaaac.....",
+                "....caaaaaaaaac....","......sssssss......","....ccaaaaaaacc....","...caaaaaaaaaaac...",
+                "..caaaaaaaaaaaaac..",".ccaaaaaaaaaaaaacc.","..sssssssssssssss..",".......tttt........",
+                ".......tttt........",".......tttt........"});
+            background.stamp(91, 13, {".......c.......","......cac......",".....caaac.....","....caaaaac....",
+                ".....sssss.....","....caaaaac....","...caaaaaaac...","..caaaaaaaaac..","...sssssssss...",
+                "......ttt......","......ttt......","......ttt......"});
+        } else {
+            background.stamp(13, 6, {"........ccccccc........",".....ccccccccccc.......","...cccaccccccccccc.....",
+                "..ccccccccccccccccc....",".cccccccccccccccccccc..","cccccccccccccccccccccc.",
+                "cccscccccccccccccccccc.","ccssccccccccccccccsccc.",".cssccccccccssccccsscc.",
+                "..sssscccccsssscsssss..","...ssssssssssssssss....",".....ssstttsssss.......",
+                ".......tttttt..........",".......t.tt............",".........tt............",
+                ".........tt............",".........tt............",".........tt............"});
+            if (season.name == "summer") {
+                background.stamp(93, 7, {"..hhh..",".hhhhh.","hhhhhhh","hhhhhhh",".hhhhh.","..hhh.."});
+                background.span(23, 89, 105, 'c');
+                background.span(24, 85, 111, 's');
+                background.span(25, 92, 108, 'a');
+            } else {
+                background.stamp(89, 15, {"......cccc.....","...cccccccccc..",".ccccccccccccc.",
+                    "ccccccsccccccsc",".scccsssccccss.","..sssssssssss..",".....ttt.......",
+                    ".....ttt.......",".....ttt......."});
+            }
+        }
+        out << "<g opacity=\".83\">\n";
+        background.write(out, colors);
+        out << "</g>\n";
+
+        TrailPixels ground;
+        const Row bank[]{{16,107},{8,111},{5,115},{6,113},{11,108},{18,101},{31,91}};
+        for (int i = 0; i < 7; ++i) ground.span(26 + i, bank[i].first, bank[i].second, i < 4 ? 'g' : 'e');
+        ground.span(26, 23, 39, 'a'); ground.span(26, 59, 67, 'a'); ground.span(27, 94, 107, 'a');
+        ground.span(27, 9, 17, 'a'); ground.span(26, 44, 51, 'a'); ground.span(26, 79, 85, 'a');
+        ground.span(28, 15, 23, 'a'); ground.span(29, 49, 57, 'a'); ground.span(29, 74, 80, 'a');
+        ground.dots({{16,30},{25,29},{29,29},{42,27},{79,27},{89,29},{104,28}}, 'e');
+        ground.dots({{10,28},{31,29},{36,30},{46,28},{54,30},{66,29},{70,30},{97,29},{109,27}}, 'a');
+        ground.span(31, 24, 29, 'g'); ground.span(32, 45, 50, 'g'); ground.span(30, 84, 93, 'g');
+        ground.stamp(33, 23, {"....e..","e...e.e",".e.ee.e","..e.e.."});
+        ground.stamp(78, 23, {".e.....",".e.e..e",".e.e.e.","..eee.."});
+        ground.write(out, colors);
+        out << "<path fill=\"var(--pb-shadow,#5e6d55)\" opacity=\".19\" "
+            << "d=\"M23 25h5v1h5v1h7v1h-6v1H26v-1h-5v-1h2zM96 25h3v1h5v1h6v1h-9v-1h-5z\"/>\n";
+        out << "<path fill=\"var(--pb-shadow,#5e6d55)\" opacity=\".24\" "
+            << "d=\"M11 30h22v1h-9v1h-6v-1h-7zM46 31h43v1H51v1H31v-1h15zM97 30h11v1h-7v1h-8v-1h4z\"/>\n"
+            << "<path d=\"M23 1h9l22 28H42zM38 3h4l19 25h-6z\" fill=\"url(#pb-trail-ray)\" "
+            << "shape-rendering=\"geometricPrecision\" opacity=\".45\"/>\n";
+        out << "<path class=\"pb-glints\" fill=\"var(--pb-light,#ffeec1)\" opacity=\".58\" "
+            << "d=\"M12 14h1v1h-1zM39 13h2v1h-2zM45 20h1v1h-1zM77 15h1v1h-1zM107 22h1v1h-1z\"/>\n";
+
+        beginGroup(out, "pb-landmark");
+        TrailPixels discovery;
+        if (season.name == "spring") {
+            discovery.stamp(55, 8, {"....dd.....","...dhhd....",".ddhhhhdd..","dhhhhhhhhd.",
+                "dhhhahhhhd.",".ddhahhdd..","...dhhd....","....dd.....","....ee.....",
+                "....ee..e..",".e..ee.ea..",".ea.eeea...","..eaeea....","...eee.....",
+                "....ee.....","....ee.....","....ee.....","....ee.....","....ee.....","...eee....."});
+        } else if (season.name == "summer") {
+            discovery.stamp(55, 16, {".dd....dd.","dhhd..dhhd","dhhhd.dhhd",".dhhhtthd.","..ddttdd..","....t....."});
+        } else if (season.name == "autumn") {
+            discovery.stamp(55, 16, {"....d.....","..d.d.d...","..dhdhd.d.",".dhhhhhd..",
+                "dhhhhhhhhd",".ddhhdhdd.","...dddd...","....dt....",".....t...."});
+        } else {
+            discovery.stamp(55, 10, {"....d.....","..d.d.d...","...dhd....",".d.dhd.d..",
+                "dddhhhddd.",".d.dhd.d..","...dhd....","..d.d.d...","....d....."});
+        }
+        beginGroup(out, "pb-discovery");
+        discovery.write(out, colors);
+        out << "</g>\n</g>\n</g>\n";
+    }
+    out << "</svg>\n";
+}
+
 void draw(std::ostream& out) {
     out << "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pb-rig\" width=\"48\" height=\"56\" "
         << "viewBox=\"0 0 48 56\" overflow=\"visible\" shape-rendering=\"crispEdges\" aria-hidden=\"true\">\n"
         << "<title>戴粉色眼镜的小熊熊女医生</title>\n"
-        << "<desc>可独立活动的头部、手臂、脚、餐点、掌机、睡枕与纸箱。所有铜色、玫瑰粉与青色细节均按像素绘制。</desc>\n"
+        << "<desc>戴粉色眼镜的像素女医生，带连动衣袖、侧面步态和四季散步场景。</desc>\n"
         << "<defs><clipPath id=\"pb-ground-clip\" clipPathUnits=\"userSpaceOnUse\"><path d=\"M-48 -56h144v112H-48z\"/></clipPath></defs>\n";
     layer(out, "pb-box-back", parcelBack(), false);
     out << "<g clip-path=\"url(#pb-ground-clip)\">\n";
@@ -503,6 +709,8 @@ void draw(std::ostream& out) {
     layer(out, "pb-box-front", parcelFront(), false);
     layer(out, "pb-box-flap-l", parcelFlap(false), false);
     layer(out, "pb-box-flap-r", parcelFlap(true), false);
+    drawProfile(out);
+    drawLandscape(out);
     out << "</svg>\n";
 }
 }  // namespace
