@@ -1,4 +1,4 @@
-# Qi‘blog
+# Qi’blog
 
 [博客首页](https://qitiandi2003.github.io/) · [学习路线](https://qitiandi2003.github.io/topics/) · [文章索引](https://qitiandi2003.github.io/notes/)
 
