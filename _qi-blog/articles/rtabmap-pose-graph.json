@@ -21,6 +21,12 @@
       "paragraphs": [
         "相邻楼层的走廊可能外观近似。调出候选节点的原图、特征内点和相对变换，看看楼梯出口、门框和墙角是否一起对上；再看添加这条边后，其他已经对齐的墙面是否被拉开。在离线图副本中临时去掉该边重算，可以检查地图变化是否集中由它引起。"
       ]
+    },
+    {
+      "title": "分别观察局部和全局坐标",
+      "paragraphs": [
+        "把轨迹分别画在 odom 和 map 两个参考系下。构造一个简单回放，让 odom 中的位置连续变化，并在识别回环时修正 map 到 odom 的变换。如果地图视角中的轨迹发生调整，而局部里程计依然连续，两幅图表达的现象可以同时成立。"
+      ]
     }
   ],
   "refs": [
@@ -31,6 +37,10 @@
     {
       "label": "RTAB-Map · 官方开源实现",
       "url": "https://github.com/introlab/rtabmap"
+    },
+    {
+      "label": "ROS REP 105 · 移动平台的坐标系约定",
+      "url": "https://github.com/ros-infrastructure/rep/blob/master/rep-0105.rst"
     }
   ],
   "topic": "RTAB-Map",

@@ -1,0 +1,43 @@
+{
+  "slug": "navigation-settling",
+  "title": "机器人进了目标圈，什么时候算到达？",
+  "summary": "分别观察终点误差、机体运动和数据采集时间，理解导航中的到达条件。",
+  "sections": [
+    {
+      "title": "先把目标条件拆开读",
+      "paragraphs": [
+        "导航目标可以同时限定位置、朝向与停止状态。Nav2 的 StoppedGoalChecker 就考虑平移和旋转速度：进了目标附近，仍可能继续滑行或转向。选择什么条件，应由任务决定；停靠对正和经过一个途经点对终点姿态的要求不同。",
+        "假设位置容差为 0.2 米。车体离目标 0.12 米但仍在快速横向移动；另一帧的位置相同，线速度和角速度都接近零。相同的距离观测对「经过」和「停靠」给出的信息不同。这里的容差只用于示例。"
+      ]
+    },
+    {
+      "title": "地图里的跳变来自哪里",
+      "paragraphs": [
+        "ROS REP 105 规定 odom 适合表达局部连续运动，map 中的全局估计可以因定位修正而发生跳变。若屏幕上车体突然出现在目标圈内，可以同时看 map 中的目标距离、odom 中的位移和速度。三者放在同一时间轴上，容易区分真正驶近与坐标修正。",
+        "例如全局定位把当前位置向前修正 0.3 米，而相邻两次局部里程计几乎相同。应先检查这次修正为何发生，再用修正后的后续观测确认停靠位置；单个地图坐标的跳变不能证明车体在那一刻前进了 0.3 米。"
+      ]
+    },
+    {
+      "title": "用两段记录检查“已经停稳”",
+      "paragraphs": [
+        "做一组离线对照。第一段每隔固定时间收到一条新鲜位姿和速度，且停靠条件持续满足。第二段只收到第一条观测，随后重复读取缓存。即使墙钟走过同样长的时间，第二段也缺少后续运动的证据。",
+        "记录每条观测的采集时间、收到时间和判定时间，可以看出等待期间究竟来了多少新数据。若应用还要求持续停稳一段时间，应把这一额外条件单独测试，再与 Nav2 所选插件自身的位置和速度判据对照。"
+      ]
+    }
+  ],
+  "refs": [
+    {
+      "label": "Nav2 · StoppedGoalChecker",
+      "url": "https://docs.nav2.org/rolling/configuration_and_development/configuration_guide/core_servers/controller_server/controller_server_plugins/stopped_goal_checker/"
+    },
+    {
+      "label": "ROS REP 105 · 移动平台坐标系",
+      "url": "https://docs.ros.org/en/independent/api/rep/html/rep-0105.html"
+    }
+  ],
+  "topic": "导航状态确认",
+  "category": "工程实践",
+  "group": "engineering",
+  "keywords": "导航 目标检查 速度 容差 位姿 时间戳 Nav2 map odom",
+  "published": "2026-11-26"
+}

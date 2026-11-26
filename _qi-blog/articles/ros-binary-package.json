@@ -1,0 +1,40 @@
+{
+  "slug": "ros-binary-package",
+  "title": "一个 ROS 2 包，离开源码树以后",
+  "summary": "从一个只依赖公开头文件的小程序出发，分别检验 CMake 包的导出信息、共享库和运行环境。",
+  "sections": [
+    {
+      "title": "交付给另一个工作空间的东西",
+      "paragraphs": [
+        "假设要分发一个只提供图像时间戳转换的 C++ 库。使用方需要头文件、可链接的实现，以及声明包含目录和依赖的导出目标。把依赖写进包配置之后，另一个工程即可用 find_package 查找它，源码树中的临时构建目录便不用出现在消费方配置里。"
+      ]
+    },
+    {
+      "title": "编译器和动态加载器各看什么",
+      "paragraphs": [
+        "能包含头文件只证明编译器找到了声明。链接阶段要找到实现，启动后加载器还要解析实现所依赖的共享库。比如节点能编译、启动时却报告某个共享库找不到，应从启动进程的运行环境查起，继续给源码添加包含目录无法解决它。"
+      ]
+    },
+    {
+      "title": "用干净目录做交付检查",
+      "paragraphs": [
+        "把安装产物放进另一个目录，开一个新的 shell，只加载所需的基础环境与本次安装的包。建立一个最小消费工程，编译、链接、运行，并对一个已知输入检查返回值。可额外在测试环境中临时移开某个运行库，看看报错发生在链接期还是启动期。"
+      ]
+    }
+  ],
+  "refs": [
+    {
+      "label": "CMake · 包配置与导出目标",
+      "url": "https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html"
+    },
+    {
+      "label": "ament_cmake · ROS 2 的 CMake 构建与导出工具",
+      "url": "https://github.com/ament/ament_cmake"
+    }
+  ],
+  "topic": "二进制交付",
+  "category": "工程实践",
+  "group": "engineering",
+  "keywords": "C++ ROS 2 ament CMake 共享库 ABI 二进制 发布 依赖 overlay",
+  "published": "2026-11-26"
+}

@@ -81,6 +81,11 @@ a:hover,.primary-nav a:hover { color: var(--accent); }
 .note-row { border-bottom: 1px solid var(--line); }
 .note-row > a { padding: 1.25rem 0 1.5rem; }
 .note-row .card-meta { margin: 0 0 .35rem; }
+.repo-nav,.module-links { display: flex; flex-wrap: wrap; gap: .5rem 1.05rem; }
+.repo-nav { margin: -.75rem 0 2rem; }
+.repo-nav a { color: var(--accent); font: .87rem/1.75 var(--mono); overflow-wrap: anywhere; }
+.module-links { margin-top: .8rem; }
+.module-links a { color: var(--muted); font-size: .86rem; }
 .source { display: grid; grid-template-columns: minmax(0,.75fr) minmax(0,1.25fr); gap: clamp(1.8rem,5vw,5rem); padding: 1.8rem 0; border-top: 1px solid var(--line); scroll-margin-top: 1rem; }
 .source h2 { font-size: 1.65rem; line-height: 1.45; }
 .source p { margin-top: .6rem; }

@@ -33,7 +33,7 @@ string html_escape(const string& s) {
             case '<': out += "&lt;"; break;
             case '>': out += "&gt;"; break;
             case '"': out += "&quot;"; break;
-            case 39: out += "&#39;"; break;
+            case '\'': out += "&#39;"; break;
             default: out += ch;
         }
     }
@@ -168,12 +168,21 @@ string archivepage(const std::vector<Article>& articles) {
 string repositories(const std::vector<Article>& articles, const json& library) {
     std::ostringstream out;
     out << "<main id='main' class='wrap collection'><header class='collection-heading'><h1>仓库索引</h1></header>"
-        << "<p class='collection-intro'>从一个项目出发，找到它用到的算法、工程实现和调试方法。</p>";
+        << "<p class='collection-intro'>按项目查找工程笔记、原始代码和实验记录。</p>"
+        << "<nav class='repo-nav' aria-label='跳转到仓库'>";
+    for (const auto& repo : library.at("sources"))
+        out << "<a href='#" << html_escape(repo.at("id")) << "'>" << html_escape(repo.at("repository")) << "</a>";
+    out << "</nav>";
     for (const auto& repo : library.at("sources")) {
         const string url = repo.value("url","");
         out << "<section class='source' id='" << html_escape(repo.at("id")) << "'><div><h2>" << html_escape(repo.at("name")) << "</h2><p>"
             << html_escape(repo.at("summary")) << "</p>";
-        if (!url.empty()) out << "<a class='source-url' href='" << html_escape(url) << "'>" << icon("github") << html_escape(repo.at("repository")) << "</a>";
+        if (!url.empty()) {
+            out << "<a class='source-url' href='" << html_escape(url) << "'>" << icon("github") << html_escape(repo.at("repository")) << "</a><div class='module-links'>";
+            for (const auto& link : repo.at("modules"))
+                out << "<a href='" << html_escape(link.at("url")) << "'>" << html_escape(link.at("label")) << "</a>";
+            out << "</div>";
+        }
         out << "</div><ul>";
         for (const string slug : repo.at("notes")) {
             const auto& a = lookup(articles,slug);
@@ -187,6 +196,10 @@ string repositories(const std::vector<Article>& articles, const json& library) {
 
 string articlepage(const Article& a, const Article& next, const json& library) {
     const string base = "../../";
+    const bool cites_project = std::any_of(a.refs.begin(),a.refs.end(),[](const json& ref) {
+        return ref.at("url").get_ref<const string&>().rfind(github + "/",0) == 0;
+    });
+    const string references_title = cites_project ? "源码与参考资料" : "参考资料";
     std::ostringstream out;
     out << "<main id='main' class='wrap reading-page'><nav class='crumbs' aria-label='面包屑'><a href='" << base << "notes/'>文章索引</a><span>/</span>"
         << "<a href='" << base << "notes/?group=" << a.group << "'>" << a.category << "</a></nav>"
@@ -203,11 +216,11 @@ string articlepage(const Article& a, const Article& next, const json& library) {
         for (const string p : section.at("paragraphs")) out << "<p>" << prose(p) << "</p>";
         out << "</section>";
     }
-    out << "<section class='references' aria-labelledby='sources'><h2 id='sources'>源码与参考资料</h2><ul>";
+    out << "<section class='references' aria-labelledby='sources'><h2 id='sources'>" << references_title << "</h2><ul>";
     for (const auto& ref : a.refs) {
         out << "<li><a href=\"" << html_escape(ref.at("url")) << "\">" << html_escape(ref.at("label")) << "</a></li>";
     }
-    out << "</ul><div class='origin-links'>";
+    out << "</ul><div class='origin-links'><span>相关项目</span>";
     for (const auto& project : library.at("sources")) {
         const auto& notes = project.at("notes");
         if (std::find(notes.begin(),notes.end(),a.slug) != notes.end())
@@ -215,7 +228,7 @@ string articlepage(const Article& a, const Article& next, const json& library) {
     }
     out << "</div></section><a class='next-note' href='../" << next.slug << "/'><span>接着读 · " << next.topic << "</span><strong>"
         << html_escape(next.title) << "</strong></a></article><aside class='toc'><h2>文章目录</h2><ol>"
-        << toc.str() << "<li><a href='#sources'>源码与参考资料</a></li></ol></aside></div></main>";
+        << toc.str() << "<li><a href='#sources'>" << references_title << "</a></li></ol></aside></div></main>";
     return document(base, "note", a.title + " · " + brand, a.summary, out.str());
 }
 
@@ -250,7 +263,13 @@ int main() try {
     });
     for (size_t i=0; i<articles.size(); ++i) {
         const auto& a=articles[i];
-        index.push_back({{"slug",a.slug},{"title",a.title},{"summary",a.summary},{"topic",a.topic},{"keywords",a.keywords + " " + a.category}});
+        string keywords = a.keywords + " " + a.category;
+        for (const auto& repo : library.at("sources")) {
+            const auto& notes = repo.at("notes");
+            if (std::find(notes.begin(),notes.end(),a.slug) != notes.end())
+                keywords += " " + repo.at("repository").get<string>() + " " + repo.at("name").get<string>();
+        }
+        index.push_back({{"slug",a.slug},{"title",a.title},{"summary",a.summary},{"topic",a.topic},{"keywords",keywords}});
         write(destination/"notes"/a.slug/"index.html",articlepage(a,articles[(i+1)%articles.size()],library));
     }
     write(destination/"index.html",homepage(articles,library));

@@ -1,0 +1,40 @@
+{
+  "slug": "rgbd-sensor-contract",
+  "title": "换一台相机，地图后端接收什么",
+  "summary": "更换 RGB-D 传感器时，用同一张检查表核对彩色图、深度、内参和时钟，再画出里程计到地图的变换关系。",
+  "sections": [
+    {
+      "title": "先定义一帧包含什么",
+      "paragraphs": [
+        "彩色图像、深度图和两套内参可以装在同一条 RGB-D 消息里。先写明深度对齐到哪台相机、单位如何换算、内参对应哪种图像分辨率。例如把图像宽度减半却沿用原来的像素焦距，反投影出的横向坐标就会发生偏差。"
+      ]
+    },
+    {
+      "title": "连续检查比只看一帧多发现什么",
+      "paragraphs": [
+        "记录外层消息、子图像和相机信息的时间戳，检查它们的差值与整段序列的单调性。假设彩色和深度流都稳定在 30 Hz，但深度总比彩色晚一帧，消息数量仍然完全相同。如果只是改写时间戳把它们凑齐，运动边缘的错位还会留在数据里。"
+      ]
+    },
+    {
+      "title": "把局部里程计与全局修正画出来",
+      "paragraphs": [
+        "列出 odom 到机身，以及 map 到 odom 各自由哪个估计器提供。前者用于表达连续的局部运动，后者可以随重定位而修正。换传感器后，可用一段平移和一段俯仰的回放检查发布者、轴向以及实际保留的自由度。"
+      ]
+    }
+  ],
+  "refs": [
+    {
+      "label": "RTAB-Map ROS · RGBDImage 消息定义",
+      "url": "https://github.com/introlab/rtabmap_ros/blob/ros2/rtabmap_msgs/msg/RGBDImage.msg"
+    },
+    {
+      "label": "ROS REP 105 · 地图与里程计坐标",
+      "url": "https://github.com/ros-infrastructure/rep/blob/master/rep-0105.rst"
+    }
+  ],
+  "topic": "RGB-D 接口",
+  "category": "系统与通信",
+  "group": "systems",
+  "keywords": "RGB-D ROS 2 图像 深度 内参 时间戳 同步 里程计 TF",
+  "published": "2026-11-26"
+}
