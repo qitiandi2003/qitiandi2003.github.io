@@ -9,4 +9,5 @@ Butterbear proportions: https://butterbear.co.th/pages/about
 Front portrait: https://butterbear.co.th/cdn/shop/files/9d8fe32f16146a304069e8c93ceb38a4.png?v=1730972076&width=260
 Head and shoulder overlap: https://butterbear.co.th/cdn/shop/files/ca039e6d9b835bc7e521a8c674cb213b.png?v=1731308357&width=260
 Pixel spacing and colour clusters: https://www.jp.square-enix.com/octopathtraveler2/traveler/castti.html
+Cheek, paw and hop gestures: https://www.bilibili.com/video/BV1fv2DBWEv1/
 The animated artwork is drawn on its own pixel grid by _qi-blog/build-pet.cpp.

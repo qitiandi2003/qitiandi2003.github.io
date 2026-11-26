@@ -142,11 +142,11 @@
 .pb-landmark { transform: translateX(var(--pb-landmark-x,0px)); }
 .pb-discovery { transform-origin: 59px 16px; transform-box: view-box; }
 .pb-season-spring .pb-discovery { transform-origin: 59px 27px; }
-.web-pet[data-season]:is([data-idle=walk],[data-idle=inspect],[data-idle=turn]) .pb-landscape { opacity: 1; }
+.web-pet[data-season]:is([data-idle=stepOff],[data-idle=walk],[data-idle=inspect],[data-idle=turn],[data-idle=settle]) .pb-landscape { opacity: 1; }
 
 @media(prefers-reduced-motion: no-preference) {
   .pb-landscape { transition: opacity .3s ease; }
-  .web-pet:is([data-idle=walk],[data-idle=inspect],[data-idle=turn]) .pb-glints { animation: pb-glimmer 2.8s ease-in-out infinite; }
+  .web-pet:is([data-idle=stepOff],[data-idle=walk],[data-idle=inspect],[data-idle=turn],[data-idle=settle]) .pb-glints { animation: pb-glimmer 2.8s ease-in-out infinite; }
   .web-pet[data-idle=inspect][data-season=spring] .pb-discovery { animation: pb-flower-nod 2.7s ease-in-out both; }
   .web-pet[data-idle=inspect][data-season=summer] .pb-discovery { animation: pb-butterfly 2.7s ease-in-out both; }
   .web-pet[data-idle=inspect][data-season=autumn] .pb-discovery { animation: pb-leaf 2.7s ease-in-out both; }

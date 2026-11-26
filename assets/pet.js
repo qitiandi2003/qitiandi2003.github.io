@@ -35,7 +35,7 @@
   let landscape = null, atlas = null, motions = null;
   try {
     const base = document.documentElement.dataset.base || './';
-    const response = await fetch(base + 'assets/pet-bear-rig.svg?v=pet-7', {mode: 'same-origin'});
+    const response = await fetch(base + 'assets/pet-bear-rig.svg?v=pet-8', {mode: 'same-origin'});
     if (!response.ok || !/^image\/svg\+xml(?:\s*;|$)/i.test(response.headers.get('content-type') || '')) {
       throw new Error('Artwork unavailable');
     }
@@ -95,6 +95,7 @@
     let name = state.dragging === 'true' ? 'drag' : state.phase || state.action || state.idle || 'rest';
     if (name === 'snack') name = 'feed';
     if (name === 'inspect' && ['summer', 'winter'].includes(state.season)) name = 'inspectUp';
+    if (state.direction === 'left' && ['stepOff', 'turn', 'settle'].includes(name)) name += 'Left';
     if (state.paused === 'true' || state.collapsed === 'true' || !motions.clips[name]) name = 'rest';
     const key = name + (still ? ' still' : ' play');
     if (key === currentClip) return;
@@ -227,7 +228,7 @@
       !character.matches(':focus-visible');
   }
   function onTrail() {
-    return ['walk', 'inspect', 'turn'].includes(root.dataset.idle);
+    return ['stepOff', 'walk', 'inspect', 'turn', 'settle'].includes(root.dataset.idle);
   }
   function stopIdle() {
     clearTimeout(idleTimer); idleTimer = 0; idleStep = 0;
@@ -260,35 +261,59 @@
     const distance = 64 + Math.round(Math.random() * 48);
     const roomLeft = start.left - bounds.x, roomRight = bounds.x + bounds.w - start.left;
     const right = Math.min(roomLeft, roomRight) >= distance ? Math.random() < .5 : roomRight > roomLeft;
-    const end = clamp(start.left + (right ? distance : -distance), bounds.x, bounds.x + bounds.w);
-    const leg = ms / 2;
-    const notice = landscape && setLandscape(start.left, end, right);
-    if (motions) {
-      const step = motions.stride * sprite.offsetWidth / 48;
-      walkDuration = clamp(2 * step * leg / Math.max(1, Math.abs(end - start.left)), 360, 1500);
+    const stride = motions ? 2 * motions.stride * sprite.offsetWidth / 48 : 1;
+    const cycles = Math.min(Math.floor((right ? roomRight : roomLeft) / stride), Math.max(1, Math.round(distance / stride)));
+    if (cycles <= 0) {
+      root.dataset.idle = 'rest';
+      idleTimer = setTimeout(nextIdle, ms);
+      return;
     }
+    const end = start.left + (right ? 1 : -1) * cycles * stride;
+    // Complete a whole number of strides, so both paws are down at the landmark.
+    const leg = motions ? clamp(ms / 2 / cycles, 360, 980) * cycles : ms / 2;
+    walkDuration = leg / cycles;
+    const notice = landscape && setLandscape(start.left, end, right);
 
     root.style.setProperty('--pet-walk-leg-duration', leg + 'ms');
-    root.dataset.direction = right ? 'right' : 'left';
-    root.dataset.idle = 'walk';
-    place(end, start.top);
-    function goBack() {
-      root.dataset.direction = right ? 'left' : 'right';
+    function walkTo(x, forward, arrived) {
+      root.dataset.direction = forward ? 'right' : 'left';
       root.dataset.idle = 'walk';
-      place(start.left, start.top);
-      idleTimer = setTimeout(nextIdle, leg);
+      place(x, start.top);
+      const slide = root.getAnimations().find(animation => animation.transitionProperty === 'left');
+      const deadline = setTimeout(finish, slide ? leg + 100 : leg);
+      idleTimer = deadline;
+      function finish() {
+        if (idleTimer !== deadline) return;
+        clearTimeout(deadline);
+        idleTimer = 0;
+        arrived();
+      }
+      slide?.finished.then(finish, () => {});
+    }
+    function settle() {
+      if (!motions?.clips.settle) { nextIdle(); return; }
+      root.dataset.idle = 'settle';
+      idleTimer = setTimeout(nextIdle, motions.clips.settle[0]);
+    }
+    function goBack() {
+      walkTo(start.left, !right, settle);
     }
     function turnAround() {
       if (!landscape) { goBack(); return; }
       root.dataset.idle = 'turn';
-      idleTimer = setTimeout(goBack, 180);
+      idleTimer = setTimeout(goBack, motions.clips.turn[0]);
     }
-    idleTimer = setTimeout(() => {
+    function arrive() {
       if (notice) {
         root.dataset.idle = 'inspect';
-        idleTimer = setTimeout(turnAround, 2700);
+        idleTimer = setTimeout(turnAround, motions.clips.inspect[0]);
       } else turnAround();
-    }, leg);
+    }
+    if (motions?.clips.stepOff) {
+      root.dataset.direction = right ? 'right' : 'left';
+      root.dataset.idle = 'stepOff';
+      idleTimer = setTimeout(() => walkTo(end, right, arrive), motions.clips.stepOff[0]);
+    } else walkTo(end, right, arrive);
   }
   function nextIdle() {
     idleTimer = 0;
