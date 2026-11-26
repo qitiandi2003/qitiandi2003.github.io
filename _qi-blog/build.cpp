@@ -78,7 +78,7 @@ string header(const string& base, const string& page) {
         return "<a href='" + base + href + "'" + (id == page ? " aria-current='page'" : "") + ">" + label + "</a>";
     };
     return "<a class='skip' href='#main'>跳至正文</a><header class='site-header'><div class='header-inner wrap'>" + wordmark(base) +
-        "<nav class='primary-nav' aria-label='主导航'>" + nav("archive", "notes/", "文章") + nav("topics", "topics/", "学习路线") + "</nav><div class='header-actions'><button class='search-button' type='button' data-open-search aria-haspopup='dialog' aria-label='搜索文章'>" +
+        "<nav class='primary-nav' aria-label='主导航'>" + nav("archive", "notes/", "文章") + nav("topics", "topics/", "学习方向") + "</nav><div class='header-actions'><button class='search-button' type='button' data-open-search aria-haspopup='dialog' aria-label='搜索文章'>" +
         icon("search") + "<span>搜索</span></button><a class='github-button' href='" + github + "' aria-label='Qi 的 GitHub 主页'>" +
         icon("github") + "<span>GitHub</span></a></div></div></header>";
 }
@@ -183,18 +183,18 @@ string homepage(const std::vector<Article>& articles, const json& library) {
         << "<div class='home-reading'><section class='shelf' id='articles'><header class='section-heading'><h2>文章选读</h2><a href='notes/'>全部文章</a></header>"
         << "<div class='note-list'>";
     for (const string slug : library.at("picks")) out << lesson_card(lookup(articles,slug),"");
-    out << "</div></section><aside class='home-routes'><h2>按主题学习</h2><nav aria-label='选择学习路线'>";
+    out << "</div></section><aside class='home-routes'><h2>学习方向</h2><nav aria-label='选择学习方向'>";
     for (const auto& path : library.at("paths")) {
         out << "<a href='topics/" << path.at("id").get<string>() << "/'><span>" << html_escape(path.at("name"))
             << "</span><span class='path-count'>" << path.at("notes").size() << " 篇</span></a>";
     }
-    out << "</nav><a class='plain-link' href='topics/'>查看学习顺序</a></aside></div></main>";
+    out << "</nav><a class='plain-link' href='topics/'>查看全部方向</a></aside></div></main>";
     return document("./","home",brand + " · 机器人、视觉与计算机学习笔记","循序学习视觉、机器人、三维渲染与计算机系统。",out.str());
 }
 
 string archivepage(const std::vector<Article>& articles, const json& library) {
     std::ostringstream out;
-    out << "<main id='main' class='wrap collection'><header class='collection-heading'><h1>文章</h1><a class='plain-link' href='../topics/'>按学习路线阅读</a></header>"
+    out << "<main id='main' class='wrap collection'><header class='collection-heading'><h1>文章</h1><a class='plain-link' href='../topics/'>按方向浏览</a></header>"
         << "<div class='filters' role='group' aria-label='按主题筛选'><button class='all-filter' data-filter='all' type='button' aria-pressed='true'>全部文章</button>";
     for (const auto& path : library.at("paths")) {
         const string group = path.at("id");
@@ -207,10 +207,10 @@ string archivepage(const std::vector<Article>& articles, const json& library) {
 }
 
 string topics_page(const json& library) {
-    const string body="<main id='main' class='wrap collection'><header class='collection-heading'><h1>学习路线</h1></header>"
-        "<p class='collection-intro'>选一个方向，从第一课开始。每条路线都列出了各阶段要掌握的内容。</p>"
+    const string body="<main id='main' class='wrap collection'><header class='collection-heading'><h1>学习方向</h1></header>"
+        "<p class='collection-intro'>选一个感兴趣的方向，查看相关知识与建议的学习顺序。</p>"
         +path_cards(library.at("paths"),"../")+"</main>";
-    return document("../","topics","学习路线 · "+brand,"分阶段阅读六个专题。",body);
+    return document("../","topics","学习方向 · "+brand,"按六个学习方向浏览文章和分阶段的学习路线。",body);
 }
 
 string path_page(const json& path, const std::vector<Article>& articles) {
@@ -218,7 +218,7 @@ string path_page(const json& path, const std::vector<Article>& articles) {
     const auto& notes=path.at("notes");
     const auto& stages=path.at("stages");
     std::ostringstream out;
-    out << "<main id='main' class='wrap path-page'><nav class='crumbs' aria-label='面包屑'><a href='../'>学习路线</a><span>/</span>" << html_escape(name) << "</nav>"
+    out << "<main id='main' class='wrap path-page'><nav class='crumbs' aria-label='面包屑'><a href='../'>学习方向</a><span>/</span>" << html_escape(name) << "</nav>"
         << "<header class='path-head'><div><span class='section-label'>"
         << stages.size() << " 个阶段 · " << notes.size() << " 篇</span><h1>" << html_escape(name) << "</h1><p>" << html_escape(path.at("description"))
         << "</p><a class='plain-link' href='../../notes/" << notes[0].get<string>() << "/'>从第一课开始</a></div></header><details class='stage-menu'><summary>查看学习阶段</summary><nav class='stage-nav' aria-label='跳至学习阶段'>";
@@ -255,7 +255,7 @@ string articlepage(const Article& a, const Article* previous, const Article* nex
     const auto* diagram=diagram_for(a.slug);
     std::ostringstream out,toc;
     out << "<div class='reading-progress' aria-hidden='true'><span></span></div><main id='main' class='wrap reading-page'>"
-        << "<nav class='crumbs' aria-label='面包屑'><a href='../../topics/'>学习路线</a><span>/</span><a href='" << route << "'>" << a.category << "</a></nav>"
+        << "<nav class='crumbs' aria-label='面包屑'><a href='../../topics/'>学习方向</a><span>/</span><a href='" << route << "'>" << a.category << "</a></nav>"
         << "<header class='article-heading'><h1>"
         << html_escape(a.title) << "</h1><p>" << html_escape(a.summary) << "</p><div class='byline'><span class='author'>Qi</span><i></i><time datetime='" << a.published
         << "'>" << a.published << "</time><i></i>" << duration(a) << "<i></i><span>第 " << position+1 << " / " << path.at("notes").size()
@@ -295,9 +295,9 @@ string articlepage(const Article& a, const Article* previous, const Article* nex
         out << "<a class='next-note' href='" << (link?"../"+link->slug+"/":route) << "'><span>" << label << "</span><strong>"
             << html_escape(link?link->title:path.at("name").get<string>()) << "</strong></a>";
     };
-    out << "</ul></section><nav class='chapter-links' aria-label='专题阅读顺序'>";
-    chapter_link(previous,previous?"上一课":"本专题路线");
-    chapter_link(next,next?"下一课":"返回专题");
+    out << "</ul></section><nav class='chapter-links' aria-label='课程阅读顺序'>";
+    chapter_link(previous,previous?"上一课":"学习路线");
+    chapter_link(next,next?"下一课":"返回学习路线");
     out << "</nav></article></div></main>";
     if(diagram) out << "<script defer src='../../assets/diagrams.js?v=reading-3'></script>";
     if(a.slug=="ros2") out << "<script defer src='../../assets/ros-communication.js?v=reading-3'></script>";
@@ -308,7 +308,7 @@ string aboutpage() {
     const string body = "<main id='main' class='wrap about-page'><div class='about-panel'><h1>关于 Qi’blog</h1>"
         "<div class='about-text'><p>我是 Qi。这个博客写给刚开始学视觉、机器人和计算机系统的朋友。</p>"
         "<p>我喜欢从能观察到的现象入手：交替闭上左右眼，近处的手指会移动；两张扫描图叠在一起，墙面贴合了，墙角却可能还差几厘米。把现象画出来，给它添上一两个数字，许多术语就有了着落。</p>"
-        "<p>第一次来，可以按<a href='../topics/'>学习专题</a>慢慢读。已经有了具体问题，可以在<a href='../notes/'>文章索引</a>里找关键词。</p></div></div></main>";
+        "<p>第一次来，可以先选一个<a href='../topics/'>学习方向</a>，再按路线慢慢读。已经有了具体问题，可以在<a href='../notes/'>文章索引</a>里找关键词。</p></div></div></main>";
     return document("../","about","关于 · " + brand,"关于 Qi 和这份技术入门笔记。",body);
 }
 
