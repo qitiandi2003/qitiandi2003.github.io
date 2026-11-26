@@ -443,7 +443,7 @@
       const css = document.createElement('link');
       css.id = 'pet-styles';
       css.rel = 'stylesheet';
-      css.href = base + 'assets/pet.css?v=pet-2';
+      css.href = base + 'assets/pet.css?v=pet-3';
       css.fetchPriority = 'low';
       css.onload = function loadPetScript() {
         if (document.hidden) {
@@ -453,7 +453,7 @@
         const script = document.createElement('script');
         script.async = true;
         script.fetchPriority = 'low';
-        script.src = base + 'assets/pet.js?v=pet-2';
+        script.src = base + 'assets/pet.js?v=pet-3';
         document.head.append(script);
       };
       document.head.append(css);

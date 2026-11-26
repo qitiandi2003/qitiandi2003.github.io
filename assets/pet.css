@@ -84,7 +84,7 @@
   .web-pet[data-idle=sleep] .pet-sprite { animation: pet-sleep 3s steps(1,end) infinite; }
   .web-pet[data-idle=snack] .pet-sprite { animation: pet-eat 2.4s steps(1,end) infinite, pet-nibble .6s steps(2,end) infinite; }
   .web-pet[data-idle=game] .pet-sprite { animation: pet-game .8s steps(1,end) infinite; }
-  .web-pet[data-idle=walk] { transition: left 2s linear; }
+  .web-pet[data-idle=walk] { transition: left var(--pet-walk-leg-duration,3000ms) linear; }
   .web-pet[data-idle=walk] .pet-sprite { animation: pet-walk .5s steps(1,end) infinite, pet-step .5s steps(2,end) infinite; }
   .web-pet[data-action=pat] .pet-sprite { background-position: 18.181818% 0; animation: pet-pat .6s steps(3,end) 2; }
   .web-pet[data-action=pat] .pet-effects { animation: pet-heart 1300ms ease-out both; }
@@ -119,3 +119,180 @@
   .pet-menu, .pet-character, .pet-caption { background: Canvas; border: 1px solid CanvasText; color: CanvasText; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 @media print { .web-pet { display: none; } }
+
+/* The pixel drawing has separate limbs and props; motion stays on these small SVG layers. */
+.web-pet[data-art=rig] .pet-sprite { background: none; animation: none; transform: none; }
+.pb-rig { display: block; width: 100%; height: 100%; overflow: visible; }
+.pb-rig g { transform-box: view-box; }
+.pb-body { transform-origin: 24px 51px; }
+.pb-head { transform-origin: 24px 29px; }
+.pb-arm-l { transform-origin: 11px 36px; }
+.pb-arm-r { transform-origin: 36px 36px; }
+.pb-leg-l { transform-origin: 17px 49px; }
+.pb-leg-r { transform-origin: 31px 49px; }
+.pb-glasses { transform-origin: 24px 18px; }
+.pb-mouth-chew { transform-origin: 24px 26px; }
+.pb-burp-puff { transform-origin: 32px 25px; }
+.pb-burger, .pb-cola, .pb-console, .pb-pillow { transform-origin: 24px 36px; }
+.pb-box-back, .pb-box-front { transform-origin: 24px 55px; }
+.pb-box-flap-l { transform-origin: 7px 39px; }
+.pb-box-flap-r { transform-origin: 40px 39px; }
+.web-pet[data-direction=left] { --pb-facing: -1; }
+.web-pet[data-direction=right] { --pb-facing: 1; }
+.web-pet[data-art=rig]:is([data-action=pat],[data-action=dance]) :is(.pb-eye-open,.pb-eye-blink,.pb-mouth-neutral) { animation: none; opacity: 0; }
+.web-pet[data-art=rig]:is([data-action=pat],[data-action=dance]) :is(.pb-eye-happy,.pb-mouth-smile) { opacity: 1; }
+.web-pet[data-art=rig][data-action=feed] .pb-burger { opacity: 1; }
+
+@media(prefers-reduced-motion: no-preference) {
+  .pb-body { animation: pb-breathe 3.2s ease-in-out infinite; }
+  .pb-head { animation: pb-look-around 8s ease-in-out infinite; }
+  .pb-eye-open { animation: pb-eyes-open 5.6s steps(1,end) infinite; }
+  .pb-eye-blink { animation: pb-eyes-blink 5.6s steps(1,end) infinite; }
+
+  /* A complete snack: lift, bite, chew, sip, enjoy, then a tiny hiccup. */
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-body { animation: pb-food-body 10s ease-in-out both; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-head { animation: pb-food-head 10s ease-in-out both; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-burger { animation: pb-burger-lift 10s ease-in-out both; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-burger-full { animation: pb-burger-whole 10s steps(1,end) both; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-burger-bitten { animation: pb-burger-bite 10s steps(1,end) both; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-cola { animation: pb-cola-sip 10s ease-in-out both; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-arm-l { animation: pb-food-left-arm 10s ease-in-out both; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-arm-r { animation: pb-food-right-arm 10s ease-in-out both; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-eye-open { animation: pb-food-eyes 10s steps(1,end) both; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-eye-blink { animation: none; opacity: 0; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-eye-happy { animation: pb-food-happy 10s steps(1,end) both; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-eye-wide { animation: pb-food-surprise 10s steps(1,end) both; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-mouth-neutral { animation: pb-food-neutral 10s steps(1,end) both; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-mouth-open { animation: pb-food-open 10s steps(1,end) both; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-mouth-chew { animation: pb-food-chewing 10s steps(1,end) both, pb-chew .28s ease-in-out infinite; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-mouth-sip { animation: pb-food-sipping 10s steps(1,end) both; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-mouth-smile { animation: pb-food-content 10s steps(1,end) both; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-mouth-burp { animation: pb-food-surprise 10s steps(1,end) both; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-crumbs { animation: pb-crumbs 10s ease-out both; }
+  .web-pet:is([data-action=feed],[data-idle=snack]) .pb-burp-puff { animation: pb-burp 10s ease-out both; }
+
+  .web-pet[data-idle=sleep] .pb-body { animation: pb-sleep-body 10s ease-in-out both; }
+  .web-pet[data-idle=sleep] .pb-head { animation: pb-sleep-head 10s ease-in-out both; }
+  .web-pet[data-idle=sleep] .pb-pillow { animation: pb-sleep-pillow 10s ease-in-out both; }
+  .web-pet[data-idle=sleep] :is(.pb-arm-l,.pb-arm-r) { animation: pb-sleep-arms 10s ease-in-out both; }
+  .web-pet[data-idle=sleep] :is(.pb-eye-open,.pb-eye-blink,.pb-mouth-neutral) { animation: none; opacity: 0; }
+  .web-pet[data-idle=sleep] :is(.pb-eye-sleep,.pb-mouth-sip) { opacity: 1; }
+  .web-pet[data-idle=sleep] .pb-sleep-z { animation: pb-dream 3s ease-in-out infinite; }
+
+  .web-pet[data-idle=game] .pb-body { animation: pb-game-body 8s ease-in-out both; }
+  .web-pet[data-idle=game] .pb-head { animation: pb-game-head 8s ease-in-out both; }
+  .web-pet[data-idle=game] .pb-console { animation: pb-game-console 8s ease-in-out both; }
+  .web-pet[data-idle=game] .pb-game-player { animation: pb-game-player .85s ease-in-out infinite; }
+  .web-pet[data-idle=game] .pb-thumb-l { animation: pb-thumb .3s ease-in-out infinite; }
+  .web-pet[data-idle=game] .pb-thumb-r { animation: pb-thumb .43s ease-in-out -.15s infinite; }
+  .web-pet[data-idle=game] :is(.pb-arm-l,.pb-arm-r) { animation: pb-game-arms 8s ease-in-out both; }
+  .web-pet[data-idle=game] :is(.pb-eye-open,.pb-eye-blink,.pb-mouth-neutral) { animation: none; opacity: 0; }
+  .web-pet[data-idle=game] .pb-eye-focus { animation: pb-game-focus 8s steps(1,end) both; }
+  .web-pet[data-idle=game] .pb-eye-happy { animation: pb-game-win 8s steps(1,end) both; }
+  .web-pet[data-idle=game] .pb-mouth-smile { opacity: 1; }
+
+  .web-pet[data-idle=walk] .pb-body { animation: pb-walk-bob .52s ease-in-out infinite; }
+  .web-pet[data-idle=walk] .pb-head { animation: none; transform: translateX(calc(var(--pb-facing,1) * 1px)) rotate(calc(var(--pb-facing,1) * 2deg)); }
+  .web-pet[data-idle=walk] .pb-arm-l { animation: pb-arm-swing .52s ease-in-out infinite; }
+  .web-pet[data-idle=walk] .pb-arm-r { animation: pb-arm-swing .52s ease-in-out -.26s infinite; }
+  .web-pet[data-idle=walk] .pb-leg-l { animation: pb-leg-step .52s ease-in-out -.26s infinite; }
+  .web-pet[data-idle=walk] .pb-leg-r { animation: pb-leg-step .52s ease-in-out infinite; }
+
+  .web-pet[data-action=pat] .pb-body { animation: pb-happy-body 2.4s ease-in-out both; }
+  .web-pet[data-action=pat] .pb-head { animation: pb-nuzzle 2.4s ease-in-out both; }
+  .web-pet[data-action=pat] .pb-arm-l { animation: pb-happy-arm 2.4s ease-in-out both; }
+  .web-pet[data-action=pat] .pb-arm-r { animation: pb-happy-arm 2.4s ease-in-out reverse both; }
+  .web-pet[data-action=dance] .pb-body { animation: pb-dance-body .8s ease-in-out 4; }
+  .web-pet[data-action=dance] .pb-head { animation: pb-dance-head .8s ease-in-out 4; }
+  .web-pet[data-action=dance] .pb-arm-l { animation: pb-dance-arm .8s ease-in-out 4; }
+  .web-pet[data-action=dance] .pb-arm-r { animation: pb-dance-arm .8s ease-in-out -.4s 4; }
+  .web-pet[data-action=dance] .pb-leg-l { animation: pb-leg-step .4s ease-in-out 8; }
+  .web-pet[data-action=dance] .pb-leg-r { animation: pb-leg-step .4s ease-in-out -.2s 8; }
+
+  /* Peek out of a parcel, hop out, straighten the glasses and greet the reader. */
+  .web-pet[data-phase=enter] .pb-body { animation: pb-arrive 2.2s cubic-bezier(.25,.65,.3,1) both; }
+  .web-pet[data-phase=enter] .pb-head { animation: pb-arrive-head 2.2s ease-in-out both; }
+  .web-pet[data-phase=enter] .pb-glasses { animation: pb-adjust-glasses 2.2s ease-in-out both; }
+  .web-pet[data-phase=enter] .pb-arm-r { animation: pb-arrive-wave 2.2s ease-in-out both; }
+  .web-pet[data-phase=enter] :is(.pb-box-back,.pb-box-front) { animation: pb-arrive-box 2.2s ease-in-out both; }
+  .web-pet[data-phase=enter] .pb-box-flap-l { animation: pb-arrive-flap-l 2.2s ease-in-out both; }
+  .web-pet[data-phase=enter] .pb-box-flap-r { animation: pb-arrive-flap-r 2.2s ease-in-out both; }
+  .web-pet[data-phase=exit] .pb-body { animation: pb-leave 1.7s ease-in-out both; }
+  .web-pet[data-phase=exit] .pb-head { animation: pb-leave-head 1.7s ease-in-out both; }
+  .web-pet[data-phase=exit] .pb-arm-r { animation: pb-leave-wave 1.7s ease-in-out both; }
+  .web-pet[data-phase=exit] :is(.pb-box-back,.pb-box-front) { animation: pb-leave-box 1.7s ease-in-out both; }
+  .web-pet[data-phase=exit] .pb-box-flap-l { animation: pb-leave-flap-l 1.7s ease-in-out both; }
+  .web-pet[data-phase=exit] .pb-box-flap-r { animation: pb-leave-flap-r 1.7s ease-in-out both; }
+  .web-pet:is([data-phase=enter],[data-phase=exit]) :is(.pb-eye-open,.pb-eye-blink,.pb-mouth-neutral) { animation: none; opacity: 0; }
+  .web-pet:is([data-phase=enter],[data-phase=exit]) :is(.pb-eye-happy,.pb-mouth-smile) { opacity: 1; }
+
+  .web-pet[data-dragging=true] .pb-body { animation: pb-held .75s ease-in-out infinite; }
+  .web-pet[data-dragging=true] .pb-head { animation: none; transform: rotate(-3deg); }
+  .web-pet[data-dragging=true] .pb-arm-l { animation: pb-arm-swing .7s ease-in-out infinite; }
+  .web-pet[data-dragging=true] .pb-arm-r { animation: pb-arm-swing .7s ease-in-out -.35s infinite; }
+  .web-pet[data-dragging=true] .pb-leg-l { animation: pb-leg-step .7s ease-in-out infinite; }
+  .web-pet[data-dragging=true] .pb-leg-r { animation: pb-leg-step .7s ease-in-out -.35s infinite; }
+  .web-pet[data-dragging=true] :is(.pb-eye-open,.pb-eye-blink,.pb-mouth-neutral) { animation: none; opacity: 0; }
+  .web-pet[data-dragging=true] :is(.pb-eye-wide,.pb-mouth-open) { opacity: 1; }
+  .web-pet[data-collapsed=true] :is(.pb-body,.pb-head) { animation: none; }
+
+  @keyframes pb-breathe { 0%,100% { transform: none; } 50% { transform: translateY(-.6px) scaleY(1.012); } }
+  @keyframes pb-look-around { 0%,25%,65%,100% { transform: none; } 35%,47% { transform: rotate(-3deg); } 78%,87% { transform: rotate(2deg); } }
+  @keyframes pb-eyes-open { 0%,91%,96%,100% { opacity: 1; } 92%,95% { opacity: 0; } }
+  @keyframes pb-eyes-blink { 0%,91%,96%,100% { opacity: 0; } 92%,95% { opacity: 1; } }
+  @keyframes pb-burger-lift { 0% { opacity: 0; transform: translateY(10px); } 8%,12% { opacity: 1; transform: none; } 22%,29% { opacity: 1; transform: translateY(-7px); } 35%,43% { opacity: 1; transform: translateY(1px); } 48%,100% { opacity: 0; transform: translateY(12px); } }
+  @keyframes pb-burger-whole { 0% { opacity: 1; } 27%,100% { opacity: 0; } }
+  @keyframes pb-burger-bite { 0% { opacity: 0; } 27%,100% { opacity: 1; } }
+  @keyframes pb-cola-sip { 0%,46% { opacity: 0; transform: translateY(10px); } 52% { opacity: 1; transform: none; } 58%,69% { opacity: 1; transform: translateY(-5px); } 76% { opacity: 1; transform: none; } 82%,100% { opacity: 0; transform: translateY(10px); } }
+  @keyframes pb-food-body { 0%,18%,42%,56%,84%,100% { transform: none; } 25% { transform: translateY(1px) scaleY(.98); } 79% { transform: translateY(-1px) scale(1.025); } 90% { transform: translateY(-3px) scaleY(1.04); } 94% { transform: translateY(1px) scaleY(.97); } }
+  @keyframes pb-food-head { 0%,16%,40%,52%,75%,100% { transform: none; } 23%,28% { transform: translateY(1px) rotate(2deg); } 59%,68% { transform: rotate(-2deg); } 81%,85% { transform: rotate(-5deg); } 90% { transform: translateY(-1px) rotate(2deg); } 95% { transform: rotate(-2deg); } }
+  @keyframes pb-food-left-arm { 0%,100% { opacity: 1; transform: none; } 8%,78% { opacity: 0; transform: rotate(-45deg); } 84% { opacity: 1; transform: none; } 89%,95% { opacity: 1; transform: rotate(-45deg); } }
+  @keyframes pb-food-right-arm { 0%,100% { opacity: 1; transform: none; } 8%,78% { opacity: 0; } 84% { opacity: 1; transform: none; } 89%,95% { opacity: 1; transform: rotate(55deg); } }
+  @keyframes pb-food-eyes { 0%,48%,96% { opacity: 1; } 27%,78%,89% { opacity: 0; } }
+  @keyframes pb-food-happy { 0%,48%,89%,96% { opacity: 0; } 27%,78%,94% { opacity: 1; } }
+  @keyframes pb-food-surprise { 0%,94% { opacity: 0; } 89% { opacity: 1; } }
+  @keyframes pb-food-neutral { 0%,48%,74%,96% { opacity: 1; } 19%,56%,78% { opacity: 0; } }
+  @keyframes pb-food-open { 0%,29% { opacity: 0; } 19% { opacity: 1; } }
+  @keyframes pb-food-chewing { 0%,48% { opacity: 0; } 29% { opacity: 1; } }
+  @keyframes pb-food-sipping { 0%,74% { opacity: 0; } 56% { opacity: 1; } }
+  @keyframes pb-food-content { 0%,89%,96% { opacity: 0; } 78%,94% { opacity: 1; } }
+  @keyframes pb-chew { 0%,100% { transform: translateY(0) scaleY(.7); } 50% { transform: translateY(.5px) scaleY(1.2); } }
+  @keyframes pb-crumbs { 0%,26%,43%,100% { opacity: 0; transform: none; } 28% { opacity: 1; transform: translateY(0); } 41% { opacity: 0; transform: translate(2px,8px); } }
+  @keyframes pb-burp { 0%,87% { opacity: 0; transform: translate(4px,1px) scale(.7); } 90% { opacity: 1; transform: translate(8px,-2px); } 93% { opacity: .9; transform: translate(11px,-4px); } 97%,100% { opacity: 0; transform: translate(14px,-7px) scale(1.1); } }
+  @keyframes pb-sleep-body { 0%,100% { transform: none; } 15%,85% { transform: translateY(2px) scaleY(.96); } 32%,65% { transform: translateY(1px) scaleY(.98); } 48%,78% { transform: translateY(2px) scaleY(.96); } }
+  @keyframes pb-sleep-head { 0%,100% { transform: none; } 18%,85% { transform: rotate(8deg) translateY(1px); } 40%,67% { transform: rotate(10deg) translateY(1.5px); } }
+  @keyframes pb-sleep-pillow { 0%,100% { opacity: 0; transform: translateY(8px); } 12%,86% { opacity: 1; transform: translateY(-1px); } }
+  @keyframes pb-sleep-arms { 0%,100% { opacity: 1; } 10%,88% { opacity: 0; } }
+  @keyframes pb-dream { 0% { opacity: 0; transform: translateY(3px) scale(.8); } 35%,65% { opacity: .8; } 100% { opacity: 0; transform: translate(2px,-5px) scale(1.15); } }
+  @keyframes pb-game-body { 0%,15%,38%,61%,94%,100% { transform: none; } 24%,48% { transform: translateY(1px); } 72% { transform: translateY(2px) scaleY(.95); } 79% { transform: translateY(-5px) scaleY(1.03); } 86% { transform: translateY(1px) scaleY(.97); } }
+  @keyframes pb-game-head { 0%,100% { transform: none; } 16%,39%,64% { transform: rotate(4deg) translateY(1px); } 27%,51% { transform: rotate(-4deg) translateY(1px); } 79% { transform: rotate(-2deg) translateY(-1px); } }
+  @keyframes pb-game-console { 0%,100% { opacity: 0; transform: translateY(8px); } 12%,90% { opacity: 1; transform: none; } 23%,49% { opacity: 1; transform: rotate(-5deg) translateY(-1px); } 36%,62% { opacity: 1; transform: rotate(5deg); } 78%,84% { opacity: 1; transform: translateY(-3px); } }
+  @keyframes pb-game-player { 0%,100% { transform: none; } 35% { transform: translate(3px,-2px); } 70% { transform: translate(-2px,0); } }
+  @keyframes pb-thumb { 0%,100% { transform: none; } 50% { transform: translateY(.6px); } }
+  @keyframes pb-game-arms { 0%,100% { opacity: 1; } 10%,91% { opacity: 0; } }
+  @keyframes pb-game-focus { 0%,74% { opacity: 1; } 75%,100% { opacity: 0; } }
+  @keyframes pb-game-win { 0%,74% { opacity: 0; } 75%,100% { opacity: 1; } }
+  @keyframes pb-walk-bob { 0%,50%,100% { transform: translateY(0); } 25%,75% { transform: translateY(-.8px); } }
+  @keyframes pb-leg-step { 0%,100% { transform: translateX(-1px) rotate(9deg); } 50% { transform: translateX(1px) rotate(-9deg); } }
+  @keyframes pb-arm-swing { 0%,100% { transform: rotate(-13deg); } 50% { transform: rotate(13deg); } }
+  @keyframes pb-happy-body { 0%,100% { transform: none; } 22%,64% { transform: translateY(-1px) scale(1.02); } 43%,82% { transform: translateY(.5px); } }
+  @keyframes pb-nuzzle { 0%,100% { transform: none; } 20%,64% { transform: translate(-1px,-.5px) rotate(-7deg); } 42%,82% { transform: translate(1px,0) rotate(5deg); } }
+  @keyframes pb-happy-arm { 0%,100% { transform: none; } 25%,70% { transform: rotate(-22deg); } 46% { transform: rotate(-8deg); } }
+  @keyframes pb-dance-body { 0%,100% { transform: translate(-2px,0) rotate(-3deg); } 25% { transform: translateY(-3px); } 50% { transform: translate(2px,0) rotate(3deg); } 75% { transform: translateY(-2px); } }
+  @keyframes pb-dance-head { 0%,100% { transform: rotate(5deg); } 50% { transform: rotate(-5deg); } }
+  @keyframes pb-dance-arm { 0%,100% { transform: rotate(-60deg); } 50% { transform: rotate(25deg); } }
+  @keyframes pb-held { 0%,100% { transform: rotate(-3deg) translateY(-1px); } 50% { transform: rotate(3deg) translateY(-1px); } }
+  @keyframes pb-arrive { 0%,12% { opacity: 0; transform: translateY(35px) scale(.8); } 25%,37% { opacity: 1; transform: translateY(19px) scale(.95); } 47% { opacity: 1; transform: translateY(23px) scale(1.02,.9); } 65% { opacity: 1; transform: translateY(-7px) scale(.96,1.04); } 76% { opacity: 1; transform: translateY(2px) scale(1.05,.94); } 85%,100% { opacity: 1; transform: none; } }
+  @keyframes pb-arrive-head { 0%,24%,49%,100% { transform: none; } 32% { transform: rotate(-9deg); } 41% { transform: rotate(8deg); } 77% { transform: translateY(1px); } }
+  @keyframes pb-adjust-glasses { 0%,68%,90%,100% { transform: none; } 77% { transform: translateY(1px) rotate(-3deg); } 83% { transform: translateY(-.5px); } }
+  @keyframes pb-arrive-wave { 0%,76%,100% { transform: none; } 82%,94% { transform: rotate(145deg); } 88% { transform: rotate(115deg); } }
+  @keyframes pb-arrive-box { 0% { opacity: 0; transform: translateY(4px); } 9%,65% { opacity: 1; transform: none; } 72% { opacity: .8; transform: translateY(3px) scaleY(.8); } 87%,100% { opacity: 0; transform: translateY(8px) scaleY(.4); } }
+  @keyframes pb-arrive-flap-l { 0% { opacity: 0; transform: rotate(0); } 10%,21% { opacity: 1; transform: rotate(0); } 30%,66% { opacity: 1; transform: rotate(-125deg); } 85%,100% { opacity: 0; transform: rotate(-125deg); } }
+  @keyframes pb-arrive-flap-r { 0% { opacity: 0; transform: rotate(0); } 10%,24% { opacity: 1; transform: rotate(0); } 35%,66% { opacity: 1; transform: rotate(125deg); } 85%,100% { opacity: 0; transform: rotate(125deg); } }
+  @keyframes pb-leave { 0%,27% { opacity: 1; transform: none; } 42% { opacity: 1; transform: translateY(3px) scale(1.04,.94); } 57% { opacity: 1; transform: translateY(-5px) scale(.96,1.03); } 76% { opacity: 1; transform: translateY(24px) scale(.92); } 88%,100% { opacity: 0; transform: translateY(37px) scale(.8); } }
+  @keyframes pb-leave-head { 0%,100% { transform: none; } 17% { transform: rotate(-7deg); } 33% { transform: rotate(8deg); } }
+  @keyframes pb-leave-wave { 0%,41%,100% { transform: none; } 10%,30% { transform: rotate(145deg); } 20% { transform: rotate(115deg); } }
+  @keyframes pb-leave-box { 0%,25% { opacity: 0; transform: translateY(8px); } 44%,92% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(5px) scale(.8); } }
+  @keyframes pb-leave-flap-l { 0%,29% { opacity: 0; transform: rotate(-125deg); } 43%,76% { opacity: 1; transform: rotate(-125deg); } 89%,95% { opacity: 1; transform: rotate(0); } 100% { opacity: 0; } }
+  @keyframes pb-leave-flap-r { 0%,29% { opacity: 0; transform: rotate(125deg); } 43%,79% { opacity: 1; transform: rotate(125deg); } 92%,95% { opacity: 1; transform: rotate(0); } 100% { opacity: 0; } }
+}

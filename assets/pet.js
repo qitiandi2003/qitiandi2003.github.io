@@ -1,4 +1,4 @@
-(function initPet() {
+(async function initPet() {
   'use strict';
   if (document.hidden) {
     document.addEventListener('visibilitychange', initPet, {once: true});
@@ -32,6 +32,33 @@
   const sprite = root.querySelector('.pet-sprite');
   const message = root.querySelector('.pet-message');
   const effects = root.querySelector('.pet-effects');
+  try {
+    const base = document.documentElement.dataset.base || './';
+    const response = await fetch(base + 'assets/pet-bear-rig.svg?v=pet-3', {mode: 'same-origin'});
+    if (!response.ok || !/^image\/svg\+xml(?:\s*;|$)/i.test(response.headers.get('content-type') || '')) {
+      throw new Error('Artwork unavailable');
+    }
+    const svg = new DOMParser().parseFromString(await response.text(), 'image/svg+xml').documentElement;
+    if (svg.namespaceURI !== 'http://www.w3.org/2000/svg' || svg.localName !== 'svg' || svg.querySelector('parsererror') ||
+        !svg.classList.contains('pb-rig') || svg.getAttribute('viewBox')?.trim().split(/[\s,]+/).join(' ') !== '0 0 48 56') {
+      throw new Error('Unexpected artwork');
+    }
+    sprite.replaceChildren(document.importNode(svg, true));
+    root.dataset.art = 'rig';
+  } catch {
+    root.dataset.art = 'fallback';
+  }
+  if (document.hidden) {
+    await new Promise(resolve => {
+      function visible() {
+        if (document.hidden) return;
+        document.removeEventListener('visibilitychange', visible);
+        resolve();
+      }
+      document.addEventListener('visibilitychange', visible);
+    });
+  }
+  if (document.querySelector('.web-pet')) return;
   const header = document.querySelector('.site-header');
   const wide = matchMedia('(min-width: 1280px)');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -95,7 +122,8 @@
     }
     positionMenu();
   }
-  function scheduleLayout() {
+  function scheduleLayout(event) {
+    if (event.type === 'scroll' && event.currentTarget === window && menu.hidden) return;
     if (root.dataset.idle === 'walk') { stopIdle(); resumeIdle(); }
     if (document.hidden || press || layoutFrame || (!position && menu.hidden)) return;
     layoutFrame = requestAnimationFrame(() => { layoutFrame = 0; if (!press) layout(); });
@@ -114,7 +142,7 @@
     layout();
     if (before === root.dataset.collapsed) return;
     stopIdle();
-    if (root.dataset.collapsed === 'false') phase('enter', 650, resumeIdle);
+    if (root.dataset.collapsed === 'false') phase('enter', 2200, () => resumeIdle(300));
     else clearPhase();
   }
   function readSettings() {
@@ -130,7 +158,7 @@
   function chooseSize(collapsed) {
     preference = String(collapsed);
     try { localStorage.setItem(sizeKey, preference); } catch {}
-    if (collapsed) { stopIdle(); phase('exit', 420, applySize); }
+    if (collapsed) { stopIdle(); phase('exit', 1700, applySize); }
     else applySize();
   }
 
@@ -147,7 +175,8 @@
   function cancelExit() {
     if (root.dataset.phase === 'exit') { clearPhase(); chooseSize(false); }
   }
-  const cycle = [['sleep', 10000], ['snack', 8000], ['game', 10000], ['walk', 6000], ['rest', 6000]];
+  const cycle = [['walk', 6000], ['snack', 10000], ['rest', 4500], ['walk', 6000], ['game', 8000],
+    ['walk', 6000], ['sleep', 10000], ['rest', 4500]];
   function canIdle() {
     return !document.hidden && !reduced.matches && root.dataset.paused !== 'true' &&
       root.dataset.collapsed === 'false' && !root.dataset.phase && !press && !acting && menu.hidden &&
@@ -157,23 +186,29 @@
     clearTimeout(idleTimer); idleTimer = 0; idleStep = 0;
     const here = root.dataset.idle === 'walk' ? root.getBoundingClientRect() : null;
     root.dataset.idle = 'rest';
+    delete root.dataset.direction;
     // Freeze an interrupted walk at the rendered pixel. Only explicit moves write storage.
     if (here) position = moveTo(here.left, here.top);
   }
   function nextIdle() {
     idleTimer = 0;
     if (!canIdle()) { stopIdle(); return; }
-    if (root.dataset.idle === 'walk') { root.dataset.idle = 'rest'; layout(); }
+    if (root.dataset.idle === 'walk') { root.dataset.idle = 'rest'; delete root.dataset.direction; layout(); }
     const [state, ms] = cycle[idleStep];
     idleStep = (idleStep + 1) % cycle.length;
     if (state === 'walk') {
       const here = root.getBoundingClientRect(), b = travel();
       place(here.left, here.top);
       const start = root.getBoundingClientRect();
+      const distance = 64 + Math.round(Math.random() * 48);
+      const roomLeft = start.left - b.x, roomRight = b.x + b.w - start.left;
+      const right = Math.min(roomLeft, roomRight) >= distance ? Math.random() < .5 : roomRight > roomLeft;
+      root.style.setProperty('--pet-walk-leg-duration', ms / 2 + 'ms');
+      root.dataset.direction = right ? 'right' : 'left';
       root.dataset.idle = 'walk';
-      const step = start.left < b.x + b.w / 2 ? 36 : -36;
-      moveTo(start.left + step, start.top);
+      moveTo(start.left + (right ? distance : -distance), start.top);
       idleTimer = setTimeout(() => {
+        root.dataset.direction = right ? 'left' : 'right';
         place(start.left, start.top);
         idleTimer = setTimeout(nextIdle, ms / 2);
       }, ms / 2);
@@ -182,8 +217,8 @@
       idleTimer = setTimeout(nextIdle, ms);
     }
   }
-  function resumeIdle() {
-    if (!idleTimer && canIdle()) idleTimer = setTimeout(nextIdle, 5000);
+  function resumeIdle(delay = 2500) {
+    if (!idleTimer && canIdle()) idleTimer = setTimeout(nextIdle, delay);
   }
 
   function closeMenu(restoreFocus) {
@@ -222,9 +257,9 @@
   });
 
   const actions = {
-    pat: ['♥', '小熊熊眯起眼，轻轻蹭了蹭你的手。'],
-    feed: ['', '小熊熊咬了一口汉堡，又喝了口可乐。'],
-    dance: ['♪', '小熊熊跟着节拍晃了晃。']
+    pat: {icon: '♥', message: '小熊熊眯起眼，轻轻蹭了蹭你的手。', duration: 2400},
+    feed: {icon: '', message: '小熊熊捧起汉堡，手边还有一杯可乐。', duration: 10000},
+    dance: {icon: '♪', message: '小熊熊跟着节拍晃了晃。', duration: 3200}
   };
   function stopEffect() {
     acting = false;
@@ -237,13 +272,24 @@
     stopIdle();
     stopEffect();
     acting = true;
-    message.textContent = actions[action][1];
+    const scene = actions[action];
+    message.textContent = scene.message;
     positionMenu();
+    if (!menu.hidden) {
+      const panel = menu.getBoundingClientRect(), bear = sprite.getBoundingClientRect();
+      if (panel.left < bear.right && panel.right > bear.left && panel.top < bear.bottom && panel.bottom > bear.top) {
+        closeMenu(true);
+      }
+    }
     frame = requestAnimationFrame(() => {
       frame = requestAnimationFrame(() => {
         root.dataset.action = action;
-        effects.textContent = actions[action][0];
-        timer = setTimeout(() => { stopEffect(); resumeIdle(); }, 1600);
+        effects.textContent = scene.icon;
+        timer = setTimeout(() => {
+          stopEffect();
+          if (action === 'feed') { message.textContent = '吃饱啦，小熊熊打了个小小的饱嗝。'; positionMenu(); }
+          resumeIdle();
+        }, reduced.matches ? 1200 : scene.duration);
       });
     });
   }
@@ -263,8 +309,8 @@
   }
   function strokeHead(event) {
     if (event.pointerType === 'touch' || event.buttons || root.dataset.collapsed === 'true' ||
-        root.dataset.paused === 'true' || root.dataset.phase || performance.now() < nextPat || !onHead(event)) return;
-    nextPat = performance.now() + 1600;
+        root.dataset.paused === 'true' || root.dataset.phase === 'exit' || performance.now() < nextPat || !onHead(event)) return;
+    nextPat = performance.now() + actions.pat.duration;
     play('pat');
   }
   character.addEventListener('pointerdown', event => {
@@ -311,6 +357,7 @@
     const step = {ArrowLeft: [-16,0], ArrowRight: [16,0], ArrowUp: [0,-16], ArrowDown: [0,16]}[event.key];
     if (!step) return;
     event.preventDefault();
+    clearPhase(); stopEffect();
     stopIdle();
     const r = root.getBoundingClientRect();
     storePosition(moveTo(r.left + step[0], r.top + step[1])); positionMenu(); resumeIdle();
@@ -332,7 +379,7 @@
   window.visualViewport?.addEventListener('resize', scheduleLayout);
   window.visualViewport?.addEventListener('scroll', scheduleLayout);
   wide.addEventListener('change', applySize);
-  reduced.addEventListener('change', () => { stopIdle(); clearPhase(); applySize(); resumeIdle(); });
+  reduced.addEventListener('change', () => { stopIdle(); stopEffect(); clearPhase(); applySize(); resumeIdle(); });
   window.addEventListener('storage', event => {
     if (event.key === sizeKey || event.key === positionKey || event.key === null) { endPress(); readSettings(); }
   });
