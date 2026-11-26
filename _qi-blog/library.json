@@ -196,19 +196,15 @@
       "name": "博客与静态发布",
       "repository": "qitiandi2003.github.io",
       "url": "https://github.com/qitiandi2003/qitiandi2003.github.io",
-      "summary": "从 2023 年的 Hexo 归档，到现在的 C++ 静态页面生成器。两个站点共用域名，各自保留文章路径。",
+      "summary": "这套 C++ 生成器从手记生成正文、目录和搜索数据，并在迁移到域名根目录后接续旧书签。",
       "modules": [
         {
           "label": "静态生成器",
-          "url": "https://github.com/qitiandi2003/qitiandi2003.github.io/blob/12c60c7/_qi-blog/build.cpp"
+          "url": "https://github.com/qitiandi2003/qitiandi2003.github.io/blob/master/_qi-blog/build.cpp"
         },
         {
           "label": "站点维护",
-          "url": "https://github.com/qitiandi2003/qitiandi2003.github.io/blob/12c60c7/_qi-blog/README.md"
-        },
-        {
-          "label": "旧站归档",
-          "url": "https://github.com/qitiandi2003/qitiandi2003.github.io/tree/12c60c7/archives"
+          "url": "https://github.com/qitiandi2003/qitiandi2003.github.io/blob/master/README.md"
         }
       ],
       "notes": [

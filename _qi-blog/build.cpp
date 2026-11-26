@@ -1,4 +1,4 @@
-// Run from the repository root. See _qi-blog/README.md.
+// Run from the repository root. See README.md.
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -15,7 +15,7 @@ namespace fs = std::filesystem;
 using json = nlohmann::json;
 using std::string;
 
-const fs::path destination = "qi-blog";
+const fs::path destination = ".";
 const string github = "https://github.com/qitiandi2003";
 const string brand = "Qi‘blog";
 
@@ -237,7 +237,7 @@ string aboutpage() {
         "<div class='about-text'><p>我是 Qi，这里放的是我的工程手记。</p>"
         "<p>有时是一帧图像：一条亮边究竟是液面还是反光。有时是几行日志：机器人拐弯后，最先偏掉的是时间戳、坐标变换，还是地图上的轨迹。也有些问题来自读代码，比如一个词怎样变成向量，半条 TCP 消息该留在哪里。</p>"
         "<p>每篇手记都保留了用得上的源码或原始资料。想从某个项目开始，可以翻<a href='../repositories/'>仓库索引</a>。</p>"
-        "<p class='about-links'><a href='" + github + "'>GitHub 主页</a><a href='/archives/'>2023 年旧站归档</a></p></div></div></main>";
+        "<p class='about-links'><a href='" + github + "'>GitHub 主页</a></p></div></div></main>";
     return document("../","about","关于 · " + brand,"Qi 的个人工程手记。",body);
 }
 

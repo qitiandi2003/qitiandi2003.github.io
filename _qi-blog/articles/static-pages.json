@@ -1,42 +1,34 @@
 {
   "slug": "static-pages",
-  "title": "旧博客旁边的静态站",
-  "summary": "旧文章的 URL 属于 Hexo，新手记由 C++ 生成。两个静态站共用一个域名时，图片、正文和搜索结果各自该从哪一级目录找？",
+  "title": "把静态博客迁到域名根目录",
+  "summary": "把一篇手记从子目录移到根目录，既要找对样式和图片，也要让收藏夹里的旧文章、分类和段落仍能打开。",
   "sections": [
-    {
-      "title": "旧地址也是文章的一部分",
-      "paragraphs": [
-        "翻看 2023 年 11 月的仓库快照，根目录已经有 index.html、按年月排列的归档，以及两篇文章各自的 HTML。首页标出了 Hexo 7.0.0。Hexo 的 generate 命令会生成静态文件，这份快照保存的正是浏览器能直接打开的页面和资源。",
-        "新手记采用独立的 `qi-blog/` 目录，旧文仍在 `2023/11/04/` 下面。可以从个人站根地址点一篇旧文，再直接打开新站某篇手记的深层链接，核对两边的入口。只在新首页里点一圈，容易漏掉旧书签。"
-      ]
-    },
     {
       "title": "一份文章生成哪些文件",
       "paragraphs": [
-        "Qi‘blog 的初版把内容放在 `_qi-blog/articles/`，每篇用 JSON 保存标题、摘要、正文小节和来源。C++17 生成器读取文章，写出首页、每篇的详情页、关于页和搜索索引。正文直接进 HTML，浏览器不执行脚本也能读文章。",
-        "搜索框读取另一份较小的数据，只需要文章标识、标题、摘要、主题和关键词。同一轮生成同时写正文与索引，可以避免改了标题却仍只能搜到旧名字。初版提交中的生成器还显式列出了七篇文章的顺序，仓库里多一个 JSON 文件本身并不会自动出现在那个版本的首页上。"
+        "Qi‘blog 的每篇手记保存在 `_qi-blog/articles/`。生成器读取 JSON 里的标题、摘要、正文和来源，写出文章详情，并更新首页、文章索引与仓库索引。页面已经包含正文，关闭 JavaScript 也能阅读。",
+        "搜索使用独立的 `assets/search-index.js`。它只收录标题、标识、摘要、主题和关键词等信息，输入词语时无需下载每篇文章的正文。改标题后运行一次生成器，文章与搜索结果就会显示同一个名字。"
       ]
     },
     {
-      "title": "站在文章页上检查路径",
+      "title": "从一篇文章检查站内路径",
       "paragraphs": [
-        "首页与 `notes/<slug>/` 里的文章页处在不同深度。例如从文章页引用站内资源，`../../assets/site.css` 会回到新站的 assets 目录。直接写成域名根目录下的 `/assets/site.css`，浏览器就会到旧站所在层级找样式。",
-        "出站前从实际的子路径打开一篇详情页，核对样式表、封面、搜索结果的目标和回首页的链接。GitHub Pages 支持从指定分支和目录发布。提交包含生成结果后，还要从公开地址读回页面，才能知道访客实际拿到的是哪一版。"
+        "最初，Qi‘blog 在 `/qi-blog/` 下发布，域名根目录留给旧 Hexo 站点。迁移后，首页在 `/`，文章位于 `/notes/<slug>/`，图片、字体和脚本位于 `/assets/`。",
+        "以这篇手记为例。浏览器从 `/notes/static-pages/` 请求 `../../assets/site.css`，向上两级正好抵达根目录。预览时直接打开一篇深层文章，再依次试一下返回首页、查看插图和按标题搜索，能覆盖从首页出发时容易漏掉的路径。"
+      ]
+    },
+    {
+      "title": "保留书签里的分类和段落",
+      "paragraphs": [
+        "迁移前已经发布的 Qi‘blog 页面各有一个对应的新地址。比如 `/qi-blog/notes/static-pages/#sources` 应落到 `/notes/static-pages/#sources`。旧路径上的静态跳转页会把读者带到新页面，启用 JavaScript 时会一并传递查询参数和段落锚点。",
+        "验收时用两类书签。一类带 `?group=vision`，应该打开已选中感知与标定的文章列表。另一类带 `#sources`，应该直接定位到文章参考资料。最后从已发布的域名再各试一次，确认 GitHub Pages 提供的是新版本。"
       ]
     }
   ],
   "refs": [
     {
-      "label": "历史快照 · 2023 年 Hexo 首页",
-      "url": "https://github.com/qitiandi2003/qitiandi2003.github.io/blob/5210d45a8c8cddef05cae9e226511becd7662361/index.html"
-    },
-    {
-      "label": "Qi‘blog 初版 · C++ 静态生成器",
-      "url": "https://github.com/qitiandi2003/qitiandi2003.github.io/blob/d1545b82d0b5ee88dda04736db4e62e0e68176d5/_qi-blog/build.cpp"
-    },
-    {
-      "label": "Hexo 文档 · 静态生成命令",
-      "url": "https://hexo.io/docs/commands.html#generate"
+      "label": "Qi‘blog · C++ 静态生成器",
+      "url": "https://github.com/qitiandi2003/qitiandi2003.github.io/blob/master/_qi-blog/build.cpp"
     },
     {
       "label": "GitHub Docs · Pages 发布来源",
@@ -46,6 +38,6 @@
   "topic": "静态发布",
   "category": "工程实践",
   "group": "engineering",
-  "keywords": "Hexo GitHub Pages 静态站 C++17 JSON 搜索索引 个人博客 相对路径",
+  "keywords": "GitHub Pages 静态站 C++17 JSON 搜索索引 个人博客 相对路径 根目录迁移 重定向 旧书签",
   "published": "2026-11-26"
 }
