@@ -32,10 +32,10 @@
   const sprite = root.querySelector('.pet-sprite');
   const message = root.querySelector('.pet-message');
   const effects = root.querySelector('.pet-effects');
-  let landscape = null;
+  let landscape = null, atlas = null, motions = null;
   try {
     const base = document.documentElement.dataset.base || './';
-    const response = await fetch(base + 'assets/pet-bear-rig.svg?v=pet-4', {mode: 'same-origin'});
+    const response = await fetch(base + 'assets/pet-bear-rig.svg?v=pet-5', {mode: 'same-origin'});
     if (!response.ok || !/^image\/svg\+xml(?:\s*;|$)/i.test(response.headers.get('content-type') || '')) {
       throw new Error('Artwork unavailable');
     }
@@ -44,13 +44,24 @@
         !svg.classList.contains('pb-rig') || svg.getAttribute('viewBox')?.trim().split(/[\s,]+/).join(' ') !== '0 0 48 56') {
       throw new Error('Unexpected artwork');
     }
+    const drawing = svg.querySelector('image.pb-atlas');
+    const source = drawing?.getAttribute('href');
+    const timeline = JSON.parse(svg.querySelector('.pb-motion')?.textContent || 'null');
+    if (!source?.startsWith('data:image/png;base64,') || !timeline?.clips?.rest || !(timeline.columns > 0 && timeline.stride > 0)) {
+      throw new Error('Pixel frames unavailable');
+    }
+    const decoded = new Image();
+    decoded.src = source;
+    await decoded.decode();
     const scenery = svg.querySelector('.pb-landscape');
-    if (scenery && svg.querySelector('.pb-profile')) {
+    if (scenery) {
       landscape = document.importNode(scenery, true);
       scenery.remove();
       root.prepend(landscape);
     }
     sprite.replaceChildren(document.importNode(svg, true));
+    atlas = sprite.querySelector('.pb-atlas');
+    motions = timeline;
     root.dataset.art = 'rig';
   } catch {
     root.dataset.art = 'fallback';
@@ -75,6 +86,31 @@
   let frame, timer, layoutFrame, nextPat = 0;
   let idleTimer, idleStep = 0, phaseTimer, acting = false;
   const seasons = ['spring', 'summer', 'autumn', 'winter'];
+  let spriteAnimation, currentClip, walkDuration;
+
+  function updateArtwork() {
+    if (!atlas) return;
+    const state = root.dataset;
+    const still = state.collapsed === 'true' || state.paused === 'true' || reduced.matches;
+    let name = state.dragging === 'true' ? 'drag' : state.phase || state.action || state.idle || 'rest';
+    if (name === 'snack') name = 'feed';
+    if (name === 'inspect' && ['summer', 'winter'].includes(state.season)) name = 'inspectUp';
+    if (state.paused === 'true' || state.collapsed === 'true' || !motions.clips[name]) name = 'rest';
+    const key = name + (still ? ' still' : ' play');
+    if (key === currentClip) return;
+    currentClip = key;
+
+    spriteAnimation?.cancel();
+    const [duration, loop, tiles] = motions.clips[name];
+    const translate = tile => `translate(${-48 * (tile % motions.columns)}px,${-56 * Math.floor(tile / motions.columns)}px)`;
+    atlas.style.transform = translate(tiles[still && state.action ? Math.floor(tiles.length * .4) : 0]);
+    if (still) return;
+    // Each frame stays on screen until the next tile, with no interpolation of the drawing.
+    const poses = tiles.map((tile, index) => ({transform: translate(tile), offset: index / tiles.length, easing: 'steps(1,end)'}));
+    poses.push({transform: translate(tiles.at(-1)), offset: 1});
+    spriteAnimation = atlas.animate(poses, {duration: name === 'walk' ? walkDuration : duration,
+      iterations: loop ? Infinity : 1, fill: 'both'});
+  }
 
   function viewport() {
     const view = window.visualViewport;
@@ -227,6 +263,10 @@
     const end = clamp(start.left + (right ? distance : -distance), bounds.x, bounds.x + bounds.w);
     const leg = ms / 2;
     const notice = landscape && setLandscape(start.left, end, right);
+    if (motions) {
+      const step = motions.stride * sprite.offsetWidth / 48;
+      walkDuration = clamp(2 * step * leg / Math.max(1, Math.abs(end - start.left)), 360, 1500);
+    }
 
     root.style.setProperty('--pet-walk-leg-duration', leg + 'ms');
     root.dataset.direction = right ? 'right' : 'left';
@@ -350,7 +390,7 @@
   function onHead(event) {
     const r = sprite.getBoundingClientRect();
     const x = (event.clientX - r.left) / r.width, y = (event.clientY - r.top) / r.height;
-    return x > .15 && x < .85 && y > .09 && y < .50;
+    return x > .12 && x < .89 && y > .06 && y < .57;
   }
   function strokeHead(event) {
     if (event.pointerType === 'touch' || event.buttons || root.dataset.collapsed === 'true' ||
@@ -424,7 +464,7 @@
   window.visualViewport?.addEventListener('resize', scheduleLayout);
   window.visualViewport?.addEventListener('scroll', scheduleLayout);
   wide.addEventListener('change', applySize);
-  reduced.addEventListener('change', () => { stopIdle(); stopEffect(); clearPhase(); applySize(); resumeIdle(); });
+  reduced.addEventListener('change', () => { stopIdle(); stopEffect(); clearPhase(); applySize(); resumeIdle(); updateArtwork(); });
   window.addEventListener('storage', event => {
     if (event.key === sizeKey || event.key === positionKey || event.key === null) {
       endPress(); stopIdle(); readSettings(); resumeIdle();
@@ -436,7 +476,10 @@
   new MutationObserver(records => {
     if (records.some(r => r.target.matches('dialog'))) syncPaused();
   }).observe(document.body, {subtree: true, attributes: true, attributeFilter: ['open']});
+  if (atlas) new MutationObserver(updateArtwork).observe(root, {attributes: true,
+    attributeFilter: ['data-idle', 'data-action', 'data-phase', 'data-season', 'data-collapsed', 'data-dragging', 'data-paused']});
   document.body.append(root);
   syncPaused();
   readSettings();
+  updateArtwork();
 })();

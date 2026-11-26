@@ -104,7 +104,7 @@ string document(const string& base, const string& page, const string& title, con
         "<meta name='viewport' content='width=device-width,initial-scale=1'><meta name='theme-color' content='#ffffff'>"
         "<title>" + html_escape(title) + "</title><meta name='description' content='" + html_escape(desc) + "'>"
         "<link rel='icon' href='" + base + "assets/favicon.svg?v=wordmark-4' type='image/svg+xml'><link rel='stylesheet' href='" +
-        base + "assets/site.css?v=perf-9'><script defer src='" + base + "assets/site.js?v=pet-13'></script>"
+        base + "assets/site.css?v=perf-9'><script defer src='" + base + "assets/site.js?v=pet-14'></script>"
         "<noscript><style>.search-button,.filters{display:none}</style></noscript></head><body>" +
         header(base,page) + body + footer(base) + "</body></html>\n";
 }

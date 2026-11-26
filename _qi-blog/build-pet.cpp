@@ -1,12 +1,16 @@
 // Rebuild from the repository root:
-// g++ -std=c++17 -O2 _qi-blog/build-pet.cpp -o /tmp/build-pet && /tmp/build-pet
+// g++ -std=c++17 -O2 _qi-blog/build-pet.cpp -lpng -o /tmp/build-pet && /tmp/build-pet
+#include <png.h>
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <sstream>
+#include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -16,21 +20,20 @@ using Row = std::pair<int, int>;  // Inclusive x coordinates of a silhouette on 
 constexpr int width = 48;
 constexpr int height = 56;
 
-// S — cool coat shadow, J — rose frames, T — stethoscope. The small colour
-// vocabulary keeps edges distinct even on the single-pixel mobile badge.
+// Golden plush fur, cream fabric and strawberry-rose details share one palette.
 const std::map<char, std::string> palette = {
-    {'o', "#5e443a"}, {'s', "#a97250"}, {'t', "#c98f60"}, {'g', "#e6b477"},
-    {'f', "#f3c98f"}, {'h', "#ffdfa4"}, {'l', "#fff0bc"}, {'e', "#b77c63"},
-    {'p', "#df9f85"}, {'r', "#edb29b"}, {'m', "#ffe4b6"}, {'w', "#fff0d0"},
-    {'n', "#493833"}, {'k', "#352829"}, {'O', "#4f6067"}, {'S', "#92abb3"},
-    {'M', "#b3c7ce"}, {'W', "#e1edf0"}, {'F', "#fffcf3"}, {'B', "#527d9b"},
-    {'A', "#80a9bd"}, {'C', "#b4ced6"}, {'T', "#476f78"}, {'D', "#648d92"},
-    {'I', "#c1ddda"}, {'z', "#69839b"}, {'v', "#8c98b1"}, {'a', "#b5bfd5"},
+    {'o', "#8c5a43"}, {'s', "#ad704f"}, {'t', "#cc8859"}, {'g', "#e7a970"},
+    {'f', "#efbb80"}, {'h', "#f8ca92"}, {'l', "#ffe3b3"}, {'e', "#9f5b4f"},
+    {'p', "#e59681"}, {'r', "#f4aa89"}, {'m', "#f5c38b"}, {'w', "#fff0cf"},
+    {'n', "#793f39"}, {'k', "#59352b"}, {'O', "#84736a"}, {'S', "#a2aaa6"},
+    {'M', "#becac2"}, {'W', "#e8ede4"}, {'F', "#fff8e8"}, {'B', "#709397"},
+    {'A', "#83a8a8"}, {'C', "#91bab5"}, {'T', "#66898e"}, {'D', "#8aa6ad"},
+    {'I', "#dce5d5"}, {'z', "#69839b"}, {'v', "#818aab"}, {'a', "#aab4cd"},
     {'b', "#d6dbea"}, {'d', "#edeef2"}, {'y', "#e2a052"}, {'j', "#f8c272"},
-    {'u', "#925832"}, {'q', "#6b4638"}, {'H', "#70894e"}, {'G', "#acc078"},
+    {'u', "#925832"}, {'q', "#593b36"}, {'H', "#70894e"}, {'G', "#acc078"},
     {'R', "#bb5949"}, {'X', "#ab5b50"}, {'V', "#d46e61"}, {'P', "#ed9d82"},
     {'E', "#354b59"}, {'L', "#7ba59f"}, {'Y', "#8fc29e"}, {'Z', "#dad995"},
-    {'J', "#c45482"}, {'K', "#ffc1d0"}, {'N', "#9a456c"}, {'Q', "#e589a6"},
+    {'J', "#cd7889"}, {'K', "#ffd4d1"}, {'N', "#a74e67"}, {'Q', "#ee9b9f"},
     {'0', "#795e4a"}, {'1', "#a77e57"}, {'2', "#c39c70"}, {'3', "#dab78b"},
     {'4', "#ead0a8"}, {'5', "#f4e1bd"}, {'6', "#8da6a2"},
 };
@@ -39,6 +42,13 @@ template<int Width, int Height>
 class PixelGrid {
 public:
     void dot(int x, int y, char ink) { pixels.at(y).at(x) = ink; }
+    char at(int x, int y) const { return pixels[y][x]; }
+
+    void over(const PixelGrid& source, int dx = 0, int dy = 0) {
+        for (int y = std::max(0, -dy); y < std::min(Height, Height - dy); ++y)
+            for (int x = std::max(0, -dx); x < std::min(Width, Width - dx); ++x)
+                if (const char ink = source.at(x, y)) dot(x + dx, y + dy, ink);
+    }
 
     void span(int y, int first, int last, char ink) {
         for (int x = first; x <= last; ++x) dot(x, y, ink);
@@ -78,8 +88,7 @@ public:
     }
 
     void write(std::ostream& out, const std::map<char, std::string>& colors = palette) const {
-        // Join consecutive pixels by colour. CSS animates the parent SVG
-        // groups, so an entire arm only needs one transform at runtime.
+        // The seasonal scenery is SVG so the path can stretch with the walking range.
         std::map<char, std::ostringstream> paths;
         for (int y = 0; y < Height; ++y) {
             for (int x = 0; x < Width;) {
@@ -101,478 +110,339 @@ private:
 using Pixels = PixelGrid<width, height>;
 using TrailPixels = PixelGrid<120, 34>;
 
-std::vector<Row> mirror(std::vector<Row> rows) {
-    for (auto& [left, right] : rows) {
-        int newLeft = width - 1 - right;
-        right = width - 1 - left;
-        left = newLeft;
+enum class Face { calm, blink, smile, bite, chew, sip, surprised, sleep, focus, burp };
+enum class Item { none, burger, bittenBurger, cola, console, pillow };
+
+constexpr int floorLine = 54;
+constexpr int shoulderLine = 33;
+constexpr int hipLine = 46;
+constexpr int strideLength = 4;
+
+Pixels portrait(bool side, Face expression) {
+    Pixels art;
+    // The ears and cheeks carry the round outline, including in the angled view.
+    art.stamp(4, 2, {"....ooooo....","..oohhhfoo...",".ohhllhhfto..","ohhhhlhhftto.",
+                      "ohhhfgrgttto.","ohhfgrprgtso.","ohfgprprgtso.","ofgggrgttso..",
+                      ".ofgttttso...","..oottsoo....","....ooo......"});
+    art.stamp(side ? 31 : 32, 2, {"....ooooo...","..oohhhfoo..",".ohhlhhftto.",
+          "ohhhlhftttso","ohhfgrgtttso","ohfgrprgttso","ofgprgtttso.",
+          "oggggtttsoo.",".ogtttsoo...","..ooooo....."});
+    const std::vector<Row> face = side
+        ? std::vector<Row>{{19,29},{16,31},{14,33},{12,35},{11,36},{10,38},{9,39},
+            {8,40},{8,40},{7,41},{7,41},{7,41},{7,42},{7,42},{8,42},{8,42},
+            {9,41},{9,41},{10,40},{11,39},{12,38},{14,37},{16,35},{18,33},{21,30},{23,28}}
+        : std::vector<Row>{{19,28},{16,31},{14,33},{12,35},{11,36},{10,37},{9,38},
+            {8,39},{7,40},{7,40},{6,41},{6,41},{6,41},{6,41},{6,41},{7,40},
+            {7,40},{8,39},{9,38},{10,37},{11,36},{13,34},{15,32},{17,30},{19,28},{21,26}};
+    art.silhouette(7, face, 'o', [side](int x, int y, int lo, int hi) {
+        if (y >= 29 || x == hi - 1) return 't';
+        if (y >= 26 || x >= hi - 3 || (side && x <= lo + 2 && y > 17)) return 'g';
+        return y <= 14 || x <= lo + 3 ? 'h' : 'f';
+    });
+    art.stamp(12, 10, {".....lllllllll.......","...llllllhhhhhhh......",
+                       "..lllhhlhhhhhh.........",".lllhhhhhhh............"});
+    art.dots({{10,16},{11,14},{14,12},{15,15},{18,12},{27,11},{30,14}}, 'l');
+    art.stamp(8, 21, {"..rrrr..",".rprrrr.","rprrrrg.","rprrrg..",".rrrg..."});
+    art.stamp(side ? 35 : 33, 21, {".rrr..","rprrr.","rprrg.",".rrg.."});
+
+    const int nose = side ? 29 : 23;
+    const int nearLens = side ? 15 : 10;
+    const int farLens = side ? 30 : 26;
+    art.stamp(nose - 6, 22, {"...mmmmmm....","..mmwwwwmm...",".mmwwwwwwmm..",
+                           "mmwwwwwwwwmm.",".mmwwwwwwmm..","..mwwwwmm....","...mmmm......"});
+    art.stamp(nose - 2, 23, {".nnn.","nprpn",".nnn."});
+    switch (expression) {
+        case Face::bite:
+        case Face::surprised:
+        case Face::burp:
+            art.stamp(nose - 2, 27, {".nnn.","nkppn",".nnn."}); break;
+        case Face::chew:
+            art.stamp(nose - 3, 27, {"m..nn.m","..nrrn.","...nn.."}); break;
+        case Face::sip:
+            art.stamp(nose - 1, 27, {".n.","npn",".n."}); break;
+        case Face::sleep:
+            art.stamp(nose - 1, 27, {"nnn",".n."}); break;
+        default:
+            art.stamp(nose - 4, 26, {"n...n...n",".nnnnnnn.","..nrprn..","...nnn..."});
+            break;
     }
-    return rows;
-}
 
-Pixels leg(bool right) {
-    Pixels art;
-    std::vector<Row> shoe{{15,20},{14,20},{13,21},{12,21},{11,21},{11,21},{12,20}};
-    art.silhouette(48, right ? mirror(shoe) : shoe, 'o',
-        [](int x, int y, int left, int rightEdge) {
-            if (y >= 53 || x == rightEdge - 1) return 's';
-            return x == left + 1 ? 'g' : 't';
-        });
-    return art;
-}
+    art.stamp(nearLens, 14, {"..QQQJJJ..",".Q......J.","J........J","J........J","J........J",
+                            "J........J","J........J",".N......J.","..NNJJJJ.."});
+    art.stamp(farLens, 14, side
+        ? std::initializer_list<std::string>{".QQJJJ..","Q.....J.","J......J","J......J","J......J",
+            "J......J",".N....J.","..NJJJ.."}
+        : std::initializer_list<std::string>{"..QQQJJJ..",".Q......J.","J........J","J........J","J........J",
+            "J........J","J........J",".N......J.","..NNJJJJ.."});
+    art.span(17, nearLens - 3, nearLens + 1, 'N');
+    art.dots({{nearLens + 9,18},{farLens,18}}, 'N');
+    art.span(17, nearLens + 10, farLens - 1, 'Q');
+    if (!side) art.span(17, farLens + 9, farLens + 12, 'J');
 
-Pixels arm(bool right) {
-    Pixels art;
-    std::vector<Row> paw{{8,12},{6,13},{5,13},{5,13},{5,12},{6,11},{7,10}};
-    // The fabric covers the shoulder pivot in every pose, including a raised paw.
-    std::vector<Row> sleeve{{11,15},{10,16},{9,16},{8,16},{7,15},{6,14},{6,13},
-                            {5,13},{5,13},{5,13},{5,12},{6,12},{8,11}};
-    art.silhouette(40, right ? mirror(paw) : paw, 'o', [](int x, int y, int, int hi) {
-        return y >= 44 || x >= hi - 1 ? 't' : 'g';
-    });
-    art.silhouette(31, right ? mirror(sleeve) : sleeve, 'O', [](int x, int y, int, int hi) {
-        if (y >= 40) return 'M';
-        return x >= hi - 2 ? 'W' : 'F';
-    });
-    return art;
-}
-
-Pixels torso() {
-    Pixels art;
-    std::vector<Row> coat{
-        {20,27},{16,31},{14,33},{13,34},{12,35},{12,35},{12,35},{12,35},{12,35},{12,35},
-        {12,35},{11,36},{11,36},{11,36},{11,36},{11,36},{11,36},{11,36},{11,36},{10,37},
-        {10,37},{11,36},{12,35},
-    };
-    art.silhouette(28, coat, 'O', [](int x, int y, int lo, int hi) {
-        if (x == hi - 1 || y == 49) return 'M';
-        return x >= hi - 3 || x == lo + 1 ? 'W' : 'F';
-    });
-    art.stamp(11, 46, {"..WW..................W..",".W..................WW..",".W........WW........WW.."});
-    art.span(49, 13, 23, 'W');
-    art.span(49, 25, 34, 'M');
-    art.dots({{24,49},{24,48}}, 'S');
-
-    art.stamp(16, 29, {
-        "...BBBBBBBBBB...", "..CABBBBBBBBBMC.", "..C.AAABBBBBA.C.", "..WC.AABBBAA.CW.",
-        "...WC.ABBBA.CW..", "....MC.ABA.CM...", "...WWMC.B.CMWW..", ".....WMCBCM.....",
-        "......WMCW......", ".......MW.......",
-    });
-    art.dots({{16,31},{15,32},{15,33},{14,34},{14,35},{13,36},{13,37},{13,38},
-              {14,39},{14,40},{15,41},{16,41},{17,42},{18,42},{19,42},{20,41},
-              {21,40},{21,39},{22,38},{22,37},{22,36}}, 'T');
-    art.dots({{14,36},{14,37},{15,39},{16,40},{18,41}}, 'I');
-    art.dots({{29,31},{30,32},{31,32},{31,33},{32,34},{32,35},{33,36},{33,37},{32,38},{32,39}}, 'T');
-    art.stamp(30, 38, {"..T..",".TTT.","TIDDT","TIWDT",".TDT.","..T.."});
-    art.stamp(27, 44, {".....M","WMMMMS","W....M",".W..M.","..MM.."});
-    art.dots({{24,41},{24,45}}, 'S');
-    return art;
-}
-
-Pixels head() {
-    Pixels art;
-    std::vector<Row> ear{{8,12},{6,14},{5,15},{5,15},{4,16},{4,16},{4,16},{5,15},{5,15},{6,14},{8,12}};
-    for (bool right : {false, true})
-        art.silhouette(2, right ? mirror(ear) : ear, 'o', [](int x, int y, int, int hi) {
-            if (y <= 4) return 'h';
-            return y >= 9 || x == hi - 1 ? 't' : 'g';
-        });
-    for (int x : {7,34})
-        art.stamp(x, 5, {"..eee..",".epppe.","eprrrpe","eprrrpe",".epppe.","..eee.."});
-
-    std::vector<Row> face{
-        {19,28},{16,31},{13,34},{11,36},{10,37},{9,38},{8,39},{7,40},{7,40},{6,41},{6,41},
-        {6,41},{6,41},{6,41},{6,41},{6,41},{6,41},{6,41},{7,40},{7,40},{8,39},{9,38},
-        {10,37},{12,35},{14,33},{17,30},
-    };
-    art.silhouette(6, face, 'o', [](int x, int y, int lo, int hi) {
-        if (y >= 28 || (y >= 17 && x >= hi - 2)) return 't';
-        if (y >= 26 || x >= hi - 4) return 'g';
-        if ((y <= 10 && x < hi - 4) || (x <= lo + 2 && y <= 17)) return 'h';
-        return 'f';
-    });
-    art.stamp(11, 8, {".......lllllll....","....llllllhhhh....","..lllhlhhhh.......",
-                       ".llhhhhhh.........",".lhhhh............"});
-    art.dots({{12,14},{14,12},{20,10},{13,25},{16,26},{31,27}}, 'h');
-    art.span(27, 12, 15, 'g');
-    art.span(28, 14, 18, 'g');
-    art.span(29, 16, 19, 'g');
-    art.stamp(17, 21, {"....mmmmm.....","..mmwwwwwmm...",".mmwwwwwwwmm..","mmwwwwwwwwwmm.",
-                       "mmwwwwwwwwwmm.",".mmwwwwwwwmm..","..mmmmmmmmm...","....mmmmm....."});
-    art.span(22, 10, 13, 'r');
-    art.span(22, 34, 37, 'r');
-    art.stamp(21, 22, {".nnnn.","nnnnnn",".nnnn.","..nn.."});
-    return art;
-}
-
-Pixels glasses() {
-    Pixels art;
-    for (int x : {9,26}) {
-        art.stamp(x, 14, {"...JJJJJJJ...","..J.......J..",".J.........J.","J...........J",
-                          "J...........J","J...........J",".J.........J.",".N.........J.",
-                          "..N.......J..","...NJJJJJJ..."});
-        art.span(14, x + 4, x + 6, 'Q');
-        art.dot(x + 2, 15, 'Q');
-        art.dot(x + 2, 16, 'K');
+    const int eye[]{nearLens + 2, farLens + (side ? 1 : 2)};
+    for (const int x : eye) {
+        if (expression == Face::blink || expression == Face::sleep) art.stamp(x, 19, {"n...n",".nnn."});
+        else if (expression == Face::smile || expression == Face::chew)
+            art.stamp(x, 17, {"..k..",".k.k.","k...k"});
+        else {
+            if (side && x == eye[1]) art.stamp(x, 16, {"..www.",".wnkkw","wnlkkw","wnkkkw",
+                                                       "wnkkkw",".wkkw.","..ww.."});
+            else art.stamp(x - 1, 16, {"..www..",".wnkkw.","wnllkkw","wnlkkkw",
+                                       "wnkkkkw",".wkkkw.","..www.."});
+            if (expression == Face::focus) art.dot(x + 3, 18, 'k');
+            if (expression == Face::surprised || expression == Face::burp) art.dot(x + 3, 19, 'w');
+        }
     }
-    art.span(16, 6, 9, 'J');
-    art.span(17, 7, 8, 'N');
-    art.span(16, 38, 41, 'J');
-    art.span(17, 39, 40, 'N');
-    art.dots({{21,17},{26,17}}, 'N');
-    art.dots({{22,17},{25,17}}, 'J');
-    art.span(16, 23, 24, 'Q');
+
+    // A small berry-coloured ribbon sits on the ear, above the glasses.
+    art.stamp(7, 7, {".NN......N..","NQQN....NJN.","NKQQN..NQJN.","NQQQJNNQQJN.",
+                      ".NNJJQJJJNN.","...NNJN.NN..","....NJN..N..","....NN...N.."});
     return art;
 }
 
-Pixels ribbon() {
+Pixels coat(bool side) {
     Pixels art;
-    art.stamp(5, 1, {".NN......N..","NQQNN...NQN.","NKKQQN.NKQQN","NQKQJNNJQQQN",
-                     ".NQJQJJQQQN.","..NNNJJJNN..","......N..N.."});
-    return art;
-}
-
-Pixels eyes(const std::string& name) {
-    Pixels art;
-    if (name == "open") {
-        for (int x : {14,30}) art.stamp(x, 17, {".nn","nwn","nkk",".kk"});
-    } else if (name == "happy") {
-        for (int x : {13,29}) art.stamp(x, 17, {".kkk.","kk.kk","k...k"});
-        for (int x : {9,34}) art.stamp(x, 21, {".rrr.","rprpr",".rrr."});
-    } else if (name == "wide") {
-        art.stamp(13, 12, {".oo..","o...."});
-        art.stamp(29, 12, {"..oo.","....o"});
-        for (int x : {14,29}) art.stamp(x, 17, {".nn.","nwkn","nkkk",".nn."});
-    } else if (name == "blink") {
-        for (int x : {13,29}) art.stamp(x, 19, {"kkkkk",".nnn."});
-    } else if (name == "sleep") {
-        for (int x : {13,29}) art.stamp(x, 19, {"k...k",".nnn."});
-    } else if (name == "focus") {
-        art.stamp(12, 16, {"oo..","..o."});
-        art.stamp(30, 16, {"..oo",".o.."});
-        for (int x : {15,30}) art.stamp(x, 18, {".nn.","nwn.","nkk.",".kk."});
-    }
-    return art;
-}
-
-Pixels mouth(const std::string& name) {
-    Pixels art;
-    if (name == "neutral") art.stamp(19, 25, {"....n.....",".n..n..n..","..nn.nn..."});
-    if (name == "open") art.stamp(20, 25, {"..nnnn..",".nwwwwn.",".nnppnn.","..nrrn..","...nn..."});
-    if (name == "chew") art.stamp(17, 25, {".t...n.....t.", "t.m.n.nn....t", ".t...nnn...t."});
-    if (name == "smile") art.stamp(19, 25, {"....n.....",".n..n..n..","..nnnnn...","...rpr...."});
-    if (name == "sip") art.stamp(22, 25, {".nn.","nppn",".nn."});
-    if (name == "burp") art.stamp(21, 25, {".nnn.","npppn","nnrpn",".nnn."});
-    return art;
-}
-
-Pixels cuff(bool right, int left, int top) {
-    Pixels art;
-    if (right) {
-        art.stamp(left, top, {"..OOO.",".OFFMO","OWFFMO",".OWMSO","..OOO."});
+    const std::vector<Row> belly = side
+        ? std::vector<Row>{{20,28},{18,31},{16,33},{15,34},{14,35},{14,35},{13,35},{13,35},
+            {13,35},{13,35},{13,35},{14,35},{14,34},{15,34},{16,33},{17,32},{18,31},{20,29},{23,27}}
+        : std::vector<Row>{{18,29},{15,32},{14,33},{13,34},{12,35},{12,35},{12,35},{12,35},
+            {12,35},{12,35},{12,35},{13,34},{13,34},{14,33},{15,32},{16,31},{17,30},{19,28},{21,26}};
+    art.silhouette(31, belly, 'o', [](int x, int y, int lo, int hi) {
+        if (y >= 47 || x >= hi - 1) return 't';
+        return x <= lo + 3 || y > 44 ? 'g' : 'h';
+    });
+    const std::vector<Row> jacket = side
+        ? std::vector<Row>{{20,29},{17,32},{15,33},{14,34},{13,34},{13,34},{13,34},
+            {13,34},{13,34},{13,34},{13,34},{14,34},{14,33},{15,32},{17,31},{20,29}}
+        : std::vector<Row>{{18,29},{15,32},{14,33},{13,34},{12,35},{12,35},{12,35},
+            {12,35},{12,35},{12,35},{12,35},{13,34},{13,34},{14,33},{16,32},{19,29}};
+    art.silhouette(31, jacket, 'O', [](int x, int y, int lo, int hi) {
+        if (y >= 45 || x >= hi - 1) return 'M';
+        return x <= lo + 2 || y >= 43 || x >= hi - 3 ? 'W' : 'F';
+    });
+    if (side) {
+        art.stamp(25, 33, {".WCB..","..MBB.","..MFhO","...MhO","...MhO","...MhO","...Mgo","...Mgo",
+                          "...Mgo","..MMho"});
+        art.dots({{22,33},{23,34},{24,35},{24,36},{24,37},{25,38},{26,38},{27,37}}, 'T');
+        art.stamp(24, 38, {".TT.","TZCT",".TT."});
+        art.stamp(18, 41, {".WWW.","FWMM.",".MM.."});
     } else {
-        art.stamp(left, top, {".OOO..","OMFFO.","OMFFWO","OSMWO.",".OOO.."});
+        art.stamp(17, 33, {"..FFWCWFW....","...MFGFWM....","...MFhfWM....","...WMhhMW....",
+                           "....MhhhM....","....MhhhM....","....MhhhM....","....MhhhM....",
+                           "...WMhhgMW...","...MghgggM...","...ogggggo...","....oggoo...."});
+        art.dots({{17,33},{17,34},{17,35},{17,36},{18,37},{19,38},{20,38},{21,37},{21,36}}, 'T');
+        art.dots({{28,33},{29,34},{29,35},{29,36},{29,37}}, 'T');
+        art.stamp(27, 37, {".TT.","TZCT",".TT."});
+        art.stamp(14, 40, {"..WW..",".FWM..",".WWMO.","..MM.."});
+        art.stamp(28, 41, {".WM..",".FWMO",".MMO.","..M.."});
     }
     return art;
 }
 
-Pixels grip(bool right, int left, int top) {
-    Pixels art;
-    if (right) {
-        art.stamp(left, top, {"..ooo.","ottggo","ogffho",".tgggo",".oott."});
+
+Point plus(Point a, Point b) { return {a.first + b.first, a.second + b.second}; }
+
+Point between(Point a, Point b, double t) {
+    return {int(std::lround(a.first + (b.first - a.first) * t)),
+            int(std::lround(a.second + (b.second - a.second) * t))};
+}
+
+void stroke(Pixels& art, Point a, Point b, int radius, char ink) {
+    const int count = std::max({1, std::abs(b.first - a.first), std::abs(b.second - a.second)});
+    for (int i = 0; i <= count; ++i) {
+        const auto [x, y] = between(a, b, double(i) / count);
+        for (int dy = -radius; dy <= radius; ++dy) {
+            const int taper = radius - std::abs(dy) / 2;
+            if (y + dy >= 0 && y + dy < height)
+                art.span(y + dy, std::max(0, x - taper), std::min(width - 1, x + taper), ink);
+        }
+    }
+}
+
+Point elbow(Point shoulder, Point hand, int bend) {
+    // Each arm has two six-pixel bones. Only the bend and wrist position vary.
+    const double dx = hand.first - shoulder.first, dy = hand.second - shoulder.second;
+    const double length = std::max(1.0, std::hypot(dx, dy));
+    if (length > 12.25) throw std::runtime_error("Wrist outside arm reach");
+    const double arc = bend * std::sqrt(std::max(0.0, 36 - length * length / 4)) / length;
+    return {int(std::lround((shoulder.first + hand.first) / 2.0 - dy * arc)),
+            int(std::lround((shoulder.second + hand.second) / 2.0 + dx * arc))};
+}
+
+void sleeve(Pixels& art, Point shoulder, Point hand, int bend, bool shaded) {
+    const Point joint = elbow(shoulder, hand, bend);
+    stroke(art, shoulder, joint, 3, 'O');
+    stroke(art, shoulder, joint, 2, shaded ? 'W' : 'F');
+    const Point wrist = between(joint, hand, .87);
+    stroke(art, joint, wrist, 2, 'o');
+    stroke(art, joint, wrist, 1, shaded ? 't' : 'h');
+    stroke(art, wrist, hand, 1, shaded ? 'g' : 'h');
+}
+
+void paw(Pixels& art, Point hand, bool shaded) {
+    art.stamp(hand.first - 3, hand.second - 2, shaded
+        ? std::initializer_list<std::string>{"..ooo..",".ogtto.","ogfgsso","oggtsso",".ogtto.","..ooo.."}
+        : std::initializer_list<std::string>{"..ooo..",".ohhfo.","ohhfgto","ohffgto",".ogtto.","..ooo.."});
+}
+
+void plushFoot(Pixels& art, Point hip, Point foot, bool side, bool shaded) {
+    const Point ankle{foot.first, foot.second - 5};
+    stroke(art, hip, ankle, 3, 'o');
+    stroke(art, hip, ankle, 2, shaded ? 't' : 'h');
+    if (side) {
+        art.stamp(foot.first - 3, foot.second - 5, shaded
+            ? std::initializer_list<std::string>{".oooo....","otggto...","oggtsto..","ogggttso.",".otggtso.","..ooooo.."}
+            : std::initializer_list<std::string>{".oooo....","ohhgto...","ohffhto..","ofhhhfto.",".ohhgtto.","..ooooo.."});
     } else {
-        art.stamp(left, top, {".ooo..","oggtt.","ohffgo","ogggt.",".ttoo."});
+        art.stamp(foot.first - 4, foot.second - 5, {"..ooooo..",".ohhhgto.","ohhfhfgto",
+                                                   "ofhhfggto",".ogggtto.","..ooooo.."});
+    }
+}
+
+Pixels food(Item item, Point anchor, int moment) {
+    Pixels art;
+    const auto [x, y] = anchor;
+    if (item == Item::burger || item == Item::bittenBurger) {
+        art.stamp(x - 8, y, {".....uuuuuu.....","...uujjjjjjuu...","..ujjjljjjjjju..",
+                            ".ujjljjjjjjjjuu.","uuujjjjjjjjjjyuu","uuyyyyyyyyyyyyuu",
+                            ".HGGGHHHHGGGGH..",".qqqRRqqqqRqqq..","..uyjjjjjjjyu...",
+                            "...uuuuuuuuu...."});
+        if (item == Item::bittenBurger) {
+            for (int drop = 0; drop < 4; ++drop) art.span(y + drop, x + 1, x + 7 - drop, 0);
+            art.dots({{x,y+1},{x,y+2},{x+1,y+3},{x+2,y+4},{x+3,y+4},{x+4,y+3}}, 'u');
+        }
+    } else if (item == Item::cola) {
+        art.stamp(x - 6, y, {"..OOOOOOOOO.","OFFFFFWFWFWO","OMMMMMMMMMSO",".XPPPVVVXXX.",
+                            ".XPVVVVVVX..",".XPVwVVVVX..","..XVwwVVVX..","..XVwVVVX...",
+                            "..XVVVVVX...","...XPPPXX...","....XXXX...."});
+        art.stamp(x - 6, y - 8, {"DDD...","..ID..","...ID.","....ID",".....D",".....I",".....D",".....D"});
+    } else if (item == Item::console) {
+        art.stamp(x - 10, y, {"..EEEEEEEEEEEEEEEE..",".ELLLLLLLLLLLLLLLLE.",
+                              "ELEEEETTTTTTEEGEEELE","ELELEETTTTTTEEEELELE",
+                              "ELEEEETTTTTTEELYEELE",".ELLLDDDDDDDDDLLLLE.",
+                              "..EEEEEEEEEEEEEEEE.."});
+        art.stamp(x - 3 + moment % 6, y + (moment % 3 == 0 ? 2 : 3), {".Z","ZZ"});
+    } else if (item == Item::pillow) {
+        art.stamp(x - 9, y, {"..vvvvvvvvvvv.....",".vdddddbaaabav....","vdbddddbbbabav....",
+                             "vdabdddddbbabav...","vbbddddddbbbaav...","vbdvdddbbabaaav...",
+                             ".vbabbbabbaaav....","..vvbaaaaaavv.....","....vvvvvvv......."});
     }
     return art;
 }
 
-Pixels burger(bool bitten) {
+struct Pose {
+    bool side = false;
+    int x = 0;
+    int lift = 0;
+    int chest = 0;
+    Point nod{};
+    Face face = Face::calm;
+    Point leftHand{13, 43};
+    Point rightHand{34, 43};
+    Point leftFoot{18, floorLine};
+    Point rightFoot{29, floorLine};
+    Item item = Item::none;
+    Point prop{24, 34};
+    int rightBend = -1;
+};
+
+Pose sidePose() {
+    Pose pose;
+    pose.side = true;
+    pose.leftHand = {29, 41};
+    pose.rightHand = {20, 43};
+    pose.leftFoot = {25, floorLine};
+    pose.rightFoot = {21, floorLine};
+    return pose;
+}
+
+Pixels actor(const Pose& pose, int moment) {
+    Pixels body;
+    const Point leftShoulder{pose.side ? 28 : 15, shoulderLine + pose.chest};
+    const Point rightShoulder{pose.side ? 20 : 32, shoulderLine + pose.chest};
+    const auto handL = plus(pose.leftHand, {0, pose.chest});
+    const auto handR = plus(pose.rightHand, {0, pose.chest});
+    if (pose.side) {
+        Pixels tail;
+        tail.stamp(9, 41, {"..oo..",".ohgo.","ofgto.",".tso..","..oo.."});
+        body.over(tail, 0, pose.chest);
+    }
+    plushFoot(body, {pose.side ? 25 : 18, hipLine + pose.chest}, pose.leftFoot, pose.side, pose.side);
+    plushFoot(body, {pose.side ? 21 : 29, hipLine + pose.chest}, pose.rightFoot, pose.side, false);
+    if (pose.side) {
+        sleeve(body, leftShoulder, handL, 1, true);
+        paw(body, handL, true);
+    }
+    body.over(coat(pose.side), 0, pose.chest);
+    body.over(portrait(pose.side, pose.face), pose.nod.first, pose.chest + pose.nod.second);
+    if (!pose.side) sleeve(body, leftShoulder, handL, 1, false);
+    sleeve(body, rightShoulder, handR, pose.rightBend, pose.side);
+    body.over(food(pose.item, pose.prop, moment), 0, pose.chest);
+    if (!pose.side) paw(body, handL, false);
+    paw(body, handR, pose.side);
+    Pixels frame;
+    frame.over(body, pose.x, pose.lift);
+    return frame;
+}
+
+void hold(Pose& p, Item item, int x, int y) {
+    p.item = item;
+    p.prop = {x, y};
+    if (item == Item::cola) {
+        p.leftHand = {x - 7, y + 2};
+        p.rightHand = {x + 4, y + 3};
+        p.rightBend = 1;
+    } else {
+        const int reach = item == Item::console ? 9 : 7;
+        const int grip = item == Item::console ? 4 : 5;
+        p.leftHand = {x - reach, y + grip};
+        p.rightHand = {x + reach, y + grip};
+    }
+}
+
+Pixels parcel(bool shut, bool front) {
     Pixels art;
-    std::vector<Row> bun{{20,26},{17,29},{15,31},{14,32},{13,33},{13,33},{14,32}};
-    art.silhouette(33, bun, 'u', [](int x, int y, int, int hi) {
-        return y >= 38 || x >= hi - 2 ? 'y' : 'j';
+    if (!front) {
+        art.stamp(9, 34, {"...000000000000000000000000...","..03333333333333333333333330..",
+                          ".0333333333333333333333333330.","004433333333333333333333334400",
+                          "011111111111111111111111111110","011111111111111111111111111110"});
+        if (!shut) {
+            art.stamp(6, 31, {"...00...", "..0440..", ".04440..","044440..",".03330..","..030..."});
+            art.stamp(36, 31, {"...00...", "..0440..", "..04440.","..044440","..03330.","..030..."});
+        }
+        return art;
+    }
+    const std::vector<Row> panel{{9,38},{9,38},{9,38},{9,38},{9,38},{9,38},{9,38},{9,38},
+                                 {9,38},{9,38},{9,38},{10,37},{10,37},{11,36},{12,35}};
+    art.silhouette(39, panel, '0', [](int x, int y, int, int hi) {
+        if (x >= hi - 2 || y >= 51) return '1';
+        if (x >= hi - 4 || y >= 48) return '2';
+        return y < 42 ? '4' : '3';
     });
-    art.span(35, 19, 20, 'l');
-    art.dot(23, 36, 'l');
-    art.span(36, 27, 28, 'l');
-    art.dot(16, 37, 'l');
-    art.stamp(12, 39, {"..HHHHHHHHHHHHHHHHHHH..", ".HGGGHGGHGGGGHGGHGGGGH.",
-                       "..HHRRRRHHHHHRRHHHRHH..", "..qqqqqqqqqqqqqqqqqqq..",
-                       "..uyyyyyyyyyyyyyyyyyu..", "...ujjjjjjjjjjjjjjju...",
-                       "....uuuuuuuuuuuuuuu...."});
-    art.span(42, 26, 29, 'j');
-    art.span(43, 27, 28, 'j');
-    if (bitten) {
-        art.span(33, 22, 27, 0);
-        art.span(34, 23, 29, 0);
-        art.span(35, 24, 29, 0);
-        art.span(36, 25, 28, 0);
-        art.dots({{22,34},{23,35},{24,36},{25,37},{28,37},{29,36},{30,35}}, 'u');
-        art.span(37, 26, 27, 'l');
+    for (int y = 40; y <= 51; ++y) art.span(y, 23, 25, y >= 49 ? '2' : '4');
+    art.stamp(13, 43, {"44444","45Q54","4QJQ4","45Q54","44444"});
+    if (shut) {
+        art.span(37, 11, 36, '0');
+        art.span(38, 9, 38, '3');
+        art.span(39, 10, 37, '4');
+        art.span(38, 23, 25, '5');
     }
     return art;
 }
 
-Pixels straw() {
-    Pixels art;
-    art.stamp(24, 31, {"DDDD....","...II...","....DD..",".....ID.","......ID","......DI",".......I"});
-    return art;
+void heart(Pixels& art, int x, int y) {
+    art.stamp(x, y, {".N.N.","NQKQN","NQJJN",".NJN.","..N.."});
 }
 
-Pixels cup() {
-    Pixels art;
-    art.stamp(21, 37, {"...OOOOOOOOOO...",".OSFFFFFFFFFSO..","OWFFFFFFFFFFFFO.",".OMMMMMMMMMMMO..",
-                       "..XPPVVVVVVVX...","..XPVVVVVVVVX...","..XVVVVVVVVVX...","..XVVVVVVVVVX...",
-                       "...XVVVVVVVX....","...XVVVVVVVX....","...XVVVVVVVX....","...XPVVVVVVX....",
-                       "....XVVVVVX.....","....XPPPPPX.....",".....XXXXX......"});
-    art.stamp(25, 42, {"......w","....ww.","..www..",".ww...."});
-    return art;
-}
-
-Pixels pillow() {
-    Pixels art;
-    std::vector<Row> edge{{12,15},{11,18},{11,22},{10,26},{10,30},{9,32},{9,32},{9,32},
-                          {8,31},{8,31},{7,31},{7,30},{8,30},{11,30},{15,29},{19,29},
-                          {22,30},{26,30},{28,29}};
-    art.silhouette(30, edge, 'v', [](int x, int y, int lo, int hi) {
-        if (x >= hi - 2 || y >= 44) return 'a';
-        return x <= lo + 1 ? 'b' : 'd';
-    });
-    art.stamp(10, 32, {"..b........","...bb......","...b......."});
-    art.stamp(23, 42, {".....b","....b.","...ba.","....a."});
-    return art;
-}
-
-Pixels console() {
-    Pixels art;
-    std::vector<Row> shell{{13,34},{11,36},{10,37},{10,37},{10,37},{10,37},
-                           {10,37},{10,37},{10,37},{11,36},{13,34}};
-    art.silhouette(34, shell, 'E', [](int x, int y, int, int hi) {
-        if (y >= 42 || x >= hi - 1) return 'D';
-        return y == 35 ? 'I' : 'L';
-    });
-    for (int y = 35; y <= 42; ++y) art.span(y, 17, 30, 'E');
-    for (int y = 36; y <= 41; ++y) art.span(y, 18, 29, 'T');
-    art.span(41, 18, 29, 'Y');
-    art.dot(28, 37, 'I');
-    art.stamp(12, 37, {".E.","EEE",".E."});
-    art.dot(33, 39, 'j');
-    art.dot(35, 37, 'P');
-    return art;
-}
-
-Pixels parcelBack() {
-    Pixels art;
-    std::vector<Row> rim{{11,36},{9,38},{8,39},{7,40},{6,41},{6,41},{7,40}};
-    art.silhouette(33, rim, '0', [](int, int y, int, int) { return y < 36 ? '2' : '1'; });
-    art.span(34, 12, 35, '3');
-    art.span(36, 11, 36, '0');
-    return art;
-}
-
-Pixels parcelFront() {
-    Pixels art;
-    std::vector<Row> edge{{6,41},{6,41},{6,41},{6,41},{6,41},{6,41},{6,41},{6,41},
-                          {6,41},{6,41},{7,40},{7,40},{7,40},{7,40},{8,39},{8,39},{9,38}};
-    art.silhouette(39, edge, '0', [](int x, int y, int, int hi) {
-        if (x >= hi - 2 || y >= 53) return '1';
-        return x >= hi - 4 ? '2' : '3';
-    });
-    art.span(40, 8, 39, '4');
-    for (int y = 40; y < 54; ++y) art.span(y, 23, 25, y == 53 ? '2' : '4');
-    art.span(41, 23, 25, '5');
-    art.stamp(11, 44, {"44444444","45555554","45Q5Q554","45QQQ554","455Q5554","44444444"});
-    art.span(50, 31, 34, '1');
-    art.span(51, 31, 35, '1');
-    return art;
-}
-
-Pixels parcelFlap(bool right) {
-    Pixels art;
-    std::vector<Row> shape{{10,20},{9,21},{8,22},{7,23},{6,23},{7,23}};
-    art.silhouette(35, right ? mirror(shape) : shape, '0', [](int, int y, int, int) {
-        return y >= 38 ? '3' : '4';
-    });
-    art.span(36, right ? 28 : 11, right ? 36 : 19, '5');
-    return art;
-}
-
-void beginGroup(std::ostream& out, const std::string& cssClass, bool visible = true) {
-    out << "<g class=\"" << cssClass << "\"" << (visible ? "" : " opacity=\"0\"") << ">\n";
-}
-
-void layer(std::ostream& out, const std::string& cssClass, const Pixels& pixels, bool visible = true) {
-    beginGroup(out, cssClass, visible);
-    pixels.write(out);
-    out << "</g>\n";
-}
-
-void holdingHand(std::ostream& out, bool right, Point sleeve, Point palm, bool gaming = false) {
-    beginGroup(out, right ? "pb-grip-r" : "pb-grip-l");
-    cuff(right, sleeve.first, sleeve.second).write(out);
-    if (gaming) beginGroup(out, right ? "pb-thumb-r" : "pb-thumb-l");
-    grip(right, palm.first, palm.second).write(out);
-    if (gaming) out << "</g>\n";
-    out << "</g>\n";
-}
-
-void beginProp(std::ostream& out, const std::string& name, Point leftCuff, Point rightCuff) {
-    beginGroup(out, "pb-prop pb-" + name, false);
-    for (bool right : {false, true}) {
-        const auto [x, y] = right ? rightCuff : leftCuff;
-        // This short sleeve is stretched from its shoulder to the cuff as the prop moves.
-        out << "<g class=\"pb-reach pb-reach-" << (right ? 'r' : 'l')
-            << "\" style=\"--pb-cuff-x:" << x + 3 << ";--pb-cuff-y:" << y + 2 << "\">\n"
-            << "<path fill=\"" << palette.at('O') << "\" d=\"M-2 -2l1 -1h4l6 1v4l-6 1h-4l-1 -1z\"/>\n"
-            << "<path fill=\"" << palette.at('F') << "\" d=\"M-1 -2h4l6 1v2l-6 1h-4z\"/>\n"
-            << "<path fill=\"" << palette.at('M') << "\" d=\"M-1 1h10v1l-6 1h-4z\"/>\n</g>\n";
+void dust(Pixels& art, int x, int y, int age) {
+    for (const int direction : {-1, 1}) {
+        art.dot(x + direction * (8 + age), y - 1 - age, age < 2 ? 'l' : 'j');
+        art.dot(x + direction * (10 + age), y - 2, 'y');
     }
-    beginGroup(out, "pb-held-object");
 }
 
-void drawProps(std::ostream& out) {
-    const Point burgerLeft{8,37}, burgerRight{34,37};
-    beginProp(out, "burger", burgerLeft, burgerRight);
-    layer(out, "pb-burger-full", burger(false));
-    layer(out, "pb-burger-bitten", burger(true), false);
-    holdingHand(out, false, burgerLeft, {10,39});
-    holdingHand(out, true, burgerRight, {32,39});
-    out << "</g>\n</g>\n";
-
-    const Point colaLeft{15,40}, colaRight{34,39};
-    beginProp(out, "cola", colaLeft, colaRight);
-    layer(out, "pb-cola-straw", straw());
-    layer(out, "pb-cup", cup());
-    holdingHand(out, false, colaLeft, {17,41});
-    holdingHand(out, true, colaRight, {32,41});
-    out << "</g>\n</g>\n";
-
-    const Point consoleLeft{7,38}, consoleRight{35,38};
-    beginProp(out, "console", consoleLeft, consoleRight);
-    console().write(out);
-    Pixels player;
-    player.stamp(21, 37, {".Z","ZZ","ZZ"});
-    layer(out, "pb-game-player", player);
-    holdingHand(out, false, consoleLeft, {9,40}, true);
-    holdingHand(out, true, consoleRight, {33,40}, true);
-    out << "</g>\n</g>\n";
-
-    const Point pillowLeft{7,37}, pillowRight{31,38};
-    beginProp(out, "pillow", pillowLeft, pillowRight);
-    pillow().write(out);
-    holdingHand(out, false, pillowLeft, {9,39});
-    holdingHand(out, true, pillowRight, {29,40});
-    out << "</g>\n</g>\n";
-}
-
-void drawEffects(std::ostream& out) {
-    Pixels crumbs;
-    crumbs.stamp(28, 27, {".j...","y...j","...u."});
-    layer(out, "pb-crumbs", crumbs, false);
-
-    Pixels puff;
-    puff.stamp(28, 21, {".....DD....","...DIWWD...","..DIWWWWDD.",".DIWWWWWWID",
-                        "..DIWWWWIID","...DDIIDD..","......D...."});
-    layer(out, "pb-burp-puff", puff, false);
-
-    beginGroup(out, "pb-sleep-z", false);
-    Pixels nearZ;
-    nearZ.stamp(40, 9, {"zzz",".z.","zzz"});
-    layer(out, "pb-z-near", nearZ);
-    Pixels farZ;
-    farZ.stamp(43, 2, {"zzzz","...z","..z.",".z..","zzzz"});
-    layer(out, "pb-z-far", farZ);
-    out << "</g>\n";
-}
-
-void drawProfile(std::ostream& out) {
-    Pixels face;
-    face.stamp(30, 3, {"..oooo...",".ohhgoo..","ohhfgto..","ogppgsto.","ogprpgto.",
-                       ".ogprgto.",".ogggto..","..oooo..."});
-    face.stamp(9, 2, {"...oooo....","..ohhhgo...",".ohllhgto..","ohhhffgsto.",
-                      "offepppgto.","offeprpgto.","ogfeprpgto.",".ogfgpgto..","..ogggto..."});
-    const std::vector<Row> headEdge{
-        {20,30},{16,33},{14,35},{12,36},{11,37},{10,38},{9,39},{9,39},{8,39},
-        {8,40},{8,40},{8,40},{8,40},{8,40},{8,41},{9,41},{9,41},{10,40},
-        {10,40},{11,39},{12,38},{14,37},{16,35},{18,33},{21,31},
-    };
-    face.silhouette(7, headEdge, 'o', [](int x, int y, int lo, int hi) {
-        if (y >= 29 || (y >= 17 && x == hi - 1)) return 't';
-        if (y >= 27 || x >= hi - 3) return 'g';
-        if (y <= 12 || (x <= lo + 3 && y <= 17)) return 'h';
-        return 'f';
-    });
-    face.stamp(12, 9, {"......lllllll.","...llllllhhhh.","..lllhlhh.....",".llhhhh......."});
-    face.dots({{10,23},{12,25},{15,26},{13,26},{18,28},{20,27},{37,25}}, 'g');
-    face.span(29, 20, 23, 'g');
-    face.stamp(25, 20, {"....mmmmm...","..mmwwwwwmm.",".mmwwwwwwwm.","mmwwwwnnnmm.",
-                        "mmwwwwwnwwm.",".mmwwnwnwnm.","..mmwwnnnmm.","....mmmmmm.."});
-    face.stamp(14, 21, {"..rrr...",".rprpr..","rprprrr.",".rrr.r.."});
-    face.dots({{38,21},{37,22},{38,22}}, 'r');
-
-    face.stamp(16, 13, {"...QQJJJJ...","..Q......J..",".J........J.","J..........J",
-                        "J..........J","J..........J",".N........J.","..N......J..","...NJJJJJ..."});
-    face.stamp(30, 14, {"..QJJJJ..",".Q.....J.","J.......J","J.......J","J.......J",
-                        ".N......J","..N....J.","...NJJJ.."});
-    face.span(16, 10, 16, 'J');
-    face.span(17, 11, 14, 'N');
-    face.span(16, 27, 30, 'Q');
-    face.stamp(8, 0, {".NN......N..","NQQNN...NQN.","NKKQQN.NKQQN","NQKQJNNJQQQN",
-                       ".NQJQJJQQQN.","..NNNJJJNN..","......N..N.."});
-
-    Pixels eye, closedEye;
-    eye.stamp(22, 16, {".nn.","nwnn","nkkk",".kk."});
-    eye.stamp(34, 16, {".nn","nwn","nkk",".kk"});
-    closedEye.stamp(21, 17, {".kkk.","kk.kk","k...k"});
-    closedEye.stamp(33, 17, {".kk.","k..k"});
-
-    Pixels coat, tail;
-    const std::vector<Row> coatEdge{{20,30},{18,32},{17,33},{16,34},{15,34},{15,34},
-        {15,34},{15,34},{15,34},{15,34},{15,34},{14,34},{14,34},{14,34},{14,34},
-        {14,34},{13,34},{13,34},{13,33},{14,32},{15,31},{16,31}};
-    coat.silhouette(29, coatEdge, 'O', [](int x, int y, int lo, int hi) {
-        if (y >= 48 || x == hi - 1) return 'M';
-        return x < lo + 4 || (y >= 43 && x < lo + 7) ? 'W' : 'F';
-    });
-    coat.stamp(27, 30, {"BBB.","ABBC",".ABC",".BCM","..CM","...M"});
-    coat.dots({{27,32},{28,33},{28,34},{29,35},{29,36},{30,37},{30,38},
-               {31,39},{31,40},{30,41},{29,40}}, 'T');
-    coat.stamp(27, 44, {".MMMM","MF..M",".M.M.","..MM."});
-    tail.stamp(9, 39, {"...oo....","..ohgoo..",".ofgfto..","ofgftsto.",
-                        "oggtsto..",".ostto...","..ooo...."});
-
-    Pixels farFoot, nearFoot;
-    farFoot.stamp(21, 47, {".OOOO.....","OMMMO.....","OMMMO.....",".ooo......",
-                           ".ostto....",".osttsoo..",".osttssso.","..ooooooo."});
-    nearFoot.stamp(19, 47, {".OOOO.....","OWFMO.....","OMMMO.....",".ooo......",
-                            ".ogtto....",".ofggtoo..",".ogttssso.","..ooooooo."});
-
-    Pixels nearArm, farArm;
-    nearArm.stamp(18, 31, {"...OOO....","..OFFMO...",".OFFFWMO..",".OFFFWMO..","OFFFFWMO..",
-                           "OFFFFWMO..","OFFFWMMO..",".OMMMMMO..",".OMMMMO...","..OOOOO...",
-                           "...ogto...","...ofto...","...ogso...","....oo...."});
-    farArm.stamp(28, 31, {"..OO......",".OMWO.....",".OMWWO....",".OMWWMO...","..OMWMMO..",
-                          "..OMWMMO..","...OMMMO..","...OMMMO..","...OOOO...","....oto...",
-                          "....ogso..",".....oo..."});
-
-    out << "<g class=\"pb-profile-shadow\" opacity=\"0\" fill=\"var(--pb-shadow,#6a5849)\">\n"
-        << "<path opacity=\".24\" d=\"M13 53h7v-1h16v1h7v1h3v1H34v1H16v-1h-6v-1h3z\"/>\n"
-        << "<path opacity=\".34\" d=\"M17 53h14v1h3v1H16v-1h1z\"/>\n</g>\n";
-    beginGroup(out, "pb-profile", false);
-    beginGroup(out, "pb-profile-body");
-    layer(out, "pb-profile-tail", tail);
-    layer(out, "pb-profile-far-foot", farFoot);
-    layer(out, "pb-profile-far-arm", farArm);
-    layer(out, "pb-profile-near-foot", nearFoot);
-    layer(out, "pb-profile-coat", coat);
-    layer(out, "pb-profile-near-arm", nearArm);
-    beginGroup(out, "pb-profile-head");
-    face.write(out);
-    out << "<path fill=\"var(--pb-light,#ffedba)\" opacity=\".53\" "
-        << "d=\"M18 9h6v1h-6zM15 10h4v1h-4zM14 11h3v1h-3zM13 12h2v1h-2z\"/>\n";
-    layer(out, "pb-profile-eye", eye);
-    layer(out, "pb-profile-smile", closedEye, false);
-    out << "</g>\n</g>\n</g>\n";
+void beginGroup(std::ostream& out, const std::string& name) {
+    out << "<g class=\"" << name << "\">\n";
 }
 
 void drawLandscape(std::ostream& out) {
@@ -677,39 +547,260 @@ void drawLandscape(std::ostream& out) {
     out << "</svg>\n";
 }
 
+double blend(double seconds, double from, double to) {
+    const double t = std::clamp((seconds - from) / (to - from), 0.0, 1.0);
+    return t * t * (3 - 2 * t);
+}
+
+int pixel(double value) { return int(std::lround(value)); }
+
+void wave(Pose& pose, double t) {
+    const Point resting{34,43}, stretched{43,38};
+    const Point raised{40 + pixel(2 * std::sin(t * 16)), 27 + pixel(std::cos(t * 16))};
+    if (t < .15 || t >= .62) {
+        pose.rightHand = between(resting, stretched, blend(t, 0, .15) - blend(t, .62, .76));
+    } else {
+        pose.rightHand = between(stretched, raised, blend(t, .15, .28) - blend(t, .51, .62));
+        pose.rightBend = 1;
+    }
+}
+
+Pixels drawFrame(std::string_view scene, int frame, double seconds) {
+    Pose pose;
+    if (scene == "walk") {
+        pose = sidePose();
+        const int stride[] = {2,1,0,-1,-2,-1,0,1};
+        const int rise[] = {0,0,0,0,0,1,2,1};
+        const int left = (frame + 4) % 8, right = frame % 8;
+        pose.leftFoot = {25 + stride[left], floorLine - rise[left]};
+        pose.rightFoot = {21 + stride[right], floorLine - rise[right]};
+        pose.leftHand.first -= stride[left] / 2;
+        pose.rightHand.first -= stride[right];
+        pose.chest = frame % 4 == 2 ? -1 : 0;
+    } else if (scene == "inspect" || scene == "inspectUp") {
+        pose = sidePose();
+        const double lean = blend(seconds,.23,1.06) - blend(seconds,1.75,2.65);
+        pose.chest = pixel(lean);
+        pose.nod = {pixel(2 * lean), pixel((scene == "inspect" ? 3 : -2) * lean)};
+        pose.rightHand = between({20,43}, {26,40}, lean);
+        pose.face = seconds > .86 && seconds < 2.12 ? Face::smile : Face::calm;
+    } else if (scene == "turn") {
+        pose.face = Face::blink;
+        if (frame == 1) pose.rightFoot.second--;
+    } else if (scene == "pat") {
+        const double joy = blend(seconds,.05,.42) - blend(seconds,1.82,2.36);
+        pose.face = joy > .35 ? Face::smile : Face::calm;
+        pose.chest = -pixel(joy * .8);
+        pose.nod = {pixel(-2 * joy), pixel(joy)};
+        pose.leftHand = between({13,43},{12,41},joy);
+        pose.rightHand = between({34,43},{35,41},joy);
+    } else if (scene == "feed") {
+        if (seconds >= .27 && seconds < 4.55) {
+            const double lift = blend(seconds,.62,1.8) - blend(seconds,2.52,3.5);
+            const bool bitten = seconds >= 2.12;
+            hold(pose, bitten ? Item::bittenBurger : Item::burger, 24, 38 - pixel(12 * lift));
+            if (seconds >= 1.69 && !bitten) pose.face = Face::bite;
+            if (bitten) pose.face = frame % 3 != 0 ? Face::chew : Face::smile;
+            pose.nod.second = seconds > 1.78 && seconds < 2.83 ? 1 : 0;
+        } else if (seconds >= 4.85 && seconds < 7.98) {
+            const double lift = blend(seconds,5.2,5.95) - blend(seconds,6.84,7.78);
+            hold(pose, Item::cola, 29, 39 - pixel(4 * lift));
+            if (lift > .86) pose.face = Face::sip;
+            if (seconds > 7.18) pose.face = Face::smile;
+        } else if (seconds >= 7.98 && seconds < 9.72) {
+            pose.face = seconds >= 8.90 && seconds <= 9.36 ? Face::burp : Face::smile;
+            pose.chest = pose.face == Face::burp ? -1 : 0;
+            pose.leftHand = between({13,43}, {19,43}, blend(seconds,7.9,8.7) - blend(seconds,9.25,9.72));
+            pose.rightHand = between({34,43}, {30,43}, blend(seconds,7.9,8.7) - blend(seconds,9.25,9.72));
+        }
+    } else if (scene == "dance" && frame > 0 && seconds < 3.08) {
+        const int step = frame % 8;
+        const int side = frame % 16 < 8 ? 1 : -1;
+        pose.face = Face::smile;
+        pose.x = side * (step < 4 ? step : 8 - step);
+        pose.lift = step == 2 || step == 3 ? -2 : 0;
+        pose.leftHand = {13 - side, 31 + step / 2};
+        pose.rightHand = {35 + side, 28 - step / 2};
+        pose.leftFoot.first -= step / 2;
+        pose.rightFoot.first += step / 2;
+    } else if (scene == "sleep" && seconds > .28 && seconds < 9.55) {
+        const double lean = blend(seconds,.32,1.35) - blend(seconds,8.95,9.54);
+        hold(pose,Item::pillow,24,39 - pixel(4 * lean));
+        pose.nod = {pixel(-2 * lean), pixel(2 * lean)};
+        pose.chest = pixel(lean * (.7 + .3 * std::sin(seconds * 3)));
+        pose.face = lean > .38 ? Face::sleep : Face::blink;
+    } else if (scene == "game" && seconds > .23 && seconds < 7.75) {
+        const double raise = blend(seconds,.23,.9) - blend(seconds,7.1,7.75);
+        hold(pose,Item::console,24,40 - pixel(4 * raise));
+        pose.leftHand.second -= frame % 3 == 0;
+        pose.rightHand.second -= frame % 5 == 0;
+        pose.nod.second = seconds < 5.84 ? 1 : 0;
+        pose.face = seconds > 5.68 ? Face::smile : Face::focus;
+        if (seconds > 5.81 && seconds < 6.34) pose.lift = -pixel(4 * std::sin((seconds - 5.81) / .53 * 3.14));
+    } else if (scene == "drag") {
+        pose.face = Face::surprised;
+        pose.lift = -2;
+        pose.leftFoot.second -= frame % 3;
+        pose.rightFoot.second -= (frame + 1) % 3;
+        pose.leftHand = {11, 40 - frame % 3};
+        pose.rightHand = {36, 39 + frame % 3};
+    } else if (scene == "enter" || scene == "exit") {
+        const bool entering = scene == "enter";
+        const bool box = entering ? seconds < 1.49 : seconds >= .63;
+        const bool shut = entering ? seconds < .22 : seconds > 1.42;
+        if (entering) {
+            pose.lift = 24 - pixel(5 * blend(seconds,.36,.65) + 24 * blend(seconds,.96,1.36))
+                + pixel(5 * blend(seconds,1.36,1.62));
+            pose.chest = seconds >= 1.56 && seconds <= 1.66 ? 1 : 0;
+            wave(pose, seconds - 1.47);
+        } else {
+            pose.lift = -pixel(4 * blend(seconds,.6,.88)) + pixel(36 * blend(seconds,.89,1.38));
+            pose.chest = seconds >= .52 && seconds <= .65 ? 1 : 0;
+            wave(pose, seconds);
+        }
+        pose.face = seconds > (entering ? 1.3 : .1) ? Face::smile : Face::calm;
+        Pixels result;
+        if (box) result.over(parcel(shut, false));
+        if (!shut || !box) result.over(actor(pose, frame));
+        if (box) result.over(parcel(shut, true));
+        if (entering && seconds >= 1.57 && seconds < 1.96) dust(result,24,54,pixel((seconds - 1.57) * 10));
+        return result;
+    } else if (scene == "rest") {
+        if (seconds > 4.6 && seconds < 4.86) pose.face = Face::blink;
+        pose.chest = seconds > 1.0 && seconds < 1.78 ? -1 : 0;
+    }
+
+    Pixels result = actor(pose, frame);
+    if (scene == "walk" && frame % 4 < 2) {
+        const int x = 15 - frame % 4;
+        result.dot(x, 53 - frame % 4, 'j');
+        result.dot(x + 2, 54, 'l');
+    }
+    if (scene == "pat") {
+        if (seconds > .25 && seconds < 1.35) heart(result, 39, 11 - pixel(seconds * 5));
+        if (seconds > .91 && seconds < 1.84) heart(result, 43, 18 - pixel(seconds * 5));
+    }
+    if (scene == "feed" && seconds >= 2.10 && seconds < 2.38)
+        result.dots({{31,27+(frame%3)},{34,30+(frame%3)},{29,31}},'j');
+    if (scene == "feed" && seconds >= 8.93 && seconds < 9.5) {
+        const int x = 35 + pixel((seconds - 8.93) * 9), y = 25 - pixel((seconds - 8.93) * 5);
+        result.stamp(x, y, {"...DD..",".DIWWD.","DIWFWID",".DIIDD.","...D..."});
+    }
+    if (scene == "sleep" && pose.face == Face::sleep) {
+        const int y = 7 - (frame % 15) / 3;
+        result.stamp(38, y, {"CCC","..C",".C.","CCC"});
+        result.stamp(43, y + 7, {"CC",".C","CC"});
+    }
+    if ((scene == "dance" && frame > 3 && frame < 28) ||
+        (scene == "game" && seconds > 5.71 && seconds < 6.59)) {
+        const int y = 14 - frame % 9;
+        result.stamp(39, y, {"..ZlZ.","..Z.l.","..Z...",".ZZ...","ZZZ..."});
+    }
+    return result;
+}
+
+struct Clip {
+    const char* name;
+    int duration;
+    int frames;
+    bool repeat;
+    std::vector<int> tiles;
+};
+
+std::string base64(const std::vector<unsigned char>& bytes) {
+    constexpr std::string_view alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    std::string encoded;
+    encoded.reserve((bytes.size() + 2) / 3 * 4);
+    for (std::size_t i = 0; i < bytes.size(); i += 3) {
+        const unsigned bits = unsigned(bytes[i]) << 16 |
+            (i + 1 < bytes.size() ? unsigned(bytes[i+1]) << 8 : 0) |
+            (i + 2 < bytes.size() ? unsigned(bytes[i+2]) : 0);
+        encoded.push_back(alphabet[bits >> 18]);
+        encoded.push_back(alphabet[(bits >> 12) & 63]);
+        encoded.push_back(i + 1 < bytes.size() ? alphabet[(bits >> 6) & 63] : '=');
+        encoded.push_back(i + 2 < bytes.size() ? alphabet[bits & 63] : '=');
+    }
+    return encoded;
+}
+
+constexpr int columns = 24;
+
+std::string makeAtlas(const std::vector<Pixels>& frames, int rows) {
+    png_image image{};
+    image.version = PNG_IMAGE_VERSION;
+    image.width = columns * width;
+    image.height = rows * height;
+    image.format = PNG_FORMAT_RGBA_COLORMAP;
+    std::vector<unsigned char> colormap{0,0,0,0};
+    std::map<char, unsigned char> index{{0,0}};
+    for (const auto& [ink, color] : palette) {
+        index[ink] = static_cast<unsigned char>(colormap.size() / 4);
+        for (int channel = 0; channel < 3; ++channel)
+            colormap.push_back(static_cast<unsigned char>(std::stoi(color.substr(1 + channel * 2, 2), nullptr, 16)));
+        colormap.push_back(255);
+    }
+    image.colormap_entries = static_cast<png_uint_32>(colormap.size() / 4);
+    std::vector<unsigned char> data(image.width * image.height);
+    for (std::size_t i = 0; i < frames.size(); ++i) {
+        const int left = (i % columns) * width, top = (i / columns) * height;
+        for (int y = 0; y < height; ++y)
+            for (int x = 0; x < width; ++x)
+                data[(top + y) * image.width + left + x] = index.at(frames[i].at(x,y));
+    }
+    png_alloc_size_t size = 0;
+    if (!png_image_write_to_memory(&image, nullptr, &size, 0, data.data(), 0, colormap.data()))
+        throw std::runtime_error(image.message);
+    std::vector<unsigned char> bytes(size);
+    if (!png_image_write_to_memory(&image, bytes.data(), &size, 0, data.data(), 0, colormap.data()))
+        throw std::runtime_error(image.message);
+    bytes.resize(size);
+    return base64(bytes);
+}
+
 void draw(std::ostream& out) {
+    Clip clips[]{
+        {"rest",5600,28,true,{}}, {"walk",640,8,true,{}}, {"turn",180,3,false,{}},
+        {"inspect",2700,27,false,{}}, {"inspectUp",2700,27,false,{}},
+        {"pat",2400,24,false,{}}, {"feed",10000,100,false,{}}, {"dance",3200,32,false,{}},
+        {"sleep",10000,50,false,{}}, {"game",8000,64,false,{}},
+        {"enter",2200,22,false,{}}, {"exit",1700,17,false,{}}, {"drag",720,6,true,{}},
+    };
+    std::map<std::string,int> cells;
+    std::vector<Pixels> frames;
+    for (auto& clip : clips) {
+        for (int i = 0; i < clip.frames; ++i) {
+            const auto art = drawFrame(clip.name, i, double(i) * clip.duration / (1000 * clip.frames));
+            std::string key;
+            key.reserve(width * height);
+            for (int y = 0; y < height; ++y)
+                for (int x = 0; x < width; ++x) key.push_back(art.at(x,y));
+            const auto [it, fresh] = cells.try_emplace(std::move(key), static_cast<int>(frames.size()));
+            if (fresh) frames.push_back(art);
+            clip.tiles.push_back(it->second);
+        }
+    }
+    const int rows = (frames.size() + columns - 1) / columns;
     out << "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pb-rig\" width=\"48\" height=\"56\" "
         << "viewBox=\"0 0 48 56\" overflow=\"visible\" shape-rendering=\"crispEdges\" aria-hidden=\"true\">\n"
-        << "<title>戴粉色眼镜的小熊熊女医生</title>\n"
-        << "<desc>戴粉色眼镜的像素女医生，带连动衣袖、侧面步态和四季散步场景。</desc>\n"
-        << "<defs><clipPath id=\"pb-ground-clip\" clipPathUnits=\"userSpaceOnUse\"><path d=\"M-48 -56h144v112H-48z\"/></clipPath></defs>\n";
-    layer(out, "pb-box-back", parcelBack(), false);
-    out << "<g clip-path=\"url(#pb-ground-clip)\">\n";
-    beginGroup(out, "pb-body");
-    layer(out, "pb-leg-l", leg(false));
-    layer(out, "pb-leg-r", leg(true));
-    layer(out, "pb-torso", torso());
-
-    beginGroup(out, "pb-head");
-    head().write(out);
-    for (const std::string name : {"open","blink","happy","wide","sleep","focus"})
-        layer(out, "pb-eye pb-eye-" + name, eyes(name), name == "open");
-    for (const std::string name : {"neutral","open","chew","smile","sip","burp"})
-        layer(out, "pb-mouth pb-mouth-" + name, mouth(name), name == "neutral");
-    layer(out, "pb-glasses", glasses());
-    layer(out, "pb-ribbon", ribbon());
-    out << "</g>\n";
-
-    drawProps(out);
-    layer(out, "pb-arm-l", arm(false));
-    layer(out, "pb-arm-r", arm(true));
-    drawEffects(out);
-    out << "</g>\n</g>\n";
-
-    layer(out, "pb-box-front", parcelFront(), false);
-    layer(out, "pb-box-flap-l", parcelFlap(false), false);
-    layer(out, "pb-box-flap-r", parcelFlap(true), false);
-    drawProfile(out);
+        << "<title>小熊熊 · 奶油毛绒像素</title>\n"
+        << "<desc>圆脸大眼睛的奶油色像素小熊，戴粉色眼镜，穿白色小外套。各动作使用同尺寸像素帧。</desc>\n"
+        << "<metadata class=\"pb-motion\">{\"columns\":" << columns << ",\"stride\":" << strideLength << ",\"clips\":{";
+    bool first = true;
+    for (const auto& clip : clips) {
+        out << (first ? "" : ",") << '"' << clip.name << "\":[" << clip.duration << ','
+            << (clip.repeat ? "true" : "false") << ",[";
+        first = false;
+        for (std::size_t i = 0; i < clip.tiles.size(); ++i) out << (i ? "," : "") << clip.tiles[i];
+        out << "]]";
+    }
+    out << "}}</metadata>\n"
+        << "<defs><radialGradient id=\"pb-ground-soft\"><stop stop-color=\"var(--pb-shadow,#58474a)\" stop-opacity=\".4\"/>"
+        << "<stop offset=\"1\" stop-color=\"var(--pb-shadow,#58474a)\" stop-opacity=\"0\"/></radialGradient></defs>\n"
+        << "<ellipse class=\"pb-contact\" cx=\"24\" cy=\"54\" rx=\"20\" ry=\"3.7\" fill=\"url(#pb-ground-soft)\" "
+        << "shape-rendering=\"geometricPrecision\"/>\n"
+        << "<svg class=\"pb-window\" width=\"48\" height=\"56\" viewBox=\"0 0 48 56\" overflow=\"hidden\">\n"
+        << "<image class=\"pb-atlas\" width=\"" << columns * width << "\" height=\"" << rows * height
+        << "\" href=\"data:image/png;base64," << makeAtlas(frames,rows) << "\"/></svg>\n";
     drawLandscape(out);
     out << "</svg>\n";
 }
@@ -720,12 +811,14 @@ int main(int argc, char** argv) {
         std::cerr << "Usage: build-pet [output.svg]\n";
         return 1;
     }
-    const std::string destination = argc == 2 ? argv[1] : "assets/pet-bear-rig.svg";
-    std::ofstream out(destination);
-    draw(out);
-    out.close();
-    if (!out) {
-        std::cerr << "Cannot write " << destination << '\n';
+    try {
+        const std::string destination = argc == 2 ? argv[1] : "assets/pet-bear-rig.svg";
+        std::ofstream out(destination);
+        draw(out);
+        out.close();
+        if (!out) throw std::runtime_error("Cannot write " + destination);
+    } catch (const std::exception& error) {
+        std::cerr << error.what() << '\n';
         return 1;
     }
 }
