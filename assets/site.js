@@ -453,7 +453,7 @@
         const script = document.createElement('script');
         script.async = true;
         script.fetchPriority = 'low';
-        script.src = base + 'assets/pet.js?v=pet-5';
+        script.src = base + 'assets/pet.js?v=pet-6';
         document.head.append(script);
       };
       document.head.append(css);

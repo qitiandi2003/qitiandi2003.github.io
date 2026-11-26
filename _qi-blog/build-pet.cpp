@@ -22,10 +22,10 @@ constexpr int height = 56;
 
 // Golden plush fur, cream fabric and strawberry-rose details share one palette.
 const std::map<char, std::string> palette = {
-    {'o', "#8c5a43"}, {'s', "#ad704f"}, {'t', "#cc8859"}, {'g', "#e7a970"},
-    {'f', "#efbb80"}, {'h', "#f8ca92"}, {'l', "#ffe3b3"}, {'e', "#9f5b4f"},
-    {'p', "#e59681"}, {'r', "#f4aa89"}, {'m', "#f5c38b"}, {'w', "#fff0cf"},
-    {'n', "#793f39"}, {'k', "#59352b"}, {'O', "#84736a"}, {'S', "#a2aaa6"},
+    {'o', "#895e43"}, {'s', "#b18052"}, {'t', "#ca995f"}, {'g', "#dca66e"},
+    {'f', "#eabd86"}, {'h', "#f3cc97"}, {'l', "#f9daab"}, {'e', "#ae5341"},
+    {'p', "#d98b73"}, {'r', "#eea779"}, {'m', "#ecc58e"}, {'w', "#fff3df"},
+    {'n', "#724632"}, {'k', "#563826"}, {'O', "#8e8171"}, {'S', "#aaa99a"},
     {'M', "#becac2"}, {'W', "#e8ede4"}, {'F', "#fff8e8"}, {'B', "#709397"},
     {'A', "#83a8a8"}, {'C', "#91bab5"}, {'T', "#66898e"}, {'D', "#8aa6ad"},
     {'I', "#dce5d5"}, {'z', "#69839b"}, {'v', "#818aab"}, {'a', "#aab4cd"},
@@ -115,121 +115,122 @@ enum class Item { none, burger, bittenBurger, cola, console, pillow };
 
 constexpr int floorLine = 54;
 constexpr int shoulderLine = 33;
+constexpr int coatTop = 28;
 constexpr int hipLine = 46;
 constexpr int strideLength = 4;
 
 Pixels portrait(bool side, Face expression) {
     Pixels art;
-    // The ears and cheeks carry the round outline, including in the angled view.
-    art.stamp(4, 2, {"....ooooo....","..oohhhfoo...",".ohhllhhfto..","ohhhhlhhftto.",
-                      "ohhhfgrgttto.","ohhfgrprgtso.","ohfgprprgtso.","ofgggrgttso..",
-                      ".ofgttttso...","..oottsoo....","....ooo......"});
-    art.stamp(side ? 31 : 32, 2, {"....ooooo...","..oohhhfoo..",".ohhlhhftto.",
-          "ohhhlhftttso","ohhfgrgtttso","ohfgrprgttso","ofgprgtttso.",
-          "oggggtttsoo.",".ogtttsoo...","..ooooo....."});
+    // The official portrait stays round through the muzzle, with broad lower cheeks.
+    art.stamp(side ? 4 : 3, 4, {"....ggggg....","..gghhhlhgg..",".ghhhhlhhftg.",
+        "ghhhhlhhfhttg","ghhhfggghfhtg","ghhfgtgtgtgtt","ghfgtsstgftts",
+        "gfgggsttgftts",".fggtttggfts.","..ggttggfts..","...gtgftts...","....tgfts....",
+        ".....tts.....","......ts....."});
+    art.stamp(side ? 32 : 33, 4, {"...gggg....",".gghhhfgg..","ghhhhhhftg.",
+        "ghhlhfhfttg","ghhffgfftts","ghfgtggftts","gfgsttgftts","gfgtttfgtts",
+        ".tggttggts.","..tggttts..","..tgftts...","...ttts....","....ts....."});
     const std::vector<Row> face = side
-        ? std::vector<Row>{{19,29},{16,31},{14,33},{12,35},{11,36},{10,38},{9,39},
-            {8,40},{8,40},{7,41},{7,41},{7,41},{7,42},{7,42},{8,42},{8,42},
-            {9,41},{9,41},{10,40},{11,39},{12,38},{14,37},{16,35},{18,33},{21,30},{23,28}}
-        : std::vector<Row>{{19,28},{16,31},{14,33},{12,35},{11,36},{10,37},{9,38},
-            {8,39},{7,40},{7,40},{6,41},{6,41},{6,41},{6,41},{6,41},{7,40},
-            {7,40},{8,39},{9,38},{10,37},{11,36},{13,34},{15,32},{17,30},{19,28},{21,26}};
-    art.silhouette(7, face, 'o', [side](int x, int y, int lo, int hi) {
-        if (y >= 29 || x == hi - 1) return 't';
-        if (y >= 26 || x >= hi - 3 || (side && x <= lo + 2 && y > 17)) return 'g';
-        return y <= 14 || x <= lo + 3 ? 'h' : 'f';
+        ? std::vector<Row>{{21,28},{17,31},{16,33},{14,35},{13,36},{12,37},{11,38},{11,39},
+            {10,40},{10,40},{9,40},{9,41},{9,41},{8,41},{8,42},{8,42},{8,42},{8,42},
+            {8,42},{9,42},{9,42},{9,41},{10,41},{10,40},{11,39},{12,38},{13,37},
+            {15,36},{17,34},{19,32}}
+        : std::vector<Row>{{20,28},{16,31},{14,33},{13,35},{12,36},{11,37},{10,37},{10,38},
+            {9,38},{9,39},{8,39},{8,39},{8,39},{8,40},{8,40},{7,40},{7,40},{7,40},
+            {7,40},{7,40},{7,40},{8,39},{8,39},{9,38},{9,37},{10,37},{11,36},
+            {12,35},{14,33},{17,31}};
+    art.silhouette(3, face, 't', [side](int x, int y, int lo, int hi) {
+        if (y >= 28 && x >= hi - 2) return 's';
+        if (y >= 30 || x >= hi - 3 || (y >= (side ? 15 : 24) && x <= lo + 2)) return 'g';
+        if (x + y / 2 <= 25 && y <= 16) return 'h';
+        return 'f';
     });
-    art.stamp(12, 10, {".....lllllllll.......","...llllllhhhhhhh......",
-                       "..lllhhlhhhhhh.........",".lllhhhhhhh............"});
-    art.dots({{10,16},{11,14},{14,12},{15,15},{18,12},{27,11},{30,14}}, 'l');
-    art.stamp(8, 21, {"..rrrr..",".rprrrr.","rprrrrg.","rprrrg..",".rrrg..."});
-    art.stamp(side ? 35 : 33, 21, {".rrr..","rprrr.","rprrg.",".rrg.."});
+
+    // Upper planes use wide clusters; concentrated dark pixels define the features.
+    art.stamp(13, 6, {"......lllllhh........","....lllhhhlhhhh......",
+                       "...llhhhlhhhhhh......","..lhhhhhhhhhhh.......",
+                       ".hhhlhhhhhh..........",".hhhhhhhh............"});
+    art.stamp(13, 13, {"..hh...hh.","hhhhh.....","hhhh......",".hh......."});
+    art.stamp(26, 10, {"hh...","hhh..",".hh..",".h..."});
+    art.stamp(side ? 13 : 10, 20, {"...rr....","..rrrrr..",".rprrrrg.","rrprrrgff",
+                                  ".rrrrgff.","..rgff..."});
+    art.stamp(side ? 35 : 31, 20, {".rrr....","rrrrr...","rrprrg..","rprrrgf.",
+                                  ".rrrgf..","..ggf..."});
 
     const int nose = side ? 29 : 23;
-    const int nearLens = side ? 15 : 10;
-    const int farLens = side ? 30 : 26;
-    art.stamp(nose - 6, 22, {"...mmmmmm....","..mmwwwwmm...",".mmwwwwwwmm..",
-                           "mmwwwwwwwwmm.",".mmwwwwwwmm..","..mwwwwmm....","...mmmm......"});
-    art.stamp(nose - 2, 23, {".nnn.","nprpn",".nnn."});
+    const int leftEye = side ? 23 : 19;
+    const int rightEye = side ? 33 : 28;
+    art.stamp(nose - 1, 21, {".pn.","nepn",".nn."});
     switch (expression) {
         case Face::bite:
         case Face::surprised:
         case Face::burp:
-            art.stamp(nose - 2, 27, {".nnn.","nkppn",".nnn."}); break;
+            art.stamp(nose - 2, 24, {".nnn.","nrrpn",".nnn."}); break;
         case Face::chew:
-            art.stamp(nose - 3, 27, {"m..nn.m","..nrrn.","...nn.."}); break;
+            art.stamp(nose - 2, 24, {".n.n.","..nn."}); break;
         case Face::sip:
-            art.stamp(nose - 1, 27, {".n.","npn",".n."}); break;
         case Face::sleep:
-            art.stamp(nose - 1, 27, {"nnn",".n."}); break;
+            art.stamp(nose - 1, 24, {".n.","nrn",".n."}); break;
+        case Face::smile:
+            art.stamp(nose - 3, 24, {"n.....n",".nrrrn.","..nnn.."}); break;
         default:
-            art.stamp(nose - 4, 26, {"n...n...n",".nnnnnnn.","..nrprn..","...nnn..."});
-            break;
+            art.stamp(nose - 3, 24, {"n.....n",".n...n.","..nnn.."}); break;
     }
 
-    art.stamp(nearLens, 14, {"..QQQJJJ..",".Q......J.","J........J","J........J","J........J",
-                            "J........J","J........J",".N......J.","..NNJJJJ.."});
-    art.stamp(farLens, 14, side
-        ? std::initializer_list<std::string>{".QQJJJ..","Q.....J.","J......J","J......J","J......J",
-            "J......J",".N....J.","..NJJJ.."}
-        : std::initializer_list<std::string>{"..QQQJJJ..",".Q......J.","J........J","J........J","J........J",
-            "J........J","J........J",".N......J.","..NNJJJJ.."});
-    art.span(17, nearLens - 3, nearLens + 1, 'N');
-    art.dots({{nearLens + 9,18},{farLens,18}}, 'N');
-    art.span(17, nearLens + 10, farLens - 1, 'Q');
-    if (!side) art.span(17, farLens + 9, farLens + 12, 'J');
-
-    const int eye[]{nearLens + 2, farLens + (side ? 1 : 2)};
-    for (const int x : eye) {
-        if (expression == Face::blink || expression == Face::sleep) art.stamp(x, 19, {"n...n",".nnn."});
+    // Small rose rims follow the eye sockets and leave the nose and smile open.
+    for (const int x : {leftEye, rightEye}) {
+        art.stamp(x - 3, 16, {"..QQQ..",".Q...J.","Q.....J",".......",
+                              "J.....Q",".J...Q.","..JJQ.."});
+        if (expression == Face::blink || expression == Face::sleep) art.stamp(x - 1, 20, {"n.n",".n."});
         else if (expression == Face::smile || expression == Face::chew)
-            art.stamp(x, 17, {"..k..",".k.k.","k...k"});
+            art.stamp(x - 1, 19, {".n.","n.n"});
         else {
-            if (side && x == eye[1]) art.stamp(x, 16, {"..www.",".wnkkw","wnlkkw","wnkkkw",
-                                                       "wnkkkw",".wkkw.","..ww.."});
-            else art.stamp(x - 1, 16, {"..www..",".wnkkw.","wnllkkw","wnlkkkw",
-                                       "wnkkkkw",".wkkkw.","..www.."});
-            if (expression == Face::focus) art.dot(x + 3, 18, 'k');
-            if (expression == Face::surprised || expression == Face::burp) art.dot(x + 3, 19, 'w');
+            const bool far = side && x == rightEye;
+            art.stamp(x - (far ? 1 : 2), 17, far
+                ? std::initializer_list<std::string>{".ww.","wnkw","wwkw","wnkw",".kw.",".w.."}
+                : std::initializer_list<std::string>{"..ww.",".wnkw","wnwkw","wnkkw",".nkkw","..ww."});
+            if (expression == Face::focus) art.dot(x + 1,19,'k');
         }
     }
+    art.span(18, leftEye + 4, rightEye - 4, 'Q');
+    art.span(18, leftEye - 6, leftEye - 4, 'Q');
+    art.span(18, rightEye + 4, rightEye + 6, 'Q');
 
-    // A small berry-coloured ribbon sits on the ear, above the glasses.
-    art.stamp(7, 7, {".NN......N..","NQQN....NJN.","NKQQN..NQJN.","NQQQJNNQQJN.",
-                      ".NNJJQJJJNN.","...NNJN.NN..","....NJN..N..","....NN...N.."});
+    // A tucked ribbon adds a little satin highlight near the ear.
+    art.stamp(7, 5, {"..N...N..",".NQN.NJN.","NKQJNNQN.","NQQJQJQN.",
+                     ".NNQJNJ..","...NJ.N..","...NN...."});
     return art;
 }
 
 Pixels coat(bool side) {
     Pixels art;
     const std::vector<Row> belly = side
-        ? std::vector<Row>{{20,28},{18,31},{16,33},{15,34},{14,35},{14,35},{13,35},{13,35},
+        ? std::vector<Row>{{18,31},{17,32},{16,33},{15,34},{15,34},{15,34},{15,34},{14,35},{14,35},{13,35},{13,35},
             {13,35},{13,35},{13,35},{14,35},{14,34},{15,34},{16,33},{17,32},{18,31},{20,29},{23,27}}
-        : std::vector<Row>{{18,29},{15,32},{14,33},{13,34},{12,35},{12,35},{12,35},{12,35},
+        : std::vector<Row>{{18,29},{16,31},{15,32},{14,33},{14,33},{14,33},{13,34},{12,35},{12,35},{12,35},{12,35},
             {12,35},{12,35},{12,35},{13,34},{13,34},{14,33},{15,32},{16,31},{17,30},{19,28},{21,26}};
-    art.silhouette(31, belly, 'o', [](int x, int y, int lo, int hi) {
+    art.silhouette(coatTop, belly, 'o', [](int x, int y, int lo, int hi) {
         if (y >= 47 || x >= hi - 1) return 't';
         return x <= lo + 3 || y > 44 ? 'g' : 'h';
     });
     const std::vector<Row> jacket = side
-        ? std::vector<Row>{{20,29},{17,32},{15,33},{14,34},{13,34},{13,34},{13,34},
+        ? std::vector<Row>{{18,31},{17,32},{16,33},{15,34},{15,34},{15,34},{14,34},{13,34},{13,34},{13,34},
             {13,34},{13,34},{13,34},{13,34},{14,34},{14,33},{15,32},{17,31},{20,29}}
-        : std::vector<Row>{{18,29},{15,32},{14,33},{13,34},{12,35},{12,35},{12,35},
+        : std::vector<Row>{{18,29},{16,31},{15,32},{14,33},{14,33},{14,33},{13,34},{12,35},{12,35},{12,35},
             {12,35},{12,35},{12,35},{12,35},{13,34},{13,34},{14,33},{16,32},{19,29}};
-    art.silhouette(31, jacket, 'O', [](int x, int y, int lo, int hi) {
+    art.silhouette(coatTop, jacket, 'O', [](int x, int y, int lo, int hi) {
         if (y >= 45 || x >= hi - 1) return 'M';
-        return x <= lo + 2 || y >= 43 || x >= hi - 3 ? 'W' : 'F';
+        return y <= 32 || x <= lo + 2 || y >= 43 || x >= hi - 3 ? 'W' : 'F';
     });
     if (side) {
-        art.stamp(25, 33, {".WCB..","..MBB.","..MFhO","...MhO","...MhO","...MhO","...Mgo","...Mgo",
-                          "...Mgo","..MMho"});
+        art.stamp(25, 33, {".WCI..","..WMI.","..MFIO","...MIO","...MIO","...MIO","...MIO","...MIO",
+                          "...MIO","..MMIO"});
         art.dots({{22,33},{23,34},{24,35},{24,36},{24,37},{25,38},{26,38},{27,37}}, 'T');
         art.stamp(24, 38, {".TT.","TZCT",".TT."});
         art.stamp(18, 41, {".WWW.","FWMM.",".MM.."});
     } else {
-        art.stamp(17, 33, {"..FFWCWFW....","...MFGFWM....","...MFhfWM....","...WMhhMW....",
-                           "....MhhhM....","....MhhhM....","....MhhhM....","....MhhhM....",
-                           "...WMhhgMW...","...MghgggM...","...ogggggo...","....oggoo...."});
+        art.stamp(17, 33, {"..FFMIWFW....","...MFIFWM....","...MFIFWM....","...WMIIMW....",
+                           "....MIIIM....","....MIIIM....","....MIIIM....","....MIIIM....",
+                           "...WMIIIMW...","...WMIIMMW..."});
         art.dots({{17,33},{17,34},{17,35},{17,36},{18,37},{19,38},{20,38},{21,37},{21,36}}, 'T');
         art.dots({{28,33},{29,34},{29,35},{29,36},{29,37}}, 'T');
         art.stamp(27, 37, {".TT.","TZCT",".TT."});
@@ -374,9 +375,10 @@ Pixels actor(const Pose& pose, int moment) {
         paw(body, handL, true);
     }
     body.over(coat(pose.side), 0, pose.chest);
-    body.over(portrait(pose.side, pose.face), pose.nod.first, pose.chest + pose.nod.second);
     if (!pose.side) sleeve(body, leftShoulder, handL, 1, false);
     sleeve(body, rightShoulder, handR, pose.rightBend, pose.side);
+    // The head overlaps the coat and sleeve roots even on the upward glance.
+    body.over(portrait(pose.side, pose.face), pose.nod.first, pose.chest + pose.nod.second);
     body.over(food(pose.item, pose.prop, moment), 0, pose.chest);
     if (!pose.side) paw(body, handL, false);
     paw(body, handR, pose.side);
@@ -598,13 +600,13 @@ Pixels drawFrame(std::string_view scene, int frame, double seconds) {
         if (seconds >= .27 && seconds < 4.55) {
             const double lift = blend(seconds,.62,1.8) - blend(seconds,2.52,3.5);
             const bool bitten = seconds >= 2.12;
-            hold(pose, bitten ? Item::bittenBurger : Item::burger, 24, 38 - pixel(12 * lift));
+            hold(pose, bitten ? Item::bittenBurger : Item::burger, 24, 38 - pixel(14 * lift));
             if (seconds >= 1.69 && !bitten) pose.face = Face::bite;
             if (bitten) pose.face = frame % 3 != 0 ? Face::chew : Face::smile;
             pose.nod.second = seconds > 1.78 && seconds < 2.83 ? 1 : 0;
         } else if (seconds >= 4.85 && seconds < 7.98) {
             const double lift = blend(seconds,5.2,5.95) - blend(seconds,6.84,7.78);
-            hold(pose, Item::cola, 29, 39 - pixel(4 * lift));
+            hold(pose, Item::cola, 29, 39 - pixel(7 * lift));
             if (lift > .86) pose.face = Face::sip;
             if (seconds > 7.18) pose.face = Face::smile;
         } else if (seconds >= 7.98 && seconds < 9.72) {
@@ -681,7 +683,7 @@ Pixels drawFrame(std::string_view scene, int frame, double seconds) {
         if (seconds > .91 && seconds < 1.84) heart(result, 43, 18 - pixel(seconds * 5));
     }
     if (scene == "feed" && seconds >= 2.10 && seconds < 2.38)
-        result.dots({{31,27+(frame%3)},{34,30+(frame%3)},{29,31}},'j');
+        result.dots({{30,24+(frame%3)},{33,27+(frame%3)},{29,28}},'j');
     if (scene == "feed" && seconds >= 8.93 && seconds < 9.5) {
         const int x = 35 + pixel((seconds - 8.93) * 9), y = 25 - pixel((seconds - 8.93) * 5);
         result.stamp(x, y, {"...DD..",".DIWWD.","DIWFWID",".DIIDD.","...D..."});
@@ -782,8 +784,8 @@ void draw(std::ostream& out) {
     const int rows = (frames.size() + columns - 1) / columns;
     out << "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pb-rig\" width=\"48\" height=\"56\" "
         << "viewBox=\"0 0 48 56\" overflow=\"visible\" shape-rendering=\"crispEdges\" aria-hidden=\"true\">\n"
-        << "<title>小熊熊 · 奶油毛绒像素</title>\n"
-        << "<desc>圆脸大眼睛的奶油色像素小熊，戴粉色眼镜，穿白色小外套。各动作使用同尺寸像素帧。</desc>\n"
+        << "<title>小熊熊 · 奶油像素</title>\n"
+        << "<desc>圆腮的奶油色小熊，头部直接落在白色医生外套上，戴粉色细框眼镜。全部动作使用同尺寸像素帧。</desc>\n"
         << "<metadata class=\"pb-motion\">{\"columns\":" << columns << ",\"stride\":" << strideLength << ",\"clips\":{";
     bool first = true;
     for (const auto& clip : clips) {

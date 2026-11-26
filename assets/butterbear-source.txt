@@ -3,3 +3,10 @@ Official website: https://butterbear.co.th/
 Image source: https://butterbear.co.th/cdn/shop/files/Copy_of_Butterbear_Tpop_Stage03_1.png?v=1731049451&width=192&format=webp
 Retrieved: 2026-11-26
 The WebP image is copied from the official CDN response without modification.
+
+Pixel character references:
+Butterbear proportions: https://butterbear.co.th/pages/about
+Front portrait: https://butterbear.co.th/cdn/shop/files/9d8fe32f16146a304069e8c93ceb38a4.png?v=1730972076&width=260
+Head and shoulder overlap: https://butterbear.co.th/cdn/shop/files/ca039e6d9b835bc7e521a8c674cb213b.png?v=1731308357&width=260
+Pixel spacing and colour clusters: https://www.jp.square-enix.com/octopathtraveler2/traveler/castti.html
+The animated artwork is drawn on its own pixel grid by _qi-blog/build-pet.cpp.
