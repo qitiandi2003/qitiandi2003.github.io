@@ -11,7 +11,6 @@
     const suggestions = document.getElementById('search-suggestions');
     const more = dialog.querySelector('[data-more-search]');
     const clear = dialog.querySelector('[data-clear-search]');
-    const browse = dialog.querySelector('.search-browse');
     const body = dialog.querySelector('.search-body');
     const articles = window.QI_ARTICLES || [];
     const base = document.documentElement.dataset.base || './';
@@ -64,7 +63,6 @@
       if (resetScroll) body.scrollTop = 0;
       suggestions.hidden = terms.length > 0;
       results.hidden = !matches.length;
-      browse.hidden = matches.length > 0;
       clear.hidden = !input.value.length;
       more.hidden = matches.length <= visibleCount;
       more.textContent = more.hidden ? '' : '再显示 ' + Math.min(6, matches.length - visibleCount) + ' 篇';
@@ -147,11 +145,14 @@
     });
   }
 
-  function setupFilters() {
+  function setupFilters(animateIn) {
     const buttons = Array.from(document.querySelectorAll('[data-filter]'));
     const cards = document.querySelectorAll('[data-group]');
     const count = document.getElementById('filter-count');
     if (!buttons.length) return;
+    const list = document.querySelector('.note-list');
+    let previousGroup;
+    let feedback;
 
     function renderFilters() {
       const requested = new URL(location.href).searchParams.get('group');
@@ -163,6 +164,11 @@
         if (!card.hidden) visible++;
       });
       if (count) count.textContent = '共 ' + visible + ' 篇';
+      if (previousGroup !== undefined && previousGroup !== group && list) {
+        feedback?.cancel();
+        feedback = animateIn(list, .7, 4, 220);
+      }
+      previousGroup = group;
     }
 
     buttons.forEach(button => {
@@ -178,6 +184,91 @@
     });
     window.addEventListener('popstate', renderFilters);
     renderFilters();
+  }
+
+  function setupMotion() {
+    const motion = matchMedia('(prefers-reduced-motion: no-preference)');
+    const pointer = matchMedia('(hover: hover) and (pointer: fine)');
+    const surfaces = document.querySelectorAll('.note-row > a, .path-card, .next-note, .course-hero');
+    const waiting = new Set(document.querySelectorAll('.note-row, .path-card, .article-image, .lesson-diagram, .chapter-links'));
+    const animations = new Set();
+    let surface, clientX, clientY;
+    let frame = 0;
+    let active = false;
+    surfaces.forEach(element => element.classList.add('light-surface'));
+
+    function animateIn(element, opacity, distance, duration) {
+      if (!active || document.hidden || !element.animate) return;
+      const animation = element.animate([
+        {opacity, transform: 'translateY(' + distance + 'px)'},
+        {opacity: 1, transform: 'none'}
+      ], {duration, easing: 'cubic-bezier(.2,.7,.2,1)'});
+      animations.add(animation);
+      const forget = () => animations.delete(animation);
+      animation.finished.then(forget, forget);
+      return animation;
+    }
+
+    const observer = 'IntersectionObserver' in window ? new IntersectionObserver(entries => {
+      if (!active || document.hidden) return;
+      for (const entry of entries) {
+        if (!entry.isIntersecting || !waiting.delete(entry.target)) continue;
+        observer.unobserve(entry.target);
+        animateIn(entry.target, .65, 10, 420);
+      }
+    }) : null;
+
+    function clearLight() {
+      cancelAnimationFrame(frame);
+      frame = 0;
+      surface?.style.removeProperty('--light-x');
+      surface?.style.removeProperty('--light-y');
+      surface = null;
+    }
+
+    function moveLight(event) {
+      if (event.pointerType === 'touch' || document.hidden) return;
+      if (surface !== event.currentTarget) clearLight();
+      surface = event.currentTarget;
+      clientX = event.clientX;
+      clientY = event.clientY;
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const rect = surface.getBoundingClientRect();
+        surface.style.setProperty('--light-x', clientX - rect.left + 'px');
+        surface.style.setProperty('--light-y', clientY - rect.top + 'px');
+      });
+    }
+
+    function suspend() {
+      active = false;
+      clearLight();
+      observer?.disconnect();
+      animations.forEach(animation => animation.cancel());
+      surfaces.forEach(element => {
+        element.removeEventListener('pointermove', moveLight);
+        element.removeEventListener('pointerleave', clearLight);
+      });
+    }
+
+    function refresh() {
+      suspend();
+      if (document.hidden || !motion.matches) return;
+      active = true;
+      if (observer) waiting.forEach(element => observer.observe(element));
+      if (pointer.matches) surfaces.forEach(element => {
+        element.addEventListener('pointermove', moveLight, {passive: true});
+        element.addEventListener('pointerleave', clearLight);
+      });
+    }
+    motion.addEventListener('change', refresh);
+    pointer.addEventListener('change', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    window.addEventListener('pagehide', suspend);
+    window.addEventListener('pageshow', event => { if (event.persisted) refresh(); });
+    refresh();
+    return animateIn;
   }
 
   function setupIllustration() {
@@ -223,23 +314,30 @@
     }
     const progress = document.querySelector('.reading-progress span');
     if (progress) {
-      let pending = false;
+      let pending = 0;
       function updateProgress() {
         const distance = document.documentElement.scrollHeight - innerHeight;
         progress.style.transform = 'scaleX(' + (distance > 0 ? Math.min(1, Math.max(0, scrollY / distance)) : 1) + ')';
-        pending = false;
+        pending = 0;
       }
       function schedule() {
-        if (!pending) { pending = true; requestAnimationFrame(updateProgress); }
+        if (!pending && !document.hidden) pending = requestAnimationFrame(updateProgress);
+      }
+      function cancelProgress() {
+        cancelAnimationFrame(pending);
+        pending = 0;
       }
       addEventListener('scroll', schedule, {passive: true});
       addEventListener('resize', schedule);
       addEventListener('load', schedule);
-      updateProgress();
+      addEventListener('pagehide', cancelProgress);
+      addEventListener('pageshow', schedule);
+      document.addEventListener('visibilitychange', () => document.hidden ? cancelProgress() : schedule());
+      schedule();
     }
     setupIllustration();
     setupSearch();
-    setupFilters();
+    setupFilters(setupMotion());
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once: true});
   else init();

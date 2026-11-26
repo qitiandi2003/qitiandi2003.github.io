@@ -95,8 +95,7 @@ string footer(const string& base) {
          "<button type='button' data-search-query='SLAM'>SLAM</button><button type='button' data-search-query='OpenCV'>OpenCV</button>"
          "<button type='button' data-search-query='3DGS'>3DGS</button></div></div>"
          "<p id='search-status' role='status' aria-atomic='true'></p><ul id='search-results' aria-label='搜索结果' hidden></ul>"
-         "<button type='button' class='search-more' data-more-search hidden></button>"
-         "<a class='search-browse' href='" + base + "notes/'>浏览全部文章</a></div></dialog>";
+         "<button type='button' class='search-more' data-more-search hidden></button></div></dialog>";
 }
 
 string document(const string& base, const string& page, const string& title, const string& desc, const string& body) {
@@ -104,8 +103,8 @@ string document(const string& base, const string& page, const string& title, con
         "<meta name='viewport' content='width=device-width,initial-scale=1'><meta name='theme-color' content='#ffffff'>"
         "<title>" + html_escape(title) + "</title><meta name='description' content='" + html_escape(desc) + "'>"
         "<link rel='icon' href='" + base + "assets/favicon.svg?v=wordmark-4' type='image/svg+xml'><link rel='stylesheet' href='" +
-        base + "assets/site.css?v=search-6'><script defer src='" + base + "assets/search-index.js?v=reading-3'></script><script defer src='" + base +
-        "assets/site.js?v=search-6'></script><noscript><style>.search-button,.filters{display:none}</style></noscript></head><body>" +
+        base + "assets/site.css?v=glass-7'><script defer src='" + base + "assets/search-index.js?v=reading-3'></script><script defer src='" + base +
+        "assets/site.js?v=glass-7'></script><noscript><style>.search-button,.filters{display:none}</style></noscript></head><body>" +
         header(base,page) + body + footer(base) + "</body></html>\n";
 }
 
