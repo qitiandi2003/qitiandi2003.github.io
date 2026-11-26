@@ -32,10 +32,10 @@
   const sprite = root.querySelector('.pet-sprite');
   const message = root.querySelector('.pet-message');
   const effects = root.querySelector('.pet-effects');
-  let landscape = null, atlas = null, motions = null;
+  let landscape = null, atlas = null, body = null, parcel = null, motions = null;
   try {
     const base = document.documentElement.dataset.base || './';
-    const response = await fetch(base + 'assets/pet-plush-rig.svg?v=plush-1', {mode: 'same-origin'});
+    const response = await fetch(base + 'assets/pet-plush-hd.svg?v=1', {mode: 'same-origin'});
     if (!response.ok || !/^image\/svg\+xml(?:\s*;|$)/i.test(response.headers.get('content-type') || '')) {
       throw new Error('Artwork unavailable');
     }
@@ -47,12 +47,13 @@
     const drawing = svg.querySelector('image.pb-atlas');
     const source = drawing?.getAttribute('href');
     const timeline = JSON.parse(svg.querySelector('.pb-motion')?.textContent || 'null');
-    if (!source?.startsWith('data:image/webp;base64,') || !timeline?.clips?.rest || !(timeline.columns > 0 && timeline.stride > 0)) {
+    if (!/^pet-plush-hd\.avif\?v=\d+$/.test(source || '') || !timeline?.clips?.rest || !(timeline.columns > 0 && timeline.stride > 0)) {
       throw new Error('Plush frames unavailable');
     }
     const decoded = new Image();
-    decoded.src = source;
+    decoded.src = new URL(source, response.url).href;
     await decoded.decode();
+    drawing.setAttribute('href', decoded.src);
     const scenery = svg.querySelector('.pb-landscape');
     if (scenery) {
       landscape = document.importNode(scenery, true);
@@ -61,6 +62,8 @@
     }
     sprite.replaceChildren(document.importNode(svg, true));
     atlas = sprite.querySelector('.pb-atlas');
+    body = sprite.querySelector('.pb-body');
+    parcel = sprite.querySelector('.pb-parcel');
     motions = timeline;
     root.dataset.art = 'rig';
   } catch {
@@ -86,7 +89,7 @@
   let frame, timer, layoutFrame, nextPat = 0;
   let idleTimer, idleStep = 0, phaseTimer, acting = false;
   const seasons = ['spring', 'summer', 'autumn', 'winter'];
-  let spriteAnimation, currentClip, walkDuration;
+  let spriteAnimations = [], currentClip, walkDuration;
 
   function updateArtwork() {
     if (!atlas) return;
@@ -101,16 +104,43 @@
     if (key === currentClip) return;
     currentClip = key;
 
-    spriteAnimation?.cancel();
-    const [duration, loop, tiles] = motions.clips[name];
-    const translate = tile => `translate(${-48 * (tile % motions.columns)}px,${-56 * Math.floor(tile / motions.columns)}px)`;
-    atlas.style.transform = translate(tiles[still && state.action ? Math.floor(tiles.length * .4) : 0]);
+    for (const animation of spriteAnimations) animation.cancel();
+    spriteAnimations = [];
+    const [duration, loop, tiles, lifts, parcels] = motions.clips[name];
+    const translate = frame => {
+      const mirror = frame < 0;
+      const tile = mirror ? -1 - frame : frame;
+      const column = tile % motions.columns;
+      return `translate(${48 * (mirror ? column + 1 : -column)}px,${-56 * Math.floor(tile / motions.columns)}px) scaleX(${mirror ? -1 : 1})`;
+    };
+    const translateY = y => `translateY(${y}px)`;
+    const initial = still && state.action ? Math.floor(tiles.length * .4) : 0;
+    atlas.style.transform = translate(tiles[initial]);
+    body.style.transform = translateY(lifts[initial]);
+    parcel.style.transform = translateY(parcels[initial]);
     if (still) return;
-    // Each frame stays on screen until the next tile, with no interpolation of the drawing.
-    const poses = tiles.map((tile, index) => ({transform: translate(tile), offset: index / tiles.length, easing: 'steps(1,end)'}));
-    poses.push({transform: translate(tiles.at(-1)), offset: 1});
-    spriteAnimation = atlas.animate(poses, {duration: name === 'walk' ? walkDuration : duration,
-      iterations: loop ? Infinity : 1, fill: 'both'});
+
+    const options = {duration: name === 'walk' ? walkDuration : duration,
+      iterations: loop ? Infinity : 1, fill: 'both'};
+    const start = document.timeline.currentTime;
+    function playTrack(element, values, transform, discrete) {
+      const frames = [];
+      const last = values.length - 1;
+      const intervals = loop ? values.length : last;
+      const easing = discrete ? 'steps(1,end)' : 'linear';
+      for (let i = 0; i <= last; ++i) {
+        if (i && i < last && values[i] === values[i-1] && (discrete || values[i] === values[i+1])) continue;
+        frames.push({transform: transform(values[i]), offset: i / intervals, easing});
+      }
+      if (loop) frames.push({transform: transform(values[0]), offset: 1});
+      if (frames.every(frame => frame.transform === frames[0].transform)) return;
+      const animation = element.animate(frames, options);
+      if (start !== null) animation.startTime = start;
+      spriteAnimations.push(animation);
+    }
+    playTrack(atlas, tiles, translate, true);
+    playTrack(body, lifts, translateY, false);
+    playTrack(parcel, parcels, translateY, false);
   }
 
   function viewport() {
