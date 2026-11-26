@@ -35,7 +35,7 @@
   let landscape = null, atlas = null, motions = null;
   try {
     const base = document.documentElement.dataset.base || './';
-    const response = await fetch(base + 'assets/pet-bear-rig.svg?v=pet-8', {mode: 'same-origin'});
+    const response = await fetch(base + 'assets/pet-plush-rig.svg?v=plush-1', {mode: 'same-origin'});
     if (!response.ok || !/^image\/svg\+xml(?:\s*;|$)/i.test(response.headers.get('content-type') || '')) {
       throw new Error('Artwork unavailable');
     }
@@ -47,8 +47,8 @@
     const drawing = svg.querySelector('image.pb-atlas');
     const source = drawing?.getAttribute('href');
     const timeline = JSON.parse(svg.querySelector('.pb-motion')?.textContent || 'null');
-    if (!source?.startsWith('data:image/png;base64,') || !timeline?.clips?.rest || !(timeline.columns > 0 && timeline.stride > 0)) {
-      throw new Error('Pixel frames unavailable');
+    if (!source?.startsWith('data:image/webp;base64,') || !timeline?.clips?.rest || !(timeline.columns > 0 && timeline.stride > 0)) {
+      throw new Error('Plush frames unavailable');
     }
     const decoded = new Image();
     decoded.src = source;

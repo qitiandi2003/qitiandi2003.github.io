@@ -10,4 +10,5 @@ Front portrait: https://butterbear.co.th/cdn/shop/files/9d8fe32f16146a304069e8c9
 Head and shoulder overlap: https://butterbear.co.th/cdn/shop/files/ca039e6d9b835bc7e521a8c674cb213b.png?v=1731308357&width=260
 Pixel spacing and colour clusters: https://www.jp.square-enix.com/octopathtraveler2/traveler/castti.html
 Cheek, paw and hop gestures: https://www.bilibili.com/video/BV1fv2DBWEv1/
-The animated artwork is drawn on its own pixel grid by _qi-blog/build-pet.cpp.
+The earlier pixel artwork was drawn by _qi-blog/build-pet.cpp.
+The current plush artwork uses generated pose sheets based on the two video references. The production atlas is assembled by _qi-blog/build-plush.cpp.
