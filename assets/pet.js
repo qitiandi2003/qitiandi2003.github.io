@@ -35,7 +35,7 @@
   let landscape = null, atlas = null, motions = null;
   try {
     const base = document.documentElement.dataset.base || './';
-    const response = await fetch(base + 'assets/pet-bear-rig.svg?v=pet-6', {mode: 'same-origin'});
+    const response = await fetch(base + 'assets/pet-bear-rig.svg?v=pet-7', {mode: 'same-origin'});
     if (!response.ok || !/^image\/svg\+xml(?:\s*;|$)/i.test(response.headers.get('content-type') || '')) {
       throw new Error('Artwork unavailable');
     }

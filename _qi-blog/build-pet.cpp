@@ -36,6 +36,7 @@ const std::map<char, std::string> palette = {
     {'J', "#cd7889"}, {'K', "#ffd4d1"}, {'N', "#a74e67"}, {'Q', "#ee9b9f"},
     {'0', "#795e4a"}, {'1', "#a77e57"}, {'2', "#c39c70"}, {'3', "#dab78b"},
     {'4', "#ead0a8"}, {'5', "#f4e1bd"}, {'6', "#8da6a2"},
+    {'c', "#526c82"}, {'7', "#43596d"},
 };
 
 template<int Width, int Height>
@@ -203,15 +204,6 @@ Pixels portrait(bool side, Face expression) {
 
 Pixels coat(bool side) {
     Pixels art;
-    const std::vector<Row> belly = side
-        ? std::vector<Row>{{18,31},{17,32},{16,33},{15,34},{15,34},{15,34},{15,34},{14,35},{14,35},{13,35},{13,35},
-            {13,35},{13,35},{13,35},{14,35},{14,34},{15,34},{16,33},{17,32},{18,31},{20,29},{23,27}}
-        : std::vector<Row>{{18,29},{16,31},{15,32},{14,33},{14,33},{14,33},{13,34},{12,35},{12,35},{12,35},{12,35},
-            {12,35},{12,35},{12,35},{13,34},{13,34},{14,33},{15,32},{16,31},{17,30},{19,28},{21,26}};
-    art.silhouette(coatTop, belly, 'o', [](int x, int y, int lo, int hi) {
-        if (y >= 47 || x >= hi - 1) return 't';
-        return x <= lo + 3 || y > 44 ? 'g' : 'h';
-    });
     const std::vector<Row> jacket = side
         ? std::vector<Row>{{18,31},{17,32},{16,33},{15,34},{15,34},{15,34},{14,34},{13,34},{13,34},{13,34},
             {13,34},{13,34},{13,34},{13,34},{14,34},{14,33},{15,32},{17,31},{20,29}}
@@ -261,42 +253,53 @@ void stroke(Pixels& art, Point a, Point b, int radius, char ink) {
 }
 
 Point elbow(Point shoulder, Point hand, int bend) {
-    // Each arm has two six-pixel bones. Only the bend and wrist position vary.
     const double dx = hand.first - shoulder.first, dy = hand.second - shoulder.second;
     const double length = std::max(1.0, std::hypot(dx, dy));
     if (length > 12.25) throw std::runtime_error("Wrist outside arm reach");
-    const double arc = bend * std::sqrt(std::max(0.0, 36 - length * length / 4)) / length;
+    // The hanging arm relaxes. Raising the paw brings the bend back gradually.
+    const double flex = std::clamp((10.0 - dy) / 8.0, .25, 1.0);
+    const double arc = bend * flex * std::sqrt(std::max(0.0, 36 - length * length / 4)) / length;
     return {int(std::lround((shoulder.first + hand.first) / 2.0 - dy * arc)),
             int(std::lround((shoulder.second + hand.second) / 2.0 + dx * arc))};
 }
 
 void sleeve(Pixels& art, Point shoulder, Point hand, int bend, bool shaded) {
     const Point joint = elbow(shoulder, hand, bend);
-    stroke(art, shoulder, joint, 3, 'O');
-    stroke(art, shoulder, joint, 2, shaded ? 'W' : 'F');
-    const Point wrist = between(joint, hand, .87);
-    stroke(art, joint, wrist, 2, 'o');
-    stroke(art, joint, wrist, 1, shaded ? 't' : 'h');
-    stroke(art, wrist, hand, 1, shaded ? 'g' : 'h');
+    const Point wrist = between(joint, hand, .82);
+    const std::array<Point, 4> seam{
+        shoulder, between(shoulder, joint, .74), between(joint, wrist, .30), wrist
+    };
+    // The two parts of the arm share one cloth outline and a rounded fold.
+    for (std::size_t i = 1; i < seam.size(); ++i)
+        stroke(art, seam[i - 1], seam[i], i < 3 ? 3 : 2, 'S');
+    for (std::size_t i = 1; i < seam.size(); ++i)
+        stroke(art, seam[i - 1], seam[i], i < 3 ? 2 : 1, shaded ? 'M' : 'W');
+    for (std::size_t i = 1; i < seam.size(); ++i)
+        stroke(art, plus(seam[i - 1], {-1,0}), plus(seam[i], {-1,0}), 1, shaded ? 'W' : 'F');
+    stroke(art, between(seam[2], wrist, .82), wrist, 1, 'M');
 }
 
 void paw(Pixels& art, Point hand, bool shaded) {
-    art.stamp(hand.first - 3, hand.second - 2, shaded
-        ? std::initializer_list<std::string>{"..ooo..",".ogtto.","ogfgsso","oggtsso",".ogtto.","..ooo.."}
-        : std::initializer_list<std::string>{"..ooo..",".ohhfo.","ohhfgto","ohffgto",".ogtto.","..ooo.."});
+    art.stamp(hand.first - 2, hand.second - 2, shaded
+        ? std::initializer_list<std::string>{".sss.","sgtts","sgtso","ogtso",".ooo."}
+        : std::initializer_list<std::string>{".sss.","shhgs","shfto","ogfto",".ooo."});
 }
 
-void plushFoot(Pixels& art, Point hip, Point foot, bool side, bool shaded) {
-    const Point ankle{foot.first, foot.second - 5};
-    stroke(art, hip, ankle, 3, 'o');
-    stroke(art, hip, ankle, 2, shaded ? 't' : 'h');
+void trouserLeg(Pixels& art, Point hip, Point foot, bool side, bool shaded) {
+    const Point cuff{foot.first, foot.second - 4};
+    for (int y = hip.second; y <= cuff.second; ++y) {
+        const int x = between(hip, cuff, double(y - hip.second) / std::max(1, cuff.second - hip.second)).first;
+        const int half = y == cuff.second ? 2 : 3;
+        art.span(y, x - half, x + half, 'E');
+        art.span(y, x - half + 1, x + half - 1, shaded ? '7' : 'c');
+        if (!shaded) art.dot(x - 1, y, 'z');
+    }
     if (side) {
-        art.stamp(foot.first - 3, foot.second - 5, shaded
-            ? std::initializer_list<std::string>{".oooo....","otggto...","oggtsto..","ogggttso.",".otggtso.","..ooooo.."}
-            : std::initializer_list<std::string>{".oooo....","ohhgto...","ohffhto..","ofhhhfto.",".ohhgtto.","..ooooo.."});
+        art.stamp(foot.first - 3, cuff.second + 1, shaded
+            ? std::initializer_list<std::string>{".oooto..","otggtso.","ogggtsto",".oooooo."}
+            : std::initializer_list<std::string>{".sooto..","ohhhfso.","ofhhfgto",".oooooo."});
     } else {
-        art.stamp(foot.first - 4, foot.second - 5, {"..ooooo..",".ohhhgto.","ohhfhfgto",
-                                                   "ofhhfggto",".ogggtto.","..ooooo.."});
+        art.stamp(foot.first - 4, cuff.second + 1, {"..sotoo..",".ohhhgto.","ohhhfggto",".ooooooo."});
     }
 }
 
@@ -351,7 +354,7 @@ Pose sidePose() {
     Pose pose;
     pose.side = true;
     pose.leftHand = {29, 41};
-    pose.rightHand = {20, 43};
+    pose.rightHand = {18, 43};
     pose.leftFoot = {25, floorLine};
     pose.rightFoot = {21, floorLine};
     return pose;
@@ -360,7 +363,7 @@ Pose sidePose() {
 Pixels actor(const Pose& pose, int moment) {
     Pixels body;
     const Point leftShoulder{pose.side ? 28 : 15, shoulderLine + pose.chest};
-    const Point rightShoulder{pose.side ? 20 : 32, shoulderLine + pose.chest};
+    const Point rightShoulder{pose.side ? 18 : 32, shoulderLine + pose.chest};
     const auto handL = plus(pose.leftHand, {0, pose.chest});
     const auto handR = plus(pose.rightHand, {0, pose.chest});
     if (pose.side) {
@@ -368,15 +371,17 @@ Pixels actor(const Pose& pose, int moment) {
         tail.stamp(9, 41, {"..oo..",".ohgo.","ofgto.",".tso..","..oo.."});
         body.over(tail, 0, pose.chest);
     }
-    plushFoot(body, {pose.side ? 25 : 18, hipLine + pose.chest}, pose.leftFoot, pose.side, pose.side);
-    plushFoot(body, {pose.side ? 21 : 29, hipLine + pose.chest}, pose.rightFoot, pose.side, false);
+    body.stamp(15, hipLine - 2 + pose.chest, {"..EEEEEEEEEEEEEE..",".EccccccccccccccE.",
+                                            "EccccccccccccccccE",".EccccccccccccccE."});
+    trouserLeg(body, {pose.side ? 25 : 18, hipLine + pose.chest}, pose.leftFoot, pose.side, pose.side);
+    trouserLeg(body, {pose.side ? 21 : 29, hipLine + pose.chest}, pose.rightFoot, pose.side, false);
     if (pose.side) {
         sleeve(body, leftShoulder, handL, 1, true);
         paw(body, handL, true);
     }
     body.over(coat(pose.side), 0, pose.chest);
     if (!pose.side) sleeve(body, leftShoulder, handL, 1, false);
-    sleeve(body, rightShoulder, handR, pose.rightBend, pose.side);
+    sleeve(body, rightShoulder, handR, pose.rightBend, false);
     // The head overlaps the coat and sleeve roots even on the upward glance.
     body.over(portrait(pose.side, pose.face), pose.nod.first, pose.chest + pose.nod.second);
     body.over(food(pose.item, pose.prop, moment), 0, pose.chest);
@@ -578,13 +583,15 @@ Pixels drawFrame(std::string_view scene, int frame, double seconds) {
         pose.rightFoot = {21 + stride[right], floorLine - rise[right]};
         pose.leftHand.first -= stride[left] / 2;
         pose.rightHand.first -= stride[right];
+        pose.leftHand.second -= std::abs(stride[left]) / 2;
+        pose.rightHand.second -= std::abs(stride[right]) / 2;
         pose.chest = frame % 4 == 2 ? -1 : 0;
     } else if (scene == "inspect" || scene == "inspectUp") {
         pose = sidePose();
         const double lean = blend(seconds,.23,1.06) - blend(seconds,1.75,2.65);
         pose.chest = pixel(lean);
         pose.nod = {pixel(2 * lean), pixel((scene == "inspect" ? 3 : -2) * lean)};
-        pose.rightHand = between({20,43}, {26,40}, lean);
+        pose.rightHand = between(pose.rightHand, {25,40}, lean);
         pose.face = seconds > .86 && seconds < 2.12 ? Face::smile : Face::calm;
     } else if (scene == "turn") {
         pose.face = Face::blink;
@@ -785,7 +792,7 @@ void draw(std::ostream& out) {
     out << "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pb-rig\" width=\"48\" height=\"56\" "
         << "viewBox=\"0 0 48 56\" overflow=\"visible\" shape-rendering=\"crispEdges\" aria-hidden=\"true\">\n"
         << "<title>小熊熊 · 奶油像素</title>\n"
-        << "<desc>圆腮的奶油色小熊，头部直接落在白色医生外套上，戴粉色细框眼镜。全部动作使用同尺寸像素帧。</desc>\n"
+        << "<desc>圆腮的奶油色小熊，戴粉色细框眼镜，穿白色长袖医生外套和蓝灰长裤。全部动作使用同尺寸像素帧。</desc>\n"
         << "<metadata class=\"pb-motion\">{\"columns\":" << columns << ",\"stride\":" << strideLength << ",\"clips\":{";
     bool first = true;
     for (const auto& clip : clips) {
