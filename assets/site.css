@@ -212,6 +212,11 @@ svg { width: 1.05em; height: 1.05em; flex-shrink: 0; }
 .ros-wire{height:2px;background:#86a7ca;position:relative}.ros-wire i{width:.64rem;height:.64rem;position:absolute;background:var(--blue);border-radius:50%;left:0;top:50%;transform:translate(-50%,-50%);transition:left .38s ease}.ros-wire[data-end=server] i{left:100%}
 .ros-actions{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin-top:.85rem}
 .about-panel{max-width:43rem;margin:2rem auto}.about-text{margin-top:1.5rem}
+.about-page { min-height: calc(100svh - 10rem); }
+.author-profile { display: flex; align-items: center; gap: 2rem; }
+.author-avatar { display: block; width: 9rem; height: 9rem; flex-shrink: 0; object-fit: cover; border: 4px solid #ffffffd9; border-radius: 32px; box-shadow: 0 8px 28px #263c5012, 0 0 0 1px #dde3eb80; }
+.author-profile h1 { margin: .4rem 0 .35rem; }
+.author-focus { font-size: 1rem; color: var(--soft); }
 html.search-open { overflow: hidden; }
 .search-dialog { width: min(38rem,calc(100% - 2rem)); max-height: calc(100dvh - min(12vh,6.5rem) - 1rem); margin: min(12vh,6.5rem) auto 0; overflow: hidden; padding: 0; border: 1px solid #ffffff80; border-radius: 18px; background: #fff; box-shadow: 0 24px 80px #18212c30; color: var(--ink); }
 .search-dialog[open] { display: flex; flex-direction: column; }
@@ -360,6 +365,8 @@ html.search-open { overflow: hidden; }
   .stage-heading h2 { font-size: 1.25rem; }
   .stage .note-row > a { grid-template-columns: minmax(0,1fr) 8rem; }
   .reading-page, .about-page { padding-block: 1.6rem 3rem; }
+  .author-profile { gap: 1.4rem; }
+  .author-avatar { width: 6.5rem; height: 6.5rem; border-radius: 24px; }
   .article-heading { padding-block: 1.4rem; }
   .article-heading h1 { font-size: 2rem; }
   .article-heading > p { font-size: 1rem; }
@@ -394,6 +401,8 @@ html.search-open { overflow: hidden; }
   .next-note strong { font-size: .94rem; }
 }
 @media(max-width: 360px) {
+  .author-profile { gap: 1.1rem; }
+  .author-avatar { width: 5.5rem; height: 5.5rem; border-radius: 21px; }
   .wrap { width: calc(100% - 2rem); }
   .header-inner { gap: .7rem; }
   .primary-nav { gap: .65rem; }

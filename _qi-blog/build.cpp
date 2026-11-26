@@ -103,7 +103,7 @@ string document(const string& base, const string& page, const string& title, con
         "<meta name='viewport' content='width=device-width,initial-scale=1'><meta name='theme-color' content='#ffffff'>"
         "<title>" + html_escape(title) + "</title><meta name='description' content='" + html_escape(desc) + "'>"
         "<link rel='icon' href='" + base + "assets/favicon.svg?v=wordmark-4' type='image/svg+xml'><link rel='stylesheet' href='" +
-        base + "assets/site.css?v=glass-7'><script defer src='" + base + "assets/search-index.js?v=reading-3'></script><script defer src='" + base +
+        base + "assets/site.css?v=author-8'><script defer src='" + base + "assets/search-index.js?v=reading-3'></script><script defer src='" + base +
         "assets/site.js?v=glass-7'></script><noscript><style>.search-button,.filters{display:none}</style></noscript></head><body>" +
         header(base,page) + body + footer(base) + "</body></html>\n";
 }
@@ -305,11 +305,13 @@ string articlepage(const Article& a, const Article* previous, const Article* nex
 }
 
 string aboutpage() {
-    const string body = "<main id='main' class='wrap about-page'><div class='about-panel'><h1>关于 Qi’blog</h1>"
-        "<div class='about-text'><p>我是 Qi。这个博客写给刚开始学视觉、机器人和计算机系统的朋友。</p>"
-        "<p>我喜欢从能观察到的现象入手：交替闭上左右眼，近处的手指会移动；两张扫描图叠在一起，墙面贴合了，墙角却可能还差几厘米。把现象画出来，给它添上一两个数字，许多术语就有了着落。</p>"
+    const string body = "<main id='main' class='wrap about-page'><div class='about-panel'><header class='author-profile'>"
+        "<img class='author-avatar' src='../assets/author-avatar.jpg' width='144' height='144' alt='Qi 的头像' decoding='async'>"
+        "<div><p class='section-label'>关于作者</p><h1>我是 Qi</h1><p class='author-focus'>具身智能</p></div></header>"
+        "<div class='about-text'><p>我关注 SLAM、高斯渲染、数字孪生、机器学习和计算机视觉（CV）。</p>"
+        "<p>这个博客用来整理学习和实践中的笔记，把概念、推导和实现过程慢慢写清楚。</p>"
         "<p>第一次来，可以先选一个<a href='../topics/'>学习方向</a>，再按路线慢慢读。已经有了具体问题，可以在<a href='../notes/'>文章索引</a>里找关键词。</p></div></div></main>";
-    return document("../","about","关于 · " + brand,"关于 Qi 和这份技术入门笔记。",body);
+    return document("../","about","关于 Qi · " + brand,"Qi 的个人介绍：具身智能、SLAM、高斯渲染、数字孪生、机器学习与计算机视觉。",body);
 }
 
 int main() try {
