@@ -70,7 +70,7 @@ string icon(const string& name) {
 }
 
 string wordmark(const string& base) {
-    return "<a class='brand' href='" + base + "' aria-label='Qi‘blog 首页'><span lang='en'><em>Qi</em>‘blog</span></a>";
+    return "<a class='brand' href='" + base + "' aria-label='Qi‘blog 首页'><span lang='en'><span class='brand-name'>Qi</span><span class='brand-mark'>‘</span>blog</span></a>";
 }
 
 string header(const string& base, const string& page) {
@@ -97,8 +97,8 @@ string document(const string& base, const string& page, const string& title, con
     return "<!doctype html>\n<html lang='zh-CN' data-base='" + base + "'><head><meta charset='utf-8'>"
         "<meta name='viewport' content='width=device-width,initial-scale=1'><meta name='theme-color' content='#ffffff'>"
         "<title>" + html_escape(title) + "</title><meta name='description' content='" + html_escape(desc) + "'>"
-        "<link rel='icon' href='" + base + "assets/favicon.svg' type='image/svg+xml'><link rel='stylesheet' href='" +
-        base + "assets/site.css?v=reading-3'><script defer src='" + base + "assets/search-index.js?v=reading-3'></script><script defer src='" + base +
+        "<link rel='icon' href='" + base + "assets/favicon.svg?v=wordmark-4' type='image/svg+xml'><link rel='stylesheet' href='" +
+        base + "assets/site.css?v=wordmark-4'><script defer src='" + base + "assets/search-index.js?v=reading-3'></script><script defer src='" + base +
         "assets/site.js?v=reading-3'></script><noscript><style>.search-button,.filters{display:none}</style></noscript></head><body>" +
         header(base,page) + body + footer(base) + "</body></html>\n";
 }

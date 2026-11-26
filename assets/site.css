@@ -1,3 +1,17 @@
+@font-face {
+  font-family: "Qi Wordmark";
+  src: url("wordmark-regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Qi Wordmark";
+  src: url("wordmark-italic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+}
 :root {
   color-scheme: light;
   --ink: #1d1d1f;
@@ -32,9 +46,19 @@ svg { width: 1.05em; height: 1.05em; flex-shrink: 0; }
   align-items: center;
 }
 .header-inner { min-height: 4.6rem; gap: 3rem; }
-.brand { font: 600 2rem/.95 Georgia, "Times New Roman", serif; letter-spacing: -.072em; text-decoration: none; color: var(--ink); white-space: nowrap; }
+.brand {
+  display: inline-flex;
+  flex-shrink: 0;
+  padding-block: .08em;
+  font: 400 2.5rem/1 "Qi Wordmark", Georgia, serif;
+  letter-spacing: -.015em;
+  text-decoration: none;
+  color: #202a35;
+  white-space: nowrap;
+}
+.brand-name { font-style: italic; margin-right: .015em; }
+.brand-mark { color: #557382; margin-inline: .06em; }
 .brand:hover { text-decoration: none; }
-.brand em { font-weight: 500; }
 .primary-nav { gap: 1.7rem; }
 .primary-nav a, .github-button, .search-button { color: var(--soft); text-decoration: none; white-space: nowrap; font-size: .93rem; }
 .primary-nav a { padding: .6rem .05rem; }
@@ -99,7 +123,7 @@ svg { width: 1.05em; height: 1.05em; flex-shrink: 0; }
 .path-card p { font-size: .92rem; line-height: 1.75; color: var(--soft); margin-top: .4rem; }
 .site-footer { border-top: 1px solid var(--line); }
 .footer-inner { min-height: 5.5rem; gap: 1.15rem; color: var(--muted); font-size: .83rem; }
-.footer-inner .brand { font-size: 1.5rem; }
+.footer-inner .brand { font-size: 2rem; }
 .footer-inner > a:last-child { margin-left: auto; }
 .crumbs { gap: .6rem; font-size: .85rem; color: var(--muted); flex-wrap: wrap; }
 .crumbs a { text-decoration: none; color: var(--muted); }
@@ -200,7 +224,7 @@ svg { width: 1.05em; height: 1.05em; flex-shrink: 0; }
 @media(max-width: 690px) {
   .wrap { width: calc(100% - 2.5rem); }
   .header-inner { min-height: 4rem; gap: 1.6rem; }
-  .brand { font-size: 1.8rem; }
+  .brand { font-size: 2.125rem; }
   .primary-nav { gap: 1.1rem; }
   .primary-nav a { font-size: .87rem; }
   .header-actions { gap: .65rem; }
@@ -265,7 +289,6 @@ svg { width: 1.05em; height: 1.05em; flex-shrink: 0; }
 @media(max-width: 360px) {
   .wrap { width: calc(100% - 2rem); }
   .header-inner { gap: .7rem; }
-  .brand { font-size: 1.6rem; }
   .primary-nav { gap: .65rem; }
   .header-actions { gap: .1rem; }
   .primary-nav a { font-size: .82rem; }
