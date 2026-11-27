@@ -8,12 +8,20 @@ int main(int argc,char**argv) {try {
         b.cmd("Page.navigate",{{"url",site+path}});
         b.until("document.readyState==='complete'&&document.documentElement.classList.contains('reading-nav-ready')");
     };
+    auto targetPosition=[](const std::string& id) {
+        return "(()=>{const e=document.getElementById('"+id+"');return Math.abs(e.getBoundingClientRect().top-parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)-parseFloat(getComputedStyle(e).scrollMarginTop))<2})()";
+    };
     auto positioned=[&](const std::string& id) {
-        b.until("(()=>{const e=document.getElementById('"+id+"');return Math.abs(e.getBoundingClientRect().top-parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)-parseFloat(getComputedStyle(e).scrollMarginTop))<2})()");
+        b.until(targetPosition(id));
     };
     auto at=[&](const std::string& id) {
         b.until("document.querySelector('.toc [aria-current=location]')?.hash==='#"+id+"'");
         positioned(id);
+    };
+    auto jump=[&](const std::string& id) {
+        check(b.js("(async()=>{document.querySelector('.toc a[href=\"#"+id+"\"]').click();await new Promise(requestAnimationFrame);return "+targetPosition(id)+"})()")==true,
+              "Directory click reaches "+id+" before the first rendered frame");
+        at(id);
     };
     auto settled=[&]() {b.until("document.querySelector('.toc').getAnimations({subtree:true}).every(a=>a.playState!=='running')");};
     const std::string desktop=R"JS((()=>{
@@ -24,6 +32,7 @@ int main(int argc,char**argv) {try {
     check(b.js(desktop)==true,"Desktop sidebar must leave a full-width reading column");
     check(b.js("document.querySelector('.toc details').open")==true,"Desktop directory opens by default");
     b.shot("reading-desktop-top");
+    jump("s8");
     b.click(".toc a[href='#s4']");at("s4");
     check(b.js("location.hash")=="#s4","Anchor links retain a shareable URL");
     check(b.js("document.activeElement.id")=="s4","Navigation moves keyboard focus to the section");
@@ -33,7 +42,7 @@ int main(int argc,char**argv) {try {
     b.click(".toc a[href='#s4']");at("s4");
     b.click(".toc a[href='#worked-example']");at("worked-example");
     b.js("history.back()");at("s4");
-    std::cout<<"Desktop: left sidebar, full-width body, smooth anchors, scroll tracking, focus and back navigation passed"<<std::endl;
+    std::cout<<"Desktop: left sidebar, full-width body, instant anchor jumps, scroll tracking, focus and back navigation passed"<<std::endl;
 
     for(int width:{1280,1100}) {
         b.viewport(width,900);
@@ -59,7 +68,7 @@ int main(int argc,char**argv) {try {
     check(b.js("document.querySelector('.toc details').open")==true,"Mobile directory expands");
     settled();
     b.shot("reading-mobile-open");
-    b.click(".toc a[href='#s4']");at("s4");
+    jump("s4");
     check(b.js("!document.querySelector('.toc details').open")==true,"Mobile directory closes after choosing a section");
     check(b.js("document.querySelector('#s4').getBoundingClientRect().top>document.querySelector('.toc').getBoundingClientRect().bottom+8")==true,"Mobile anchor is not obscured by navigation");
     b.shot("reading-mobile-section");
