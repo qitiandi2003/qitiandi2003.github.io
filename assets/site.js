@@ -466,6 +466,49 @@
     else window.addEventListener('load', idle, {once: true});
   }
 
+  function setupReadingNavigation() {
+    const toc = document.querySelector('.toc');
+    if (!toc) return () => {};
+    const details = toc.querySelector('details');
+    const wide = matchMedia('(min-width: 1100px)');
+    const sections = [...toc.querySelectorAll('a[href^="#"]')].map(link => ({
+      link, target: document.getElementById(link.hash.slice(1))
+    })).filter(item => item.target);
+    const resize = () => { details.open = wide.matches; };
+    resize();
+    wide.addEventListener('change', resize);
+    document.documentElement.classList.add('reading-nav-ready');
+    toc.addEventListener('click', event => {
+      const link = event.target.closest('a[href^="#"]');
+      if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (!wide.matches) details.open = false;
+      const target = document.getElementById(link.hash.slice(1));
+      if (target) {
+        target.tabIndex = -1;
+        requestAnimationFrame(() => target.focus({preventScroll: true}));
+      }
+    });
+    let active;
+    return () => {
+      const line = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) + 26;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.target.getBoundingClientRect().top <= line) current = section;
+      }
+      if (scrollY + innerHeight >= document.documentElement.scrollHeight - 2) current = sections.at(-1);
+      if (!current || active === current) return;
+      if (active) active.link.removeAttribute('aria-current');
+      current.link.setAttribute('aria-current', 'location');
+      active = current;
+      if (wide.matches && details.open) {
+        const bounds = toc.getBoundingClientRect(), item = current.link.getBoundingClientRect();
+        const top = bounds.top + toc.querySelector('summary').offsetHeight;
+        if (item.top < top) toc.scrollTop -= top - item.top + 8;
+        else if (item.bottom > bounds.bottom) toc.scrollTop += item.bottom - bounds.bottom + 8;
+      }
+    };
+  }
+
   function init() {
     if (document.querySelector('.home') && new URLSearchParams(location.search).has('group')) {
       location.replace('notes/' + location.search + location.hash);
@@ -473,10 +516,12 @@
     }
     const progress = document.querySelector('.reading-progress span');
     if (progress) {
+      const updateNavigation = setupReadingNavigation();
       let pending = 0;
       function updateProgress() {
         const distance = document.documentElement.scrollHeight - innerHeight;
         progress.style.transform = 'scaleX(' + (distance > 0 ? Math.min(1, Math.max(0, scrollY / distance)) : 1) + ')';
+        updateNavigation();
         pending = 0;
       }
       function schedule() {
@@ -492,6 +537,7 @@
       addEventListener('pagehide', cancelProgress);
       addEventListener('pageshow', schedule);
       document.addEventListener('visibilitychange', () => document.hidden ? cancelProgress() : schedule());
+      new ResizeObserver(schedule).observe(document.querySelector('.prose'));
       schedule();
     }
     setupIllustration();

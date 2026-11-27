@@ -106,7 +106,7 @@ string document(const string& base, const string& page, const string& title, con
         "<meta name='viewport' content='width=device-width,initial-scale=1'><meta name='theme-color' content='#ffffff'>"
         "<title>" + html_escape(title) + "</title><meta name='description' content='" + html_escape(desc) + "'>"
         "<link rel='icon' href='" + base + "assets/favicon.svg?v=wordmark-4' type='image/svg+xml'><link rel='stylesheet' href='" +
-        base + "assets/site.css?v=teaching-1'><script defer src='" + base + "assets/site.js?v=pet-21'></script>"
+        base + "assets/site.css?v=reading-nav-1'><script defer src='" + base + "assets/site.js?v=reading-nav-1'></script>"
         "<noscript><style>.search-button,.filters{display:none}</style></noscript></head><body>" +
         header(base,page) + body + footer(base) + "</body></html>\n";
 }
@@ -265,13 +265,17 @@ string articlepage(const Article& a, const Article* previous, const Article* nex
         << " 课</span></div></header>";
     for (size_t i=0; i<a.sections.size(); ++i) {
         toc << "<li><a href='#s" << i+1 << "'>" << html_escape(a.sections[i].at("title")) << "</a></li>";
+        if (a.slug=="opencv" && i==0)
+            toc << "<li class='diagram-toc'><a href='#sobel-lab'>互动 · Sobel 卷积</a></li>";
+        if (!a.teaching.is_null() && i+1==a.teaching.at("section"))
+            toc << "<li class='diagram-toc'><a href='#worked-example'>图解 · " << html_escape(a.teaching.at("title")) << "</a></li>";
         if (diagram && i+1==size_t(diagram->section))
             toc << "<li class='diagram-toc'><a href='#diagram'>互动 · " << html_escape(diagram->title) << "</a></li>";
         if (a.slug=="ros2" && i+1==a.communication_section)
             toc << "<li class='diagram-toc'><a href='#communication'>互动 · 三种通信方式</a></li>";
     }
-    out << "<div class='reading-layout'><aside class='toc'><details><summary>文章目录</summary><ol>" << toc.str()
-        << "<li><a href='#sources'>延伸阅读</a></li></ol></details></aside><article class='prose'>"
+    out << "<div class='reading-layout'><nav class='toc' aria-label='文章目录'><details open><summary>文章目录</summary><ol>" << toc.str()
+        << "<li><a href='#sources'>延伸阅读</a></li></ol></details></nav><article class='prose'>"
         << "<div class='article-intro'><p>" << prose(a.intro) << "</p></div>";
     size_t id=0;
     for(const auto& section : a.sections) {

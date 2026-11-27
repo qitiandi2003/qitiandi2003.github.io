@@ -32,3 +32,11 @@ g++ -std=c++17 -O2 -Wall -Wextra -Wpedantic -Werror _qi-blog/tests/teaching.cpp 
 Sobel 演示的两个方向及明暗反转结果逐格与 OpenCV 的 C++ 计算比对。
 只检查 SVG 排版时，在地址后增加 --audit-svg；也可传入已发布站点地址做线上验证。
 数据格式说明见 _qi-blog/teaching-format.txt。示意图及算例保留在仓库中，可随正文维护。
+
+阅读导航检查
+
+g++ -std=c++17 -O2 -Wall -Wextra -Wpedantic -Werror _qi-blog/tests/reading-navigation.cpp -lcrypto -o /tmp/qi-reading-test
+/tmp/qi-reading-test http://127.0.0.1:8982/
+
+检查左侧目录、滚动高亮、锚点与浏览器返回、键盘焦点、手机折叠、窄屏与短屏、
+减少动态效果和无脚本回退，并核对 50 篇文章的目录链接与正文顺序。
