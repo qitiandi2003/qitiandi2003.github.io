@@ -30,7 +30,8 @@ public:
             int nullfd=open("/dev/null",O_RDWR);dup2(nullfd,1);dup2(nullfd,2);
             close_range(5,~0u,0);
             std::string arg="--user-data-dir="+profile;
-            execlp("google-chrome","google-chrome","--headless","--no-sandbox","--disable-gpu","--disable-background-networking","--remote-debugging-pipe",arg.c_str(),"about:blank",(char*)nullptr);_exit(1);
+            // Start with a desktop mouse; mobile tests can enable touch through CDP.
+            execlp("google-chrome","google-chrome","--headless","--no-sandbox","--disable-gpu","--disable-background-networking","--blink-settings=primaryPointerType=4,availablePointerTypes=4,primaryHoverType=2,availableHoverTypes=2","--remote-debugging-pipe",arg.c_str(),"about:blank",(char*)nullptr);_exit(1);
         }
         close(tx[0]);close(rx[1]);send_fd=tx[1];recv_fd=rx[0];
         auto id=cmd("Target.createTarget",{{"url","about:blank"}})["targetId"];

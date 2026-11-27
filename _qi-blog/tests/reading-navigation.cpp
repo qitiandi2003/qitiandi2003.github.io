@@ -15,6 +15,7 @@ int main(int argc,char**argv) {try {
         b.until("document.querySelector('.toc [aria-current=location]')?.hash==='#"+id+"'");
         positioned(id);
     };
+    auto settled=[&]() {b.until("document.querySelector('.toc').getAnimations({subtree:true}).every(a=>a.playState!=='running')");};
     const std::string desktop=R"JS((()=>{
       const toc=document.querySelector('.toc').getBoundingClientRect(),body=document.querySelector('.prose').getBoundingClientRect(),title=document.querySelector('.article-heading').getBoundingClientRect();
       return toc.right+30<body.left&&Math.abs(body.width-720)<2&&Math.abs(title.left-body.left)<2&&document.documentElement.scrollWidth<=innerWidth;
@@ -38,6 +39,10 @@ int main(int argc,char**argv) {try {
         b.viewport(width,900);
         check(b.js(desktop)==true,"Sidebar layout at width "+std::to_string(width));
     }
+    b.viewport(1440,960);
+    b.js("document.documentElement.style.fontSize='20px'");
+    b.click(".toc a[href='#s5']");at("s5");
+    b.js("document.documentElement.style.removeProperty('font-size')");
     b.viewport(1280,420);
     b.js("document.querySelector('#s8').scrollIntoView({behavior:'instant'})");at("s8");
     check(b.js(R"JS((()=>{
@@ -52,12 +57,14 @@ int main(int argc,char**argv) {try {
     check(b.js("document.documentElement.scrollWidth<=innerWidth")==true,"No mobile horizontal overflow");
     b.click(".toc summary");
     check(b.js("document.querySelector('.toc details').open")==true,"Mobile directory expands");
+    settled();
     b.shot("reading-mobile-open");
     b.click(".toc a[href='#s4']");at("s4");
     check(b.js("!document.querySelector('.toc details').open")==true,"Mobile directory closes after choosing a section");
     check(b.js("document.querySelector('#s4').getBoundingClientRect().top>document.querySelector('.toc').getBoundingClientRect().bottom+8")==true,"Mobile anchor is not obscured by navigation");
     b.shot("reading-mobile-section");
     b.click(".toc summary");
+    settled();
     b.js("document.querySelector('.toc a[href=\"#s3\"]').focus()");
     b.key("Enter","Enter",13);at("s3");
     check(b.js("document.activeElement.id")=="s3","Keyboard activation reaches the reading section");
@@ -101,6 +108,7 @@ int main(int argc,char**argv) {try {
     b.cmd("Page.navigate",{{"url",site+"notes/ros2/"}});
     b.until("document.readyState==='complete'&&!!document.querySelector('.toc')&&!document.documentElement.classList.contains('reading-nav-ready')");
     check(b.js("document.querySelector('.toc details').open")==true,"Directory remains accessible without JavaScript");
+    check(b.js("getComputedStyle(document.querySelector('.toc ol'),'::before').opacity")=="0","No-script directory does not display an uninitialized marker");
     b.click(".toc a[href='#s3']");
     positioned("s3");
     b.viewport(390,844);

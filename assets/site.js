@@ -254,7 +254,7 @@
   function setupMotion() {
     const motion = matchMedia('(prefers-reduced-motion: no-preference)');
     const pointer = matchMedia('(hover: hover) and (pointer: fine)');
-    const surfaces = document.querySelectorAll('.note-row > a, .path-card, .next-note, .course-hero');
+    const surfaces = document.querySelectorAll('.note-row > a, .path-card, .next-note, .course-hero, .header-inner, .toc details, .search-field');
     const waiting = new Set(document.querySelectorAll('.note-row, .path-card, .article-image, .lesson-diagram, .chapter-links'));
     const animations = new Set();
     let surface, clientX, clientY;
@@ -319,6 +319,7 @@
 
     function refresh() {
       suspend();
+      document.documentElement.classList.toggle('motion-paused', document.hidden || !motion.matches);
       if (document.hidden || !motion.matches) return;
       active = true;
       if (observer) waiting.forEach(element => observer.observe(element));
@@ -470,18 +471,26 @@
     const toc = document.querySelector('.toc');
     if (!toc) return () => {};
     const details = toc.querySelector('details');
+    const list = toc.querySelector('ol');
     const wide = matchMedia('(min-width: 1100px)');
     const sections = [...toc.querySelectorAll('a[href^="#"]')].map(link => ({
       link, target: document.getElementById(link.hash.slice(1))
     })).filter(item => item.target);
-    const resize = () => { details.open = wide.matches; };
+    const resize = () => {
+      toc.classList.add('toc-jumping');
+      details.open = wide.matches;
+    };
     resize();
     wide.addEventListener('change', resize);
     document.documentElement.classList.add('reading-nav-ready');
+    details.querySelector('summary').addEventListener('click', () => toc.classList.remove('toc-jumping'));
     toc.addEventListener('click', event => {
       const link = event.target.closest('a[href^="#"]');
       if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      if (!wide.matches) details.open = false;
+      if (!wide.matches) {
+        toc.classList.add('toc-jumping');
+        details.open = false;
+      }
       const target = document.getElementById(link.hash.slice(1));
       if (target) {
         target.tabIndex = -1;
@@ -490,17 +499,27 @@
     });
     let active;
     return () => {
-      const line = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) + 26;
+      const line = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)
+        + parseFloat(getComputedStyle(sections[0].target).scrollMarginTop) + 2;
       let current = sections[0];
       for (const section of sections) {
         if (section.target.getBoundingClientRect().top <= line) current = section;
       }
       if (scrollY + innerHeight >= document.documentElement.scrollHeight - 2) current = sections.at(-1);
-      if (!current || active === current) return;
-      if (active) active.link.removeAttribute('aria-current');
-      current.link.setAttribute('aria-current', 'location');
+      if (!current) return;
+      const changed = active !== current;
+      if (changed) {
+        if (active) active.link.removeAttribute('aria-current');
+        current.link.setAttribute('aria-current', 'location');
+      }
       active = current;
-      if (wide.matches && details.open) {
+      const y = current.link.offsetTop + 'px', height = current.link.offsetHeight + 'px';
+      const moved = list.style.getPropertyValue('--reading-y') !== y || list.style.getPropertyValue('--reading-height') !== height;
+      if (moved) {
+        list.style.setProperty('--reading-y', y);
+        list.style.setProperty('--reading-height', height);
+      }
+      if (wide.matches && details.open && (changed || moved)) {
         const bounds = toc.getBoundingClientRect(), item = current.link.getBoundingClientRect();
         const top = bounds.top + toc.querySelector('summary').offsetHeight;
         if (item.top < top) toc.scrollTop -= top - item.top + 8;
@@ -537,7 +556,9 @@
       addEventListener('pagehide', cancelProgress);
       addEventListener('pageshow', schedule);
       document.addEventListener('visibilitychange', () => document.hidden ? cancelProgress() : schedule());
-      new ResizeObserver(schedule).observe(document.querySelector('.prose'));
+      const readingResize = new ResizeObserver(schedule);
+      readingResize.observe(document.querySelector('.prose'));
+      readingResize.observe(document.querySelector('.toc'));
       schedule();
     }
     setupIllustration();
