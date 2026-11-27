@@ -7,7 +7,7 @@ const hold = (t, a, b, c, d) => rise(t, a, b) - rise(t, c, d);
 const mix = (a, b, t) => a + (b - a) * t;
 const clips = {rest: [5600, true], walk: [900, true], stepOff: [420], settle: [420],
   turn: [700], inspect: [2700], inspectUp: [2700], pat: [2600], feed: [10000],
-  dance: [3600], sleep: [10000], game: [8000], enter: [2400], exit: [2000], drag: [1800, true]};
+  dance: [3600], sleep: [10000], game: [8000], enter: [2600], exit: [2000], drag: [1800, true]};
 export const motionTiming = {stride: 4, clips};
 
 // The support paw moves back at exactly the body's travel speed. The lifted
@@ -61,15 +61,16 @@ export function poseAt(name, milliseconds, direction = 1, duration) {
   }
   if (name === 'pat') {
     const s = hold(t, 0, .75, 1.95, 2.6);
-    p.lx = mix(p.lx, 214, s) - 28 * Math.sin(Math.PI*s); p.ly = mix(p.ly, 241, s);
-    p.rx = mix(p.rx, 368, s) + 28 * Math.sin(Math.PI*s); p.ry = mix(p.ry, 241, s);
+    p.lx = mix(p.lx, 214, s) - 16 * Math.sin(Math.PI*s); p.ly = mix(p.ly, 262, s);
+    p.rx = mix(p.rx, 368, s) + 16 * Math.sin(Math.PI*s); p.ry = mix(p.ry, 262, s);
     p.head = .045 * Math.sin(t * 4) * s; p.eye = 1 - .93 * s;
   }
   if (name === 'feed') {
     p.table = hold(t, 0, .5, 9.4, 10); p.burger = p.table; p.cup = p.table;
     const take = rise(t, .8, 1.8), toMouth = hold(t, 1.9, 2.6, 2.9, 3.6), put = rise(t, 3.6, 4.3);
     p.bx = mix(359, 287, take * (1 - put));
-    p.by = mix(331, 310 - 88 * toMouth, take * (1 - put));
+    p.by = mix(331, 310 - 68 * toMouth, take * (1 - put));
+    p.headY += 13 * toMouth;
     const reach = hold(t, .5, .8, 4.3, 4.6);
     p.rx = mix(p.rx, p.bx + 39, reach); p.ry = mix(p.ry, p.by + 6, reach);
     const support = hold(t, 1.1, 1.8, 3.6, 4.3);
@@ -98,8 +99,9 @@ export function poseAt(name, milliseconds, direction = 1, duration) {
   if (name === 'game' || name === 'sleep') {
     const sleep = name === 'sleep', s = hold(t, 0, .9, sleep ? 8.9 : 7.05, sleep ? 10 : 8);
     p[sleep ? 'pillow' : 'controller'] = s;
-    p.lx = mix(p.lx, 236, s); p.ly = mix(p.ly, sleep ? 309 : 338, s);
-    p.rx = mix(p.rx, 339, s); p.ry = mix(p.ry, sleep ? 309 : 338, s);
+    const open = sleep ? 35 * Math.sin(Math.PI*s) : 0;
+    p.lx = mix(p.lx, 236, s) - open; p.ly = mix(p.ly, sleep ? 309 : 338, s);
+    p.rx = mix(p.rx, 339, s) + open; p.ry = mix(p.ry, sleep ? 309 : 338, s);
     p.eye = sleep ? 1 - .97 * s : p.eye;
     p.sleepy = sleep ? s : 0;
     p.head = (sleep ? .07 : -.016) * s;
@@ -110,35 +112,29 @@ export function poseAt(name, milliseconds, direction = 1, duration) {
     const enter = name === 'enter';
     p.parcel = enter ? 1 - rise(t, 1.1, 1.8) : rise(t, .8, 1.25);
     p.lift = enter ? 485 * (1 - rise(t, .25, 1.4)) : 485 * rise(t, 1.05, 1.95);
-    const wave = enter ? hold(t, 1.3, 1.6, 2.05, 2.4) : hold(t, 0, .3, .65, 1.05);
-    p.lx = mix(p.lx, 153 + 6 * Math.sin(t * 12), wave); p.ly -= 138 * wave;
+    const wave = enter ? hold(t, 1.1, 1.75, 1.95, 2.6) : hold(t, 0, .6, .75, 1.35);
+    p.lx = mix(p.lx, 153 + 6 * Math.sin(t * 8), wave); p.ly -= 138 * wave;
   }
   p.footLift = name === 'walk' ? 0 : p.lift;
-  const left = armBones(true,p.lx,p.ly), right = armBones(false,p.rx,p.ry);
-  Object.assign(p,{la:left.a,lb:left.b,ra:right.a,rb:right.b});
   return p;
 }
 
-// Two-bone inverse kinematics: mesh vertices share the elbow, so neither the
-// sleeve nor the paw can detach. Clamp reaches to the arm's actual length.
+// The elbow swings down and forward in depth, like bringing a cup to the face.
+// A planar IK solution folded the elbow upward whenever the paw crossed the
+// shoulder. The lower length includes the distance from wrist to paw centre.
 export function armBones(left, x, y) {
-  const s = left ? [208, 278] : [366, 278], l1 = 57, l2 = 51;
-  const dx = x - s[0], dy = y - s[1], distance = Math.hypot(dx, dy);
-  const d = clamp(distance, 14, l1 + l2 - .05);
-  const angle = Math.atan2(dy, dx), side = left ? -1 : 1;
-  const a = angle + side * Math.acos(clamp((l1*l1+d*d-l2*l2)/(2*l1*d), -1, 1));
-  const e = [s[0] + l1 * Math.cos(a), s[1] + l1 * Math.sin(a)];
-  const w = [s[0] + dx * d / (distance || 1), s[1] + dy * d / (distance || 1)];
-  return {s, e, w, a, b: Math.atan2(w[1]-e[1], w[0]-e[0])};
+  const outward = left ? -1 : 1, lift = rise(292-y,10,65);
+  const s = [(left ? 208 : 366) + outward*2*lift, 292-3*lift, -35];
+  const w = [x,y,32+23*rise(292-y,-70,20)], l1 = 57, l2 = 74;
+  const delta = w.map((v,i)=>v-s[i]), distance = Math.hypot(...delta);
+  const d = clamp(distance,24,l1+l2-.05), n = delta.map(v=>v/distance);
+  const guide = [outward*.35,1,.12], dot = guide.reduce((sum,v,i)=>sum+v*n[i],0);
+  const pole = guide.map((v,i)=>v-dot*n[i]), norm = Math.hypot(...pole);
+  const along = (l1*l1+d*d-l2*l2)/(2*d), radius = Math.sqrt(Math.max(0,l1*l1-along*along));
+  const e = s.map((v,i)=>v+n[i]*along+pole[i]/norm*radius);
+  return {s,e,w:s.map((v,i)=>v+n[i]*d)};
 }
-const restArms = [208,366].map(x=>({s:[x,278],e:[x,335],w:[x,386]}));
 const rotate = (x, y, cx, cy, a) => [cx + (x-cx)*Math.cos(a) - (y-cy)*Math.sin(a), cy + (x-cx)*Math.sin(a) + (y-cy)*Math.cos(a)];
-function armCurve(b, t) {
-  const u=1-t;
-  return [u*u*b.s[0]+2*u*t*b.e[0]+t*t*b.w[0], u*u*b.s[1]+2*u*t*b.e[1]+t*t*b.w[1],
-    Math.atan2(u*(b.e[1]-b.s[1])+t*(b.w[1]-b.e[1]),u*(b.e[0]-b.s[0])+t*(b.w[0]-b.e[0]))];
-}
-
 export function createPlushRenderer(canvas, image, data) {
   const gl = canvas.getContext('webgl', {alpha: true, antialias: true, premultipliedAlpha: true, preserveDrawingBuffer: true});
   if (!gl) throw new Error('WebGL unavailable');
@@ -168,14 +164,32 @@ export function createPlushRenderer(canvas, image, data) {
     const [ax, ay, w, h] = part.rect, [ox, oy] = part.origin;
     const cols = name.endsWith('Arm') ? 10 : name === 'head' ? 16 : 4;
     const rows = name.endsWith('Arm') ? 16 : name === 'head' ? 12 : 4;
-    const vertices = [];
-    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+    const vertices = [], levels = Array.from({length:rows+1},(_,i)=>i*h/rows);
+    if(name.endsWith('Arm')) levels.push(335-oy,386-oy);
+    levels.sort((a,b)=>a-b);
+    for (let j = 0; j < levels.length-1; j++) for (let i = 0; i < cols; i++) {
       for (const [dx, dy] of [[0,0],[1,0],[0,1],[1,0],[1,1],[0,1]]) {
-        const x = (i+dx)*w/cols, y = (j+dy)*h/rows;
+        const x = (i+dx)*w/cols, y = levels[j+dy];
         vertices.push([ox+x, oy+y, (ax+x)/data.size[0], (ay+y)/data.size[1]]);
       }
     }
     meshes[name] = vertices;
+    if(name.endsWith('Arm')) {
+      const upper=[],forearm=[],elbow=[],cx=name==='leftArm'?208:366;
+      for(let i=0;i<vertices.length;i+=6) {
+        if(vertices[i][1]<335)upper.push(...vertices.slice(i,i+6));
+        else forearm.push(...vertices.slice(i,i+6));
+      }
+      // A round elbow volume covers the shared ends of both sleeve segments.
+      // Unlike a bent strip, its inner edge cannot invert or expose a cut edge.
+      for(let i=0;i<32;i++)for(const a of [null,i*TAU/32,(i+1)*TAU/32]) {
+        const x=cx+(a===null?0:27.8*Math.cos(a)),y=335+(a===null?0:27.8*Math.sin(a));
+        elbow.push([x,y,(ax+x-ox)/data.size[0],(ay+y-oy)/data.size[1]]);
+      }
+      meshes[name]=upper;
+      meshes[name.replace('Arm','Forearm')]=forearm;
+      meshes[name.replace('Arm','Elbow')]=elbow;
+    }
   }
   const vertices = new Float32Array(40000);
   let length = 0, current, lastPose, lastTime, state = {name:'rest', start:0, direction:1}, blend, request = 0, stopped = false;
@@ -209,29 +223,28 @@ export function createPlushRenderer(canvas, image, data) {
     for (const [name,dx,dy] of [['leftFoot',p.flx,p.fly],['rightFoot',p.frx,p.fry]]) {
       add(name,(x,y)=>{const q=project(x,y,p);return [q[0]+dx,q[1]+dy+p.footLift-p.lift];});
     }
-    add('coat',(x,y)=>project(x,y,p));
-    function arm(name,left) {
-      const bind=restArms[left?0:1], s=bind.s, a=left?p.la:p.ra, b=left?p.lb:p.rb;
-      const e=[s[0]+57*Math.cos(a),s[1]+57*Math.sin(a)];
-      const target={s,e,w:[e[0]+51*Math.cos(b),e[1]+51*Math.sin(b)]};
+    function arm(name,left,forearm=false,elbow=false) {
+      const centre=left?208:366, target=armBones(left,left?p.lx:p.rx,left?p.ly:p.ry);
+      const a=forearm?target.e:target.s,b=forearm?target.w:target.e;
+      const start=forearm?335:278,end=forearm?386:335;
+      const angle=Math.atan2(b[1]-a[1],b[0]-a[0])-Math.PI/2;
       add(name,(x,y)=>{
-        let t=(y-bind.s[1])/(bind.w[1]-bind.s[1]);
-        for(let i=0;i<4;i++){
-          const q=armCurve(bind,t),dy=2*((1-t)*(bind.e[1]-bind.s[1])+t*(bind.w[1]-bind.e[1]));
-          t-=(q[1]-y)/dy;
-        }
-        t=clamp(t);
-        const a=armCurve(bind,t),b=armCurve(target,t),d=b[2]-a[2];
-        return project(b[0]+(x-a[0])*Math.cos(d)-(y-a[1])*Math.sin(d),b[1]+(x-a[0])*Math.sin(d)+(y-a[1])*Math.cos(d),p);
+        const t=elbow?0:clamp((y-start)/(end-start));
+        const across=x-centre,cap=y-(start+t*(end-start));
+        return project(mix(a[0],b[0],t)+across*Math.cos(angle)-cap*Math.sin(angle),
+          mix(a[1],b[1],t)+across*Math.sin(angle)+cap*Math.cos(angle),p);
       });
     }
+    arm('leftArm',true);arm('rightArm',false);
+    add('coat',(x,y)=>project(x,y,p));
     add('head',(x,y)=>project(x,y,p,true));
     for (const [name,x,y] of [['leftEye',245,157],['rightEye',329,156]]) {
       add(name,(a,b)=>project(a,y+(b-y)*p.eye,p,true),rise(p.eye,.08,.38));
       add('happyEye',(a,b)=>project(x+(a-245),y+(b-157)*(1-2*p.sleepy),p,true),1-rise(p.eye,.12,.42));
     }
     add('mouth',(x,y)=>project(x,197+(y-197)*p.smile,p,true));
-    arm('leftArm',true);arm('rightArm',false);
+    arm('leftElbow',true,true,true);arm('rightElbow',false,true,true);
+    arm('leftForearm',true,true);arm('rightForearm',false,true);
     const prop=(name,x,y,cx,cy,scale,opacity)=>add(name,(a,b)=>project(x+(a-cx)*scale,y+(b-cy)*scale,p),opacity);
     prop('burger',p.bx,p.by,279,284,.90,p.burger*(1-p.bite));
     prop('burgerBitten',p.bx,p.by,279,284,.90,p.burger*p.bite);
@@ -247,11 +260,8 @@ export function createPlushRenderer(canvas, image, data) {
     if (blend) {
       const u=clamp((time-blend.start)/380), w=smooth(u);
       for (const key of Object.keys(p)) {
-        const angle=['la','lb','ra','rb'].includes(key);
-        const limit=angle ? .003 : .15;
-        const momentum=clamp(blend.velocity[key] || 0,-limit,limit)*(time-blend.start)*(1-u)**2;
-        const target=angle ? blend.from[key]+Math.atan2(Math.sin(p[key]-blend.from[key]),Math.cos(p[key]-blend.from[key])) : p[key];
-        p[key]=mix(blend.from[key]+momentum,target,w);
+        const momentum=clamp(blend.velocity[key] || 0,-.15,.15)*(time-blend.start)*(1-u)**2;
+        p[key]=mix(blend.from[key]+momentum,p[key],w);
       }
       for(const key of ['eye','smile','table','burger','bite','cup','controller','pillow','parcel','shadow','sleepy'])p[key]=clamp(p[key]);
       if (u>=1) blend=null;

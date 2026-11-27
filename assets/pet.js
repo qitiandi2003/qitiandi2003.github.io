@@ -38,7 +38,7 @@
     const [response, rigResponse, engine] = await Promise.all([
       fetch(base + 'assets/pet-plush-scene.svg?v=1', {mode: 'same-origin'}),
       fetch(base + 'assets/pet-plush-parts.json?v=1', {mode: 'same-origin'}),
-      import(new URL('assets/pet-motion.js?v=1', new URL(base, location.href)).href)
+      import(new URL('assets/pet-motion.js?v=2', new URL(base, location.href)).href)
     ]);
     if (!response.ok || !/^image\/svg\+xml(?:\s*;|$)/i.test(response.headers.get('content-type') || '')) {
       throw new Error('Artwork unavailable');
@@ -183,7 +183,7 @@
     layout();
     if (before === root.dataset.collapsed) return;
     stopIdle();
-    if (root.dataset.collapsed === 'false') phase('enter', 2400, () => resumeIdle(300));
+    if (root.dataset.collapsed === 'false') phase('enter', 2600, () => resumeIdle(300));
     else clearPhase();
   }
   function readSettings() {

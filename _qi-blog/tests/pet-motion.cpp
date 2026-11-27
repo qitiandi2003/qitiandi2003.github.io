@@ -7,17 +7,50 @@ try {
     const std::string site=argc>1?argv[1]:"http://127.0.0.1:8982/";
     Browser b; b.viewport(1440,900);
     if(site.compare(0,8,"https://")!=0) {
+    b.cmd("Page.addScriptToEvaluateOnNewDocument",{{"source",R"JS(
+      const upload=WebGLRenderingContext.prototype.bufferData;
+      WebGLRenderingContext.prototype.bufferData=function(target,data,...rest){
+        if(data instanceof Float32Array)window.__poseMesh=data;
+        return upload.call(this,target,data,...rest);
+      };
+    )JS"}});
     b.cmd("Page.navigate",{{"url",site+"_qi-blog/tests/pet-motion.html"}});
     b.until("document.body?.dataset.ready==='true'");
     const auto logic=b.js(R"JS((()=>{
       const {poseAt,footstep,armBones,motionTiming}=review;
       let boneError=0,reachError=0,loopJump=0,plantDrift=0,samples=0,worstReach;
+      let flexMin=180,flexMax=0,elbowStep=0,raisedClearance=Infinity,inwardElbow=0,worstElbow;
+      let projectedLength=Infinity,rotationStep=0;
       for(const [name,[duration,loop]] of Object.entries(motionTiming.clips)){
+        const previous=[null,null],angles=[null,null];
         for(let t=0;t<=duration;t+=1000/120){
           const p=poseAt(name,t);
           for(const [left,x,y] of [[true,p.lx,p.ly],[false,p.rx,p.ry]]){
             const a=armBones(left,x,y);
-            boneError=Math.max(boneError,Math.abs(Math.hypot(a.s[0]-a.e[0],a.s[1]-a.e[1])-57),Math.abs(Math.hypot(a.w[0]-a.e[0],a.w[1]-a.e[1])-51));
+            const upper=a.e.map((v,i)=>v-a.s[i]),lower=a.w.map((v,i)=>v-a.e[i]);
+            const l1=Math.hypot(...upper),l2=Math.hypot(...lower);
+            boneError=Math.max(boneError,Math.abs(l1-57),Math.abs(l2-74));
+            const flex=Math.acos(Math.max(-1,Math.min(1,upper.reduce((n,v,i)=>n+v*lower[i],0)/(l1*l2))))*180/Math.PI;
+            flexMin=Math.min(flexMin,flex);flexMax=Math.max(flexMax,flex);
+            const index=left?0:1;
+            const angle=Math.atan2(lower[1],lower[0]);
+            projectedLength=Math.min(projectedLength,Math.hypot(lower[0],lower[1]));
+            if(angles[index]!==null){
+              const turn=angle-angles[index];
+              rotationStep=Math.max(rotationStep,Math.abs(Math.atan2(Math.sin(turn),Math.cos(turn)))*180/Math.PI);
+            }
+            angles[index]=angle;
+            if(previous[index]){
+              const step=Math.hypot(...a.e.map((v,i)=>v-previous[index][i]));
+              if(step>elbowStep){elbowStep=step;worstElbow={name,t,left,from:previous[index],to:a.e};}
+            }
+            previous[index]=a.e;
+            // In a face-level gesture the elbow must stay below the hand and
+            // outside it, rather than flipping above or across the chest.
+            if((name==='pat'&&t>=750&&t<=1950)||(name==='feed'&&t>=2600&&t<=2900)){
+              raisedClearance=Math.min(raisedClearance,a.e[1]-a.w[1]);
+              inwardElbow=Math.max(inwardElbow,(a.e[0]-a.w[0])*(left?1:-1));
+            }
             const reach=Math.hypot(x-a.w[0],y-a.w[1]);
             if(reach>reachError){reachError=reach;worstReach={name,t,left,x,y};}
           }
@@ -28,8 +61,8 @@ try {
       }
       for(let t=0;t<.5;t+=.001)plantDrift=Math.max(plantDrift,Math.abs(80*t+footstep(t).x-20));
       const bite=poseAt('feed',2700),sip=poseAt('feed',6000);
-      return {samples,boneError,reachError,worstReach,loopJump,plantDrift,
-        mouthInBurger:Math.abs(bite.bx-288)<4&&bite.by-35.1<197&&bite.by>197,
+      return {samples,boneError,reachError,worstReach,loopJump,plantDrift,flexMin,flexMax,elbowStep,worstElbow,raisedClearance,inwardElbow,projectedLength,rotationStep,
+        mouthInBurger:Math.abs(bite.bx-288)<4&&bite.by-35.1<197+bite.headY&&bite.by>197+bite.headY,
         strawGap:Math.hypot(sip.cx+3.36-288,sip.cy-70.56-197),
         burgerBack:poseAt('feed',4500).bx===359,
         cupBack:poseAt('feed',7900).cx===408,
@@ -38,10 +71,39 @@ try {
     std::cout<<"Motion geometry "<<logic.dump()<<std::endl;
     check(logic["boneError"].get<double>()<1e-6,"bone length changed");
     check(logic["reachError"].get<double>()<1,"hand target beyond reach");
+    check(logic["flexMin"].get<double>()>15&&logic["flexMax"].get<double>()<140,"unnatural elbow flexion");
+    check(logic["elbowStep"].get<double>()<3,"elbow jumps or flips");
+    check(logic["projectedLength"].get<double>()>10&&logic["rotationStep"].get<double>()<10,"forearm projection snaps during a reach");
+    check(logic["raisedClearance"].get<double>()>25&&logic["inwardElbow"].get<double>()<1,"raised elbow folds inward");
     check(logic["loopJump"].get<double>()<.01,"loop seam");
     check(logic["plantDrift"].get<double>()<1e-7,"support paw slips");
     check(logic["mouthInBurger"]==true&&logic["strawGap"].get<double>()<2,"food misses mouth");
     check(logic["burgerBack"]==true&&logic["cupBack"]==true&&logic["neutralEnd"]==true,"feeding order");
+
+    const auto sleeves=b.js(R"JS((async()=>{
+      const {parts,size}=await(await fetch('../../assets/pet-plush-parts.json')).json();
+      const regions=['leftArm','rightArm'].map(name=>{
+        const [x,y,w,h]=parts[name].rect;return [x/size[0],y/size[1],(x+w)/size[0],(y+h)/size[1]];
+      });
+      const area=(a,b,c,d,e,f)=>(c-a)*(f-b)-(d-b)*(e-a);
+      let frames=0,triangles=0,inverted=0,worst;
+      for(const [name,[duration]] of Object.entries(review.motionTiming.clips))for(let t=0;t<=duration;t+=1000/30){
+        review.renderer.render(review.poseAt(name,t));const v=window.__poseMesh;
+        for(let i=0;i<v.length;i+=15){
+          if(!regions.some(r=>v[i+2]>=r[0]&&v[i+2]<=r[2]&&v[i+3]>=r[1]&&v[i+3]<=r[3]))continue;
+          const screen=area(v[i],v[i+1],v[i+5],v[i+6],v[i+10],v[i+11]);
+          const texture=area(v[i+2],v[i+3],v[i+7],v[i+8],v[i+12],v[i+13]);
+          // Screen Y is reversed. A matching sign means the cloth folded
+          // through itself, even if the GPU still renders that triangle.
+          if(screen*texture>1e-15){inverted++;worst={name,t,triangle:i/15};}
+          triangles++;
+        }
+        frames++;
+      }
+      return {frames,triangles,inverted,worst};
+    })())JS");
+    std::cout<<"Sleeve surface "<<sleeves.dump()<<std::endl;
+    check(sleeves["triangles"].get<int>()>100000&&sleeves["inverted"]==0,"sleeve surface folds inside out");
     }
 
     b.cmd("Page.addScriptToEvaluateOnNewDocument",{{"source",R"JS(
