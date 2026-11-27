@@ -253,14 +253,9 @@
 
   function setupMotion() {
     const motion = matchMedia('(prefers-reduced-motion: no-preference)');
-    const pointer = matchMedia('(hover: hover) and (pointer: fine)');
-    const surfaces = document.querySelectorAll('.note-row > a, .path-card, .next-note, .course-hero, .header-inner, .toc details, .search-field');
     const waiting = new Set(document.querySelectorAll('.note-row, .path-card, .article-image, .lesson-diagram, .chapter-links'));
     const animations = new Set();
-    let surface, clientX, clientY;
-    let frame = 0;
     let active = false;
-    surfaces.forEach(element => element.classList.add('light-surface'));
 
     function animateIn(element, opacity, distance, duration) {
       if (!active || document.hidden || !element.animate) return;
@@ -283,53 +278,19 @@
       }
     }) : null;
 
-    function clearLight() {
-      cancelAnimationFrame(frame);
-      frame = 0;
-      surface?.style.removeProperty('--light-x');
-      surface?.style.removeProperty('--light-y');
-      surface = null;
-    }
-
-    function moveLight(event) {
-      if (event.pointerType === 'touch' || document.hidden) return;
-      if (surface !== event.currentTarget) clearLight();
-      surface = event.currentTarget;
-      clientX = event.clientX;
-      clientY = event.clientY;
-      if (frame) return;
-      frame = requestAnimationFrame(() => {
-        frame = 0;
-        const rect = surface.getBoundingClientRect();
-        surface.style.setProperty('--light-x', clientX - rect.left + 'px');
-        surface.style.setProperty('--light-y', clientY - rect.top + 'px');
-      });
-    }
-
     function suspend() {
       active = false;
-      clearLight();
       observer?.disconnect();
       animations.forEach(animation => animation.cancel());
-      surfaces.forEach(element => {
-        element.removeEventListener('pointermove', moveLight);
-        element.removeEventListener('pointerleave', clearLight);
-      });
     }
 
     function refresh() {
       suspend();
-      document.documentElement.classList.toggle('motion-paused', document.hidden || !motion.matches);
       if (document.hidden || !motion.matches) return;
       active = true;
       if (observer) waiting.forEach(element => observer.observe(element));
-      if (pointer.matches) surfaces.forEach(element => {
-        element.addEventListener('pointermove', moveLight, {passive: true});
-        element.addEventListener('pointerleave', clearLight);
-      });
     }
     motion.addEventListener('change', refresh);
-    pointer.addEventListener('change', refresh);
     document.addEventListener('visibilitychange', refresh);
     window.addEventListener('pagehide', suspend);
     window.addEventListener('pageshow', event => { if (event.persisted) refresh(); });
@@ -471,7 +432,7 @@
     const toc = document.querySelector('.toc');
     if (!toc) return () => {};
     const details = toc.querySelector('details');
-    const list = toc.querySelector('ol');
+    const summary = details.querySelector('summary');
     const wide = matchMedia('(min-width: 1100px)');
     const sections = [...toc.querySelectorAll('a[href^="#"]')].map(link => ({
       link, target: document.getElementById(link.hash.slice(1))
@@ -483,7 +444,7 @@
     resize();
     wide.addEventListener('change', resize);
     document.documentElement.classList.add('reading-nav-ready');
-    details.querySelector('summary').addEventListener('click', () => toc.classList.remove('toc-jumping'));
+    summary.addEventListener('click', () => toc.classList.remove('toc-jumping'));
     toc.addEventListener('click', event => {
       const link = event.target.closest('a[href^="#"]');
       if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -513,15 +474,9 @@
         current.link.setAttribute('aria-current', 'location');
       }
       active = current;
-      const y = current.link.offsetTop + 'px', height = current.link.offsetHeight + 'px';
-      const moved = list.style.getPropertyValue('--reading-y') !== y || list.style.getPropertyValue('--reading-height') !== height;
-      if (moved) {
-        list.style.setProperty('--reading-y', y);
-        list.style.setProperty('--reading-height', height);
-      }
-      if (wide.matches && details.open && (changed || moved)) {
+      if (wide.matches && details.open) {
         const bounds = toc.getBoundingClientRect(), item = current.link.getBoundingClientRect();
-        const top = bounds.top + toc.querySelector('summary').offsetHeight;
+        const top = bounds.top + summary.offsetHeight;
         if (item.top < top) toc.scrollTop -= top - item.top + 8;
         else if (item.bottom > bounds.bottom) toc.scrollTop += item.bottom - bounds.bottom + 8;
       }

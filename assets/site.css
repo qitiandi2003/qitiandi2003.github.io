@@ -34,7 +34,7 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: radial-gradient(ellipse 42rem 30rem at 100% 5%,#dce8f780,transparent 75%), radial-gradient(ellipse 32rem 28rem at 0% 60%,#e7e8f84d,transparent 72%);
+  background: radial-gradient(ellipse 42rem 30rem at 100% 5%,#dce8f74d,transparent 75%), radial-gradient(ellipse 32rem 28rem at 0% 60%,#e7e8f82e,transparent 72%);
 }
 body, h1, h2, h3, p, figure { margin: 0; }
 a { color: var(--blue); text-underline-offset: .22em; }
@@ -167,13 +167,11 @@ svg { width: 1.05em; height: 1.05em; flex-shrink: 0; }
 .toc summary::-webkit-details-marker { display: none; }
 .toc summary::before { content: ''; width: .35rem; height: .35rem; border: solid currentColor; border-width: 0 1px 1px 0; transform: rotate(-45deg); flex-shrink: 0; }
 .toc details[open] > summary::before { transform: rotate(45deg); }
-.toc ol { position: relative; isolation: isolate; list-style: none; padding: .15rem 0 .75rem; margin: 0; }
-.toc ol::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: var(--reading-height,0px); transform: translateY(var(--reading-y,0px)); z-index: -1; opacity: 0; pointer-events: none; border: 1px solid #cbdff480; border-left: 2px solid #76a7df; border-radius: 8px; background: linear-gradient(110deg,#e5effbe6,#f1f6fc99); box-shadow: inset 0 1px 0 #ffffffb3; }
-.reading-nav-ready .toc ol::before { opacity: 1; }
+.toc ol { list-style: none; padding: .15rem 0 .75rem; margin: 0; }
 .toc li { margin: .15rem 0; }
-.toc a { display: block; padding: .42rem .7rem; border-left: 2px solid transparent; border-radius: 0 .35rem .35rem 0; font-size: .88rem; line-height: 1.65; text-decoration: none; color: var(--soft); }
-.toc a:hover { color: var(--blue); background: #f5f7fa; }
-.toc a[aria-current='location'] { color: var(--blue); font-weight: 550; }
+.toc a { display: block; padding: .42rem .7rem; border-inline-start: 3px solid transparent; border-radius: 6px; font-size: .88rem; line-height: 1.65; text-decoration: none; color: var(--soft); }
+.toc a:hover { color: var(--ink); text-decoration: underline; }
+.toc a[aria-current='location'] { color: #174782; font-weight: 650; border-inline-start-color: #2670bc; background: #e6effb; }
 .toc .diagram-toc a { padding-left: 1.35rem; font-size: .82rem; }
 html.reading-nav-ready { scroll-padding-top: 8.5rem; }
 .prose { min-width: 0; }
@@ -303,7 +301,7 @@ html.search-open { overflow: hidden; }
 .search-dialog[open] { display: flex; flex-direction: column; }
 .search-dialog::backdrop { background: #20252e3d; backdrop-filter: blur(5px); }
 .search-field { display: flex; align-items: center; gap: .85rem; flex-shrink: 0; margin: .65rem .85rem 0; padding: .45rem .5rem .85rem; border-bottom: 1px solid var(--line); }
-.search-field:focus-within { border-bottom-color: #7a94ad; }
+.search-field:focus-within { border-bottom-color: #2670bc; box-shadow: 0 5px 8px -7px #2670bc80; }
 .search-field > svg { width: 1.25rem; height: 1.25rem; color: var(--muted); }
 .search-field input { min-width: 0; width: 100%; height: 2.75rem; padding: 0; border: 0; border-radius: 0; outline: none; box-shadow: none; background: transparent; font-size: 1.2rem; appearance: none; }
 .search-field input::placeholder { color: #777b82; opacity: 1; }
@@ -352,44 +350,33 @@ html.search-open { overflow: hidden; }
 }
 .search-keywords button, .quiet-button { background: #f3f6faad; box-shadow: inset 0 1px 0 #ffffffb3; }
 .card-art, .hero-experiment img, .path-card img { box-shadow: 0 2px 8px #344d6409; }
-.light-surface { position: relative; isolation: isolate; }
-.light-surface::before {
+.note-row > a, .path-card, .next-note { position: relative; isolation: isolate; }
+:is(.note-row > a, .path-card, .next-note)::before {
   content: "";
   position: absolute;
-  inset: -.5rem -.65rem;
+  inset: 0;
   z-index: -1;
-  border-radius: 14px;
+  border-radius: 8px;
   pointer-events: none;
   opacity: 0;
-  background: radial-gradient(280px circle at var(--light-x,50%) var(--light-y,50%),#c7def780, #e5e8f940 50%,transparent 80%);
-  transition: opacity 240ms var(--ease);
+  background: radial-gradient(ellipse at 35% 50%,#dceafa99,transparent 78%);
+  transition: opacity 180ms var(--ease);
 }
-.toc details.light-surface::before { inset: 0; border-radius: 12px; }
-.header-inner.light-surface::before { inset-block: 0; border-radius: 0; }
 .primary-nav a { position: relative; }
 .primary-nav a::after { content: ""; position: absolute; inset: auto 0 .2rem; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: left; transition: transform 220ms var(--ease); }
 .primary-nav a[aria-current]::after, .primary-nav a:focus-visible::after { transform: scaleX(1); }
 @media(hover: hover) and (pointer: fine) {
-  .primary-nav a:hover::after { transform: scaleX(1); }
-  .light-surface:hover::before { opacity: 1; }
-  .note-row > a:hover .card-art img, .path-card:hover img { transform: scale(1.025); }
+  :is(.note-row > a, .path-card, .next-note):hover::before { opacity: 1; }
   .feature-read:hover { transform: translateX(3px); }
   .search-keywords button:hover, .quiet-button:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 #fff, 0 4px 12px #344d6412; }
 }
 @media(prefers-reduced-motion: no-preference) {
   html { scroll-behavior: smooth; }
   a, button { transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 240ms var(--ease), transform 240ms var(--ease); }
-  .card-art img, .path-card img { transition: transform 400ms var(--ease); }
   .feature-read { transition: transform 240ms var(--ease); }
-  .toc ol::before { transition: transform 220ms var(--ease), height 220ms var(--ease); }
+  .toc a { transition: none; }
   .toc summary::before { transition: transform 220ms var(--ease); }
   .filters button:active, .search-keywords button:active, .search-close:active { transform: scale(.97); }
-  body::before { animation: light-arrive 300ms ease-out both; }
-  @keyframes light-arrive { from { opacity: .35; } to { opacity: 1; } }
-  @media(min-width: 900px) and (hover: hover) and (pointer: fine) {
-    body::before { inset: -3%; animation: light-arrive 300ms ease-out both, ambient-drift 24s ease-in-out 300ms infinite alternate; }
-    @keyframes ambient-drift { from { transform: translate3d(-1.5%,-1%,0); } to { transform: translate3d(1.5%,1%,0); } }
-  }
   @supports (interpolate-size: allow-keywords) {
     .reading-nav-ready .toc details { interpolate-size: allow-keywords; }
     .reading-nav-ready .toc details::details-content { block-size: 0; opacity: 0; overflow: clip; transition: block-size 220ms var(--ease), opacity 160ms ease, content-visibility 220ms allow-discrete; }
@@ -417,11 +404,10 @@ html.search-open { overflow: hidden; }
     .search-dialog[open]::backdrop, .figure-dialog[open]::backdrop { opacity: 0; }
   }
 }
-.motion-paused body::before, .search-open body::before { animation-play-state: paused; }
 @media(prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
-  body::before, .light-surface::before { display: none; }
+  body::before, :is(.note-row > a, .path-card, .next-note)::before { display: none; }
   .site-header, .search-dialog, .figure-dialog, .toc, .toc summary { background: Canvas; border-color: CanvasText; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
-  .toc ol::before { background: Canvas; border-color: CanvasText; box-shadow: none; }
+  .toc a[aria-current='location'] { background: Canvas; border-inline-start-color: CanvasText; text-decoration: underline; }
   .search-dialog::backdrop, .figure-dialog::backdrop { background: #25334266; -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 @media(max-width: 900px) {
@@ -512,8 +498,8 @@ html.search-open { overflow: hidden; }
 }
 @media(prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; scroll-behavior: auto !important; }
-  .light-surface::before { display: none; }
-  .note-row > a:hover .card-art img, .path-card:hover img, .feature-read:hover, .search-keywords button:hover, .quiet-button:hover { transform: none; }
+  :is(.note-row > a, .path-card, .next-note)::before { display: none; }
+  .feature-read:hover, .search-keywords button:hover, .quiet-button:hover { transform: none; }
   @view-transition { navigation: none; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }

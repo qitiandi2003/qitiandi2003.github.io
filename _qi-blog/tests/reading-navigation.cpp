@@ -108,7 +108,7 @@ int main(int argc,char**argv) {try {
     b.cmd("Page.navigate",{{"url",site+"notes/ros2/"}});
     b.until("document.readyState==='complete'&&!!document.querySelector('.toc')&&!document.documentElement.classList.contains('reading-nav-ready')");
     check(b.js("document.querySelector('.toc details').open")==true,"Directory remains accessible without JavaScript");
-    check(b.js("getComputedStyle(document.querySelector('.toc ol'),'::before').opacity")=="0","No-script directory does not display an uninitialized marker");
+    check(b.js("!document.querySelector('.toc [aria-current=location]')")==true,"No-script directory does not mark a chapter before scroll tracking starts");
     b.click(".toc a[href='#s3']");
     positioned("s3");
     b.viewport(390,844);

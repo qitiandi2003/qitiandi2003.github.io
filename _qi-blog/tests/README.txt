@@ -46,5 +46,5 @@ g++ -std=c++17 -O2 -Wall -Wextra -Wpedantic -Werror _qi-blog/tests/reading-navig
 g++ -std=c++17 -O2 -Wall -Wextra -Wpedantic -Werror _qi-blog/tests/reading-effects.cpp -lcrypto -o /tmp/qi-effects-test
 /tmp/qi-effects-test http://127.0.0.1:8982/
 
-用真实鼠标事件检查光晕跟随、滑动章节标记、搜索与键盘操作、手机快速展开与跳转，
-并检查减少动态效果/透明度设置。输出 180 帧的间隔及布局、脚本耗时；此数据仅代表本机测试环境。
+用真实鼠标事件检查当前章节高亮、单张卡片的悬停光晕、搜索与键盘操作、手机快速展开与跳转，
+并检查减少动态效果和减少透明度设置。

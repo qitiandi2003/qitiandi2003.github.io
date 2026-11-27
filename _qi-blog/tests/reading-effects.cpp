@@ -5,65 +5,47 @@ int main(int argc,char**argv) {try {
     const std::string site=argc>1?argv[1]:"http://127.0.0.1:8982/";
     Browser b;b.viewport(1440,960);
     b.cmd("Page.navigate",{{"url",site+"notes/ros2/"}});
-    b.until("document.readyState==='complete'&&!!document.querySelector('.toc details.light-surface')");
+    b.until("document.readyState==='complete'&&!!document.querySelector('.toc [aria-current=location]')");
     auto settled=[&]() {b.until("document.querySelector('.toc').getAnimations({subtree:true}).every(a=>a.playState!=='running')");};
     auto record=[&](int frames,const std::string& expression) {
         b.js("window.effectSamples=[];window.effectDone=false;(()=>{let last=performance.now();function sample(now){window.effectSamples.push("+expression+");last=now;if(window.effectSamples.length<"+std::to_string(frames)+")requestAnimationFrame(sample);else window.effectDone=true;}requestAnimationFrame(sample)})()");
     };
     check(b.js("getComputedStyle(document.querySelector('.toc')).backdropFilter.includes('blur(18px)')")==true,"Navigation has a real backdrop blur");
-    check(b.js("getComputedStyle(document.body,'::before').animationName.includes('ambient-drift')")==true,"Desktop ambient light is enabled");
-    const auto rect=b.js("(()=>{const r=document.querySelector('.toc details').getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}})()");
-    const double x=rect["x"].get<double>(),y=rect["y"].get<double>();
-    b.cmd("Input.dispatchMouseEvent",{{"type","mouseMoved"},{"x",x+50},{"y",y+90}});
-    b.until("getComputedStyle(document.querySelector('.toc details'),'::before').opacity==='1'");
-    check(b.js("Math.abs(parseFloat(document.querySelector('.toc details').style.getPropertyValue('--light-x'))-50)<1")==true,"Light follows the real pointer position");
-    b.shot("effects-glass-navigation");
-
-    b.cmd("Performance.enable");
-    const auto before=b.cmd("Performance.getMetrics");
-    record(180,"now-last");
-    for(int i=0;i<90;++i) {
-        b.cmd("Input.dispatchMouseEvent",{{"type","mouseMoved"},{"x",x+45+40*std::sin(i*.12)},{"y",y+95+35*std::cos(i*.12)}});
-        std::this_thread::sleep_for(16ms);
-    }
-    b.until("window.effectDone===true");
-    const auto timing=b.js("(()=>{const a=window.effectSamples.slice(1).sort((a,b)=>a-b);return {frames:a.length,median:a[Math.floor(a.length*.5)],p95:a[Math.floor(a.length*.95)],max:a.at(-1)}})()");
-    std::cout<<"Pointer and ambient-light frame intervals (ms): "<<timing.dump()<<std::endl;
-    check(timing["p95"].get<double>()<40,"Pointer lighting produces sustained slow frames");
-    const auto after=b.cmd("Performance.getMetrics");
-    auto metric=[](const J& metrics,const std::string& name) {for(const auto& m:metrics.at("metrics"))if(m.at("name")==name)return m.at("value").get<double>();return 0.;};
-    std::cout<<"During pointer sampling: layout "<<(metric(after,"LayoutDuration")-metric(before,"LayoutDuration"))*1000<<" ms, script "<<(metric(after,"ScriptDuration")-metric(before,"ScriptDuration"))*1000<<" ms"<<std::endl;
-    b.cmd("Input.dispatchMouseEvent",{{"type","mouseMoved"},{"x",1000},{"y",90}});
-    b.until("!document.querySelector('.toc details').style.getPropertyValue('--light-x')");
+    check(b.js("getComputedStyle(document.body,'::before').animationName")=="none","Reading background remains still");
     b.click(".toc a[href='#s4']");
     b.until("document.querySelector('.toc [aria-current=location]')?.hash==='#s4'");settled();
+    auto hover=[&](const std::string& selector) {
+        const auto point=b.js("(()=>{const r=document.querySelector("+J(selector).dump()+").getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()");
+        b.cmd("Input.dispatchMouseEvent",{{"type","mouseMoved"},{"x",point[0]},{"y",point[1]}});
+    };
+    hover(".toc a[href='#s3']");
+    b.until("document.querySelector('.toc a[href=\"#s3\"]').matches(':hover')");
     check(b.js(R"JS((()=>{
-      const list=document.querySelector('.toc ol'),a=list.querySelector('[aria-current]'),style=getComputedStyle(list,'::before');
-      return Math.abs(new DOMMatrixReadOnly(style.transform).m42-a.offsetTop)<1&&Math.abs(parseFloat(style.height)-a.offsetHeight)<1;
-    })())JS")==true,"Animated chapter marker settles exactly on its link");
+      const rows=[...document.querySelectorAll('.toc a')];
+      const filled=rows.filter(a=>getComputedStyle(a).backgroundColor!=='rgba(0, 0, 0, 0)');
+      return filled.length===1&&filled[0].hash==='#s4'&&getComputedStyle(filled[0]).borderInlineStartColor!=='rgba(0, 0, 0, 0)';
+    })())JS")==true,"Only the current chapter is highlighted even while hovering another link");
     b.shot("effects-active-section");
 
     b.click("[data-open-search]");
     b.until("document.querySelector('#search-dialog').open&&document.activeElement.id==='search-input'");
     check(b.js("getComputedStyle(document.querySelector('#search-dialog'),'::backdrop').backdropFilter.includes('blur')")==true,"Search backdrop stays blurred");
-    check(b.js("getComputedStyle(document.body,'::before').animationPlayState.split(',').every(s=>s.trim()==='paused')")==true,"Background movement pauses behind search");
     b.cmd("Input.insertText",{{"text","ROS 2"}});
     b.until("document.querySelectorAll('#search-results a').length>0");
     b.shot("effects-search");
     b.key("Escape","Escape",27);
     b.until("!document.querySelector('#search-dialog').open");
 
-    b.cmd("Emulation.setEmulatedMedia",{{"features",J::array({{{"name","prefers-reduced-motion"},{"value","reduce"}},{{"name","prefers-reduced-transparency"},{"value","reduce"}}})}});
-    b.until("document.documentElement.classList.contains('motion-paused')");
+    const J reduced=J::array({{{"name","prefers-reduced-motion"},{"value","reduce"}},{{"name","prefers-reduced-transparency"},{"value","reduce"}}});
+    b.cmd("Emulation.setEmulatedMedia",{{"features",reduced}});
     check(b.js("getComputedStyle(document.querySelector('.toc')).backdropFilter")=="none","Reduced transparency removes blur");
-    check(b.js("getComputedStyle(document.querySelector('.toc ol'),'::before').transitionDuration")=="0s","Reduced motion removes chapter animation");
-    check(b.js("getComputedStyle(document.querySelector('.toc details'),'::before').display")=="none","Reduced motion removes pointer light");
+    check(b.js("getComputedStyle(document.querySelector('.toc [aria-current=location]')).textDecorationLine.includes('underline')")==true,"Current section stays marked without transparency");
+    check(b.js("getComputedStyle(document.documentElement).scrollBehavior")=="auto","Reduced motion removes smooth scrolling");
     b.cmd("Emulation.setEmulatedMedia",{{"features",J::array()}});
 
     b.viewport(390,844);b.cmd("Emulation.setTouchEmulationEnabled",{{"enabled",true}});
     b.cmd("Page.navigate",{{"url",site+"notes/ros2/"}});
     b.until("document.readyState==='complete'&&document.documentElement.classList.contains('reading-nav-ready')&&!document.querySelector('.toc details').open");
-    check(b.js("!getComputedStyle(document.body,'::before').animationName.includes('ambient-drift')")==true,"Mobile avoids continuous ambient rendering");
     record(45,"document.querySelector('.toc').getBoundingClientRect().height");
     b.click(".toc summary");b.until("window.effectDone===true");
     if(b.js("CSS.supports('interpolate-size','allow-keywords')")==true) {
@@ -79,6 +61,15 @@ int main(int argc,char**argv) {try {
     b.click(".toc a[href='#s1']");
     b.until("!document.querySelector('.toc details').open&&Math.abs(document.querySelector('#s1').getBoundingClientRect().top-160)<2");
     b.shot("effects-mobile-reading");
-    std::cout<<"Glass and motion: real pointer tracking, moving marker, search/keyboard, reduced motion/transparency, mobile interpolation and rapid input passed"<<std::endl;
+    b.cmd("Emulation.setTouchEmulationEnabled",{{"enabled",false}});b.viewport(1440,960);
+    b.cmd("Page.navigate",{{"url",site+"topics/"}});
+    b.until("document.readyState==='complete'&&!!document.querySelector('.path-card')");
+    hover(".path-card");
+    b.until("getComputedStyle(document.querySelector('.path-card'),'::before').opacity==='1'");
+    check(b.js("[...document.querySelectorAll('.path-card')].slice(1).every(a=>getComputedStyle(a,'::before').opacity==='0')")==true,"Hover light stays on the interacted card");
+    b.shot("effects-card-focus");
+    b.cmd("Emulation.setEmulatedMedia",{{"features",reduced}});
+    check(b.js("getComputedStyle(document.querySelector('.path-card'),'::before').display")=="none","Reduced effects disable decorative hover light");
+    std::cout<<"Current chapter, localized card lighting, search, reduced effects and mobile interactions passed"<<std::endl;
     return 0;
 } catch(const std::exception& e) {std::cerr<<"FAIL: "<<e.what()<<'\n';return 1;}}
