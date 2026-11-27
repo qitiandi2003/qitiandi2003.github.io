@@ -1,0 +1,51 @@
+Teaching figure content contract
+
+Author one JSON file per existing article at _qi-blog/teaching/<slug>.json.
+The C++ site build generates local SVGs and places a progressive figure directly
+after an existing paragraph. JavaScript enhances it with previous/next/play.
+
+{
+  "slug": "existing-slug",
+  "section": 2,
+  "afterParagraph": 1,
+  "title": "A specific, short Chinese description",
+  "lead": "Explain the concrete setup and define symbols/units in Chinese.",
+  "base": [drawing commands shared by every frame],
+  "frames": [
+    {"label":"Short step label", "body":"80–160 Chinese characters explaining what to look at, the calculation, and what it means.", "alt":"An accessible description of the visual, including its important values.", "drawing":[frame-specific drawing commands]}
+  ],
+  "takeaway": "A precise conclusion, with the simplifying assumption or limitation where needed.",
+  "question": "One concrete check-your-understanding question, with given numbers if useful.",
+  "answer": "The answer plus reasoning, not merely a number.",
+  "refs": [{"label":"Official documentation or primary paper title", "url":"Direct supporting URL"}]
+}
+
+section and afterParagraph are 1-based and must exist. Use 3–4 frames.
+Keep total new prose around 350–650 Chinese characters. Read the actual article
+first; add explanations at the relevant point, don't repeat its prose or append
+generic repository commentary. Use original examples and diagrams, no copied art.
+
+SVG viewBox is 0 0 640 360. Use semantic diagrams: geometry, pixels, rays,
+timelines, probability bars, coordinate frames, trees, etc. Avoid making every
+figure a row of text boxes. Main labels should use size 28–32; secondary labels
+may use 22–24. Keep labels short and nonoverlapping, inside 12…628 / 16…344.
+Long explanations belong in body text, not the SVG. Numeric grids may be denser;
+the page offers an original-size image link and a text explanation.
+
+Drawing commands (JSON arrays):
+["rect", x,y,width,height, fill, stroke="none", radius=8]
+["circle", cx,cy,radius, fill, stroke="none"]
+["line", x1,y1,x2,y2, color="line", width=3, dashed=false]
+["arrow", x1,y1,x2,y2, color="blue", width=3]
+["text", x,y, text, size=28, color="ink", anchor="start", bold=false]
+["path", pathData, stroke="blue", width=3, fill="none"]
+["polyline", [[x,y],...], color="blue", width=3]
+
+Available color names: ink, blue, orange, green, muted, red, paper, paleBlue,
+paleOrange, paleGreen, line, white, none. Hex colors also work. Background is white.
+Do not add animation-specific markup, raw HTML, SVG snippets or external assets.
+
+These files are data, not executable code. Keep mathematical examples internally
+consistent and exact. Distinguish a toy model from the actual algorithm. Cite
+official docs / primary papers that were checked. Do not link the user's source
+repositories. Do not change unrelated article text or shared files.

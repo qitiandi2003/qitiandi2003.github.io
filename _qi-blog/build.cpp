@@ -21,7 +21,7 @@ const string brand = "Qi’blog";
 
 struct Article {
     string slug, title, summary, intro, topic, category, group, keywords, published;
-    json sections, refs;
+    json sections, refs, teaching;
     string visual, figure_caption;
     size_t visual_section, communication_section;
     int minutes;
@@ -59,6 +59,8 @@ void write(const fs::path& path, const string& data) {
     file.exceptions(std::ios::failbit | std::ios::badbit);
     file << data;
 }
+
+#include "teaching.hpp"
 
 string icon(const string& name) {
     string paths;
@@ -104,7 +106,7 @@ string document(const string& base, const string& page, const string& title, con
         "<meta name='viewport' content='width=device-width,initial-scale=1'><meta name='theme-color' content='#ffffff'>"
         "<title>" + html_escape(title) + "</title><meta name='description' content='" + html_escape(desc) + "'>"
         "<link rel='icon' href='" + base + "assets/favicon.svg?v=wordmark-4' type='image/svg+xml'><link rel='stylesheet' href='" +
-        base + "assets/site.css?v=perf-9'><script defer src='" + base + "assets/site.js?v=pet-21'></script>"
+        base + "assets/site.css?v=teaching-1'><script defer src='" + base + "assets/site.js?v=pet-21'></script>"
         "<noscript><style>.search-button,.filters{display:none}</style></noscript></head><body>" +
         header(base,page) + body + footer(base) + "</body></html>\n";
 }
@@ -268,14 +270,21 @@ string articlepage(const Article& a, const Article* previous, const Article* nex
         if (a.slug=="ros2" && i+1==a.communication_section)
             toc << "<li class='diagram-toc'><a href='#communication'>互动 · 三种通信方式</a></li>";
     }
-    out << "<div class='reading-layout'><aside class='toc'><details><summary>文章目录</summary><ol><li><a href='#preface'>序言</a></li>" << toc.str()
+    out << "<div class='reading-layout'><aside class='toc'><details><summary>文章目录</summary><ol>" << toc.str()
         << "<li><a href='#sources'>延伸阅读</a></li></ol></details></aside><article class='prose'>"
-        << "<section class='preface' aria-labelledby='preface'><h2 id='preface'>序言</h2><p>" << prose(a.intro) << "</p></section>";
+        << "<div class='article-intro'><p>" << prose(a.intro) << "</p></div>";
     size_t id=0;
     for(const auto& section : a.sections) {
         const string key="s"+std::to_string(++id),title=html_escape(section.at("title"));
         out << "<section aria-labelledby='" << key << "'><h2 id='" << key << "'>" << title << "</h2>";
-        for(const string p : section.at("paragraphs")) out << "<p>" << prose(p) << "</p>";
+        size_t paragraph=0;
+        for(const string p : section.at("paragraphs")) {
+            out << "<p>" << prose(p) << "</p>";
+            ++paragraph;
+            if(a.slug=="opencv"&&id==1&&paragraph==3)out<<sobel_lab();
+            if(!a.teaching.is_null()&&id==a.teaching.at("section")&&paragraph==a.teaching.at("afterParagraph"))
+                out<<teaching_html(a.teaching);
+        }
         if (section.contains("code")) out << "<figure class='terminal'><figcaption>" << html_escape(section.value("codeTitle",string("终端示例")))
             << "</figcaption><pre tabindex='0'><code>" << html_escape(section.at("code")) << "</code></pre></figure>";
         if (id==a.visual_section)
@@ -291,7 +300,13 @@ string articlepage(const Article& a, const Article* previous, const Article* nex
         out << "</section>";
     }
     out << "<section class='references' aria-labelledby='sources'><h2 id='sources'>延伸阅读</h2><ul>";
-    for(const auto& ref:a.refs) out << "<li><a href='" << html_escape(ref.at("url")) << "'>" << html_escape(ref.at("label")) << "</a></li>";
+    std::set<string> source_urls;
+    auto reference=[&](const json& ref){
+        const string url=ref.at("url");
+        if(source_urls.insert(url).second)out<<"<li><a href='"<<html_escape(url)<<"'>"<<html_escape(ref.at("label"))<<"</a></li>";
+    };
+    for(const auto& ref:a.refs)reference(ref);
+    if(!a.teaching.is_null())for(const auto& ref:a.teaching.at("refs"))reference(ref);
     auto chapter_link=[&](const Article* link,const string& label){
         out << "<a class='next-note' href='" << (link?"../"+link->slug+"/":route) << "'><span>" << label << "</span><strong>"
             << html_escape(link?link->title:path.at("name").get<string>()) << "</strong></a>";
@@ -302,6 +317,7 @@ string articlepage(const Article& a, const Article* previous, const Article* nex
     out << "</nav></article></div></main>";
     if(diagram) out << "<script defer src='../../assets/diagrams.js?v=perf-9'></script>";
     if(a.slug=="ros2") out << "<script defer src='../../assets/ros-communication.js?v=reading-3'></script>";
+    if(!a.teaching.is_null()||a.slug=="opencv")out<<"<script defer src='../../assets/teaching.js?v=1'></script>";
     return document(base,"note",a.title+" · "+brand,a.summary,out.str());
 }
 
@@ -330,8 +346,17 @@ int main() try {
             length += std::count_if(p.begin(), p.end(), [](unsigned char c){ return (c & 0xc0) != 0x80; });
         const string intro = j.at("intro");
         length += std::count_if(intro.begin(),intro.end(),[](unsigned char c){return (c & 0xc0) != 0x80;});
+        const auto teaching=teaching_for(j.at("slug"));
+        if(!teaching.is_null()) {
+            const size_t section=teaching.at("section"),paragraph=teaching.at("afterParagraph");
+            if(section<1||section>j.at("sections").size()||paragraph<1||paragraph>j.at("sections")[section-1].at("paragraphs").size())
+                throw std::runtime_error("Invalid teaching placement: "+j.at("slug").get<string>());
+            string added=teaching.at("lead").get<string>()+teaching.at("takeaway").get<string>()+teaching.at("question").get<string>()+teaching.at("answer").get<string>();
+            for(const auto& frame:teaching.at("frames"))added+=frame.at("body").get<string>();
+            length+=std::count_if(added.begin(),added.end(),[](unsigned char c){return (c&0xc0)!=0x80;});
+        }
         articles.push_back({j.at("slug"),j.at("title"),j.at("summary"),intro,j.at("topic"),j.at("category"),j.at("group"),j.at("keywords"),j.at("published"),
-                            j.at("sections"),j.at("refs"),j.at("visual"),j.at("visualCaption"),j.value("visualSection",size_t{1}),j.value("communicationSection",size_t{5}),std::max(1,static_cast<int>((length + 279) / 280))});
+                            j.at("sections"),j.at("refs"),teaching,j.at("visual"),j.at("visualCaption"),j.value("visualSection",size_t{1}),j.value("communicationSection",size_t{5}),std::max(1,static_cast<int>((length + 279) / 280))});
     }
     std::vector<Article> ordered;
     std::set<string> assigned;

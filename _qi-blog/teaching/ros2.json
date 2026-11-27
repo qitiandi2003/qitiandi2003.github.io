@@ -1,0 +1,288 @@
+{
+  "afterParagraph": 2,
+  "answer": "不一定。默认仿真节点叫 /turtlesim；可执行程序名与节点名没有必须一致的约定，节点也可以在启动时重命名。",
+  "base": [
+    [
+      "rect",
+      28.0,
+      28.0,
+      584.0,
+      112.0,
+      "paleBlue",
+      "none",
+      8
+    ],
+    [
+      "text",
+      48.0,
+      62.0,
+      "磁盘里的 turtlesim 包",
+      28,
+      "blue",
+      "start",
+      false
+    ],
+    [
+      "rect",
+      48.0,
+      83.0,
+      250.0,
+      40.0,
+      "white",
+      "none",
+      8
+    ],
+    [
+      "text",
+      173.0,
+      111.0,
+      "turtlesim_node",
+      24,
+      "ink",
+      "middle",
+      false
+    ],
+    [
+      "rect",
+      320.0,
+      83.0,
+      272.0,
+      40.0,
+      "white",
+      "none",
+      8
+    ],
+    [
+      "text",
+      456.0,
+      111.0,
+      "turtle_teleop_key",
+      24,
+      "ink",
+      "middle",
+      false
+    ]
+  ],
+  "frames": [
+    {
+      "alt": "磁盘上的 turtlesim 包里并列存放 turtlesim_node 和 turtle_teleop_key，尚未启动进程。",
+      "body": "蓝框表示磁盘上安装好的 turtlesim 包。包像一份软件目录，其中有两个不同的可执行程序；此时它们还没有因为被安装就开始通信。命令 ros2 run 后的第一个名字选包，第二个名字才选具体要启动的程序。先把这两层认清，后面查不到节点时才知道该查安装还是查运行。",
+      "drawing": [
+        [
+          "text",
+          320.0,
+          213.0,
+          "已安装 ≠ 已运行",
+          32,
+          "ink",
+          "middle",
+          true
+        ],
+        [
+          "text",
+          320.0,
+          273.0,
+          "包名回答“到哪里找”",
+          28,
+          "muted",
+          "middle",
+          false
+        ]
+      ],
+      "label": "先找到可执行程序"
+    },
+    {
+      "alt": "两个可执行程序分别启动一个进程；仿真进程内是 /turtlesim，键盘进程内是 /teleop_turtle。",
+      "body": "分别启动这两个程序后，图中出现两个进程。这里的仿真进程创建 /turtlesim 节点，键盘进程创建 /teleop_turtle 节点。节点名字并不等于可执行文件名字：前者是运行时通信图里的身份，后者是系统启动程序时寻找的文件。一般情况下，一个进程也能容纳多个节点。",
+      "drawing": [
+        [
+          "arrow",
+          173.0,
+          140.0,
+          173.0,
+          184.0,
+          "blue",
+          3
+        ],
+        [
+          "arrow",
+          456.0,
+          140.0,
+          456.0,
+          184.0,
+          "blue",
+          3
+        ],
+        [
+          "rect",
+          48.0,
+          192.0,
+          250.0,
+          123.0,
+          "paper",
+          "line",
+          8
+        ],
+        [
+          "rect",
+          320.0,
+          192.0,
+          272.0,
+          123.0,
+          "paper",
+          "line",
+          8
+        ],
+        [
+          "text",
+          173.0,
+          223.0,
+          "仿真进程",
+          26,
+          "muted",
+          "middle",
+          false
+        ],
+        [
+          "text",
+          456.0,
+          223.0,
+          "键盘进程",
+          26,
+          "muted",
+          "middle",
+          false
+        ],
+        [
+          "rect",
+          65.0,
+          242.0,
+          216.0,
+          48.0,
+          "paleBlue",
+          "none",
+          8
+        ],
+        [
+          "rect",
+          334.0,
+          242.0,
+          244.0,
+          48.0,
+          "paleGreen",
+          "none",
+          8
+        ],
+        [
+          "text",
+          173.0,
+          274.0,
+          "/turtlesim",
+          25,
+          "blue",
+          "middle",
+          false
+        ],
+        [
+          "text",
+          456.0,
+          274.0,
+          "/teleop_turtle",
+          25,
+          "green",
+          "middle",
+          false
+        ]
+      ],
+      "label": "启动后才有节点"
+    },
+    {
+      "alt": "右侧 /teleop_turtle 经 /turtle1/cmd_vel 话题向左侧 /turtlesim 发送 Twist 速度消息。",
+      "body": "按键不会直接钻进模拟窗口。遥控节点把速度数据发布到约定的话题，仿真节点订阅这条话题，再更新海龟位置。图里从右向左的箭头只画速度命令这一条数据流，不表示两个程序只能单向通信。检查问题时，可以沿箭头依次确认发送端、通道名称、消息类型和接收端。",
+      "drawing": [
+        [
+          "rect",
+          40.0,
+          190.0,
+          224.0,
+          64.0,
+          "paleBlue",
+          "none",
+          8
+        ],
+        [
+          "rect",
+          374.0,
+          190.0,
+          226.0,
+          64.0,
+          "paleGreen",
+          "none",
+          8
+        ],
+        [
+          "text",
+          152.0,
+          231.0,
+          "/turtlesim",
+          25,
+          "blue",
+          "middle",
+          false
+        ],
+        [
+          "text",
+          487.0,
+          231.0,
+          "/teleop_turtle",
+          24,
+          "green",
+          "middle",
+          false
+        ],
+        [
+          "arrow",
+          374.0,
+          222.0,
+          270.0,
+          222.0,
+          "orange",
+          3
+        ],
+        [
+          "text",
+          320.0,
+          293.0,
+          "/turtle1/cmd_vel",
+          28,
+          "ink",
+          "middle",
+          false
+        ],
+        [
+          "text",
+          320.0,
+          330.0,
+          "消息类型：Twist",
+          24,
+          "muted",
+          "middle",
+          false
+        ]
+      ],
+      "label": "再连成运行图"
+    }
+  ],
+  "lead": "先只跟踪 turtlesim 中的两个程序。蓝色表示仿真端，绿色表示键盘端；逐步区分包、可执行程序、进程和节点。",
+  "question": "启动 turtlesim_node 后，ros2 node list 一定出现名为 turtlesim_node 的节点吗？",
+  "refs": [
+    {
+      "label": "ROS 2 Jazzy · 节点与运行图",
+      "url": "https://github.com/ros2/ros2_documentation/blob/jazzy/source/Tutorials/Beginner-CLI-Tools/Understanding-ROS2-Nodes/Understanding-ROS2-Nodes.rst"
+    }
+  ],
+  "section": 2,
+  "slug": "ros2",
+  "takeaway": "包和可执行程序属于软件的组织与启动；节点及其连接描述运行中的通信。查询包内程序和查询运行节点，是两种不同的检查。",
+  "title": "从磁盘文件到通信图"
+}

@@ -1,0 +1,282 @@
+{
+  "afterParagraph": 2,
+  "answer": "只需要一个。先从 notes 回到 journal，再进入 assets，写作 ../assets/site.css。这里假设没有另行指定 HTML 的 base 元素。",
+  "base": [
+    [
+      "line",
+      80.0,
+      69.0,
+      80.0,
+      270.0,
+      "line",
+      3,
+      false
+    ],
+    [
+      "line",
+      80.0,
+      130.0,
+      180.0,
+      130.0,
+      "line",
+      3,
+      false
+    ],
+    [
+      "line",
+      180.0,
+      139.0,
+      180.0,
+      196.0,
+      "line",
+      3,
+      false
+    ],
+    [
+      "line",
+      180.0,
+      196.0,
+      280.0,
+      196.0,
+      "line",
+      3,
+      false
+    ],
+    [
+      "line",
+      80.0,
+      270.0,
+      180.0,
+      270.0,
+      "line",
+      3,
+      false
+    ],
+    [
+      "text",
+      80.0,
+      49.0,
+      "journal/",
+      30,
+      "ink",
+      "start",
+      false
+    ],
+    [
+      "text",
+      191.0,
+      139.0,
+      "notes/",
+      28,
+      "ink",
+      "start",
+      false
+    ],
+    [
+      "text",
+      291.0,
+      205.0,
+      "photo/",
+      28,
+      "blue",
+      "start",
+      false
+    ],
+    [
+      "text",
+      191.0,
+      279.0,
+      "assets/",
+      28,
+      "green",
+      "start",
+      false
+    ],
+    [
+      "circle",
+      280.0,
+      196.0,
+      7.0,
+      "blue",
+      "none"
+    ],
+    [
+      "text",
+      320.0,
+      338.0,
+      "文章位于 /journal/notes/photo/",
+      25,
+      "muted",
+      "middle",
+      false
+    ]
+  ],
+  "frames": [
+    {
+      "alt": "文章目录下直接追加 assets/site.css，错误地请求 photo/assets/site.css。",
+      "body": "地址栏中的文章目录是 /journal/notes/photo/。相对引用 assets/site.css 不带向上标记，浏览器会直接接到这个目录后面，得到文章目录下的 assets。图中红色分支就是这个被请求的位置，已经偏离共享样式所在的目录。",
+      "drawing": [
+        [
+          "line",
+          280.0,
+          212.0,
+          280.0,
+          247.0,
+          "red",
+          3,
+          false
+        ],
+        [
+          "arrow",
+          280.0,
+          247.0,
+          427.0,
+          247.0,
+          "red",
+          3
+        ],
+        [
+          "text",
+          440.0,
+          257.0,
+          "assets?",
+          26,
+          "red",
+          "start",
+          false
+        ],
+        [
+          "text",
+          395.0,
+          87.0,
+          "原地追加",
+          28,
+          "red",
+          "middle",
+          false
+        ]
+      ],
+      "label": "不向上就留在文章目录"
+    },
+    {
+      "alt": "一次 ../ 从 photo 回到 notes，随后请求 notes/assets/site.css，仍不在目标目录。",
+      "body": "换成 ../assets/site.css 时，第一个 .. 只把当前目录 photo 去掉，基础位置来到 notes。再追加 assets，仍得到 notes/assets/site.css。不要把 .. 理解为“自动回项目根目录”：它只处理路径的一个层级。",
+      "drawing": [
+        [
+          "arrow",
+          278.0,
+          183.0,
+          183.0,
+          144.0,
+          "orange",
+          4
+        ],
+        [
+          "text",
+          405.0,
+          87.0,
+          "../ 一次",
+          28,
+          "orange",
+          "middle",
+          false
+        ],
+        [
+          "arrow",
+          285.0,
+          126.0,
+          429.0,
+          126.0,
+          "red",
+          3
+        ],
+        [
+          "text",
+          440.0,
+          137.0,
+          "assets?",
+          26,
+          "red",
+          "start",
+          false
+        ]
+      ],
+      "label": "一次向上只去掉 photo"
+    },
+    {
+      "alt": "两次 ../ 从 photo 经 notes 回到 journal，再进入 assets，得到 /journal/assets/site.css。",
+      "body": "第二个 .. 再去掉 notes，基础位置才回到 /journal/。随后进入 assets，就找到了共享样式表。因此这个例子的引用写作 ../../assets/site.css。若改成以 / 开头，则会直接从域名根目录开始，反而绕过 journal；相对路径和根路径不能凭外观互换。",
+      "drawing": [
+        [
+          "arrow",
+          278.0,
+          183.0,
+          183.0,
+          144.0,
+          "blue",
+          4
+        ],
+        [
+          "arrow",
+          177.0,
+          116.0,
+          94.0,
+          64.0,
+          "blue",
+          4
+        ],
+        [
+          "arrow",
+          91.0,
+          76.0,
+          91.0,
+          253.0,
+          "green",
+          4
+        ],
+        [
+          "arrow",
+          94.0,
+          260.0,
+          174.0,
+          260.0,
+          "green",
+          4
+        ],
+        [
+          "text",
+          427.0,
+          87.0,
+          "../../",
+          32,
+          "green",
+          "middle",
+          true
+        ],
+        [
+          "text",
+          445.0,
+          281.0,
+          "site.css",
+          26,
+          "green",
+          "middle",
+          false
+        ]
+      ],
+      "label": "两次向上回到 journal"
+    }
+  ],
+  "lead": "站点挂在 /journal/ 子路径。树上有文章目录和共享 assets 目录；从蓝点出发解析三种写法。",
+  "question": "若页面变为 /journal/notes/，取 /journal/assets/site.css 需要几个 ../？",
+  "refs": [
+    {
+      "label": "MDN · 相对 URL 的解析",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/URL_API/Resolving_relative_references"
+    }
+  ],
+  "section": 2,
+  "slug": "static-pages",
+  "takeaway": "先找文档的基础 URL，再按相对引用逐段移动。站点部署在子路径时，直接从域名根目录出发的写法未必指向相同资源。",
+  "title": "沿目录树走两步再取样式"
+}

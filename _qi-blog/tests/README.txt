@@ -18,3 +18,17 @@ pet-motion.html 用于放大和原尺寸预览。可选动作、拖动时间滑�
 
 资产生成由 _qi-blog/build-plush-rig.cpp 完成，输入是原有的两张奶油小熊素材图。
 身体保持同一张纹理，袖子沿连续曲线变形。运行时不再加载姿势补帧图集。
+
+文章分步图解检查
+
+先编译并运行 _qi-blog/build.cpp，以 _qi-blog/teaching/ 中的内容生成 SVG 和文章页。
+在本地静态服务运行时执行：
+
+g++ -std=c++17 -O2 -Wall -Wextra -Wpedantic -Werror _qi-blog/tests/teaching.cpp -lcrypto $(pkg-config --cflags --libs opencv4) -o /tmp/qi-teaching-test
+/tmp/qi-teaching-test http://127.0.0.1:8982/
+
+检查 50 篇文章的图解切换、手机宽度、练习展开、播放/暂停、减少动态效果及无脚本回退。
+152 张 SVG 用浏览器实际字体检查标注越界与重叠，问题报告在 /tmp/qi-teaching-svg-audit.json。
+Sobel 演示的两个方向及明暗反转结果逐格与 OpenCV 的 C++ 计算比对。
+只检查 SVG 排版时，在地址后增加 --audit-svg；也可传入已发布站点地址做线上验证。
+数据格式说明见 _qi-blog/teaching-format.txt。示意图及算例保留在仓库中，可随正文维护。
